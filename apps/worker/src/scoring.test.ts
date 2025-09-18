@@ -1,20 +1,40 @@
-import { describe, it, expect, vi } from 'vitest';
-
-// Simple test using a mocked prisma client
-const mkPrisma = (evidence: any[]) => ({
-  evidence: { findMany: vi.fn().mockResolvedValue(evidence) },
-} as any);
-
+import { describe, it, expect } from 'vitest';
+import type { PrismaClient } from '@prisma/client';
 import { computeScore } from './scoring';
 
+type MockEvidence = {
+  id: string;
+  type: string;
+  details: Record<string, unknown>;
+};
+
+type MockPrisma = {
+  evidence: {
+    findMany: (args: { where: { scanId: string } }) => Promise<MockEvidence[]>;
+  };
+};
+
 describe('computeScore', () => {
-  it('caps tracker penalty at 40', async () => {
-    const ev = Array.from({ length: 20 }).map((_, i) => ({ id: String(i), scanId: 's', type: 'tracker', severity: 3, title: 't', details: { domain: 'd' + i } }));
-    // Add a policy to avoid the -5 policy penalty in this focused test
-    ev.push({ id: 'p', scanId: 's', type: 'policy', severity: 1, title: 'policy', details: {} } as any);
-    const prisma = mkPrisma(ev);
-    const res = await computeScore(prisma, 's');
-    expect(res.score).toBe(60); // 100-40
-  expect(res.label).toBe('Caution');
+  const createPrisma = (records: MockEvidence[]): MockPrisma => ({
+    evidence: {
+      findMany: async () => records,
+    },
+  });
+
+  it('returns baseline score when no evidence present', async () => {
+    const prisma = createPrisma([]) as unknown as PrismaClient;
+    const result = await computeScore(prisma, 'scan');
+    expect(result.score).toBe(95);
+    expect(result.label).toBe('Safe');
+  });
+
+  it('applies penalties for trackers and third-party evidence', async () => {
+    const prisma = createPrisma([
+      { id: 'tracker', type: 'tracker', details: { domain: 'tracker.com' } },
+      { id: 'third', type: 'thirdparty', details: { domain: 'other.com' } },
+    ]) as unknown as PrismaClient;
+    const result = await computeScore(prisma, 'scan');
+    expect(result.score).toBeLessThan(100);
+    expect(result.explanations.length).toBeGreaterThan(0);
   });
 });

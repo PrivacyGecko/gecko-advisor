@@ -1,13 +1,29 @@
 import path from 'node:path';
+import type { Prisma } from '@prisma/client';
+
+const JSON_ASSERTION = { assert: { type: 'json' as const } };
+
+async function importJson(relativePath: string): Promise<Prisma.InputJsonValue> {
+  const fullPath = path.resolve(process.cwd(), relativePath);
+  const mod = await import(fullPath, JSON_ASSERTION);
+  return (mod as { default: Prisma.InputJsonValue }).default;
+}
+
+const extractVersion = (value: Prisma.InputJsonValue): string => {
+  if (typeof value === 'object' && value !== null && 'version' in value) {
+    const version = (value as Record<string, unknown>).version;
+    if (typeof version === 'string') return version;
+  }
+  return 'demo';
+};
 
 export async function loadDemoLists() {
-  const root = process.cwd();
-  const easy = await import(path.resolve(root, 'packages/shared/data/easyprivacy-demo.json'), { assert: { type: 'json' } } as any);
-  const who = await import(path.resolve(root, 'packages/shared/data/whotracks-demo.json'), { assert: { type: 'json' } } as any);
-  const psl = await import(path.resolve(root, 'packages/shared/data/psl-demo.json'), { assert: { type: 'json' } } as any);
+  const easy = await importJson('packages/shared/data/easyprivacy-demo.json');
+  const who = await importJson('packages/shared/data/whotracks-demo.json');
+  const psl = await importJson('packages/shared/data/psl-demo.json');
   return [
-    { source: 'easyprivacy', version: easy.default.version || 'demo', data: easy.default },
-    { source: 'whotracks', version: who.default.version || 'demo', data: who.default },
-    { source: 'psl', version: psl.default.version || 'demo', data: psl.default }
+    { source: 'easyprivacy', version: extractVersion(easy), data: easy },
+    { source: 'whotracks', version: extractVersion(who), data: who },
+    { source: 'psl', version: extractVersion(psl), data: psl },
   ];
 }
