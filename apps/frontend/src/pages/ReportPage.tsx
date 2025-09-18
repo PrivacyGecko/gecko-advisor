@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
 SPDX-License-Identifier: MIT
 */
 import React from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getReport } from '../lib/api';
 import ScoreDial from '../components/ScoreDial';
@@ -257,6 +257,16 @@ function ReportBody({ slug, data }: { slug: string; data: ReportResponse }) {
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1 text-sm font-medium text-security-blue hover:text-security-blue-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-security-blue focus-visible:ring-offset-2 rounded"
+          aria-label="Back to home"
+        >
+          <span aria-hidden="true">&larr;</span>
+          Home
+        </Link>
+      </div>
       <header className="flex items-center gap-4">
         <ScoreDial score={scan.score ?? 0} />
         <div>
