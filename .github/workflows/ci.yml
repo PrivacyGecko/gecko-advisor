@@ -32,7 +32,8 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 10.14.0
-          run_install: true
+          run_install: true
+
       - name: Generate license report
         run: pnpm run licenses:report
       - name: Enforce license policy
@@ -49,6 +50,9 @@ jobs:
         run: pnpm prisma:migrate
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/privacy
+      - name: Ensure shadow database
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='privacy_shadow'" | grep -q 1 || PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c "CREATE DATABASE privacy_shadow"
       - name: Check migrations match schema
         run: npx prisma migrate diff --from-migrations=infra/prisma/migrations --to-schema-datamodel=infra/prisma/schema.prisma --shadow-database-url=postgresql://postgres:postgres@localhost:5432/privacy_shadow --exit-code
       - name: Lint
@@ -61,6 +65,9 @@ jobs:
           RUN_DB_TESTS: '1'
       - name: Build
         run: pnpm -w build
+
+
+
 
 
 
