@@ -1,31 +1,53 @@
 SHELL := /bin/sh
 
 export COMPOSE_PROJECT_NAME=privacy_advisor
+ENV ?= dev
+
+COMPOSE_BASE = -f infra/docker/docker-compose.yml
+
+ifeq ($(ENV),dev)
+COMPOSE_FILES = $(COMPOSE_BASE) -f infra/docker/docker-compose.dev.yml
+endif
+ifeq ($(ENV),stage)
+COMPOSE_FILES = $(COMPOSE_BASE) -f infra/docker/docker-compose.dev.yml -f infra/docker/docker-compose.stage.yml
+endif
+ifeq ($(ENV),production)
+COMPOSE_FILES = $(COMPOSE_BASE)
+endif
+
+DOCKER_COMPOSE = docker compose $(COMPOSE_FILES)
 
 dev:
-	docker compose -f infra/docker/docker-compose.yml --profile dev up -d --build
-	# Apply DB migrations inside backend container (uses npm exec available in Node image)
-	docker exec privacy-advisor-backend-1 npm exec --yes prisma migrate deploy -- --schema=/app/infra/prisma/schema.prisma || true
-	# Seed demo data
-	docker exec privacy-advisor-backend-1 node node_modules/tsx/dist/cli.js infra/prisma/seed.ts || true
+	$(MAKE) ENV=dev up
+	$(MAKE) ENV=dev migrate
+	$(MAKE) ENV=dev seed
+
+stage:
+	$(MAKE) ENV=stage up
+	$(MAKE) ENV=stage migrate
+
+prod:
+	$(MAKE) ENV=production up
 
 up:
-	docker compose -f infra/docker/docker-compose.yml up -d --build
+	$(DOCKER_COMPOSE) up -d --build
 
 down:
-	docker compose -f infra/docker/docker-compose.yml down -v
+	$(DOCKER_COMPOSE) down -v
 
 logs:
-	docker compose -f infra/docker/docker-compose.yml logs -f --tail=100
+	$(DOCKER_COMPOSE) logs -f --tail=100
+
+migrate:
+	docker exec privacy-advisor-backend-1 npm exec --yes prisma migrate deploy -- --schema=/app/infra/prisma/schema.prisma || true
+
+seed:
+	docker exec privacy-advisor-backend-1 node node_modules/tsx/dist/cli.js infra/prisma/seed.ts || true
 
 test:
 	pnpm -w test
 
-seed:
-	npm exec --yes prisma migrate deploy -- --schema=infra/prisma/schema.prisma
-	pnpm -w seed
-
 fmt:
 	pnpm -w prettier --write .
 
-.PHONY: dev up down logs test seed fmt
+.PHONY: dev stage prod up down logs test seed fmt migrate

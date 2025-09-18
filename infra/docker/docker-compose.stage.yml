@@ -1,0 +1,8 @@
+services:
+  backend:
+    environment:
+      APP_ENV: stage
+      BASE_URL: ${BASE_URL:-https://stage.privamule.com}
+  frontend:
+    environment:
+      APP_ENV: stage

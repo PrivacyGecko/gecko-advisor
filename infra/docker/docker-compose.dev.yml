@@ -1,0 +1,30 @@
+services:
+  db:
+    ports:
+      - "5432:5432"
+  redis:
+    ports:
+      - "6379:6379"
+  backend:
+    environment:
+      NODE_ENV: development
+      APP_ENV: development
+    ports:
+      - "5000:5000"
+  worker:
+    environment:
+      NODE_ENV: development
+      APP_ENV: development
+  frontend:
+    ports:
+      - "8080:80"
+  nginx:
+    image: nginx:1.27-alpine
+    volumes:
+      - ../..//apps/frontend/dist:/usr/share/nginx/html:ro
+      - ../..//infra/docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_started
