@@ -1,0 +1,17 @@
+FROM node:22-alpine AS builder
+WORKDIR /app
+ENV CI=true
+COPY . .
+RUN corepack enable && corepack prepare pnpm@9.7.1 --activate
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store pnpm install -r --frozen-lockfile
+RUN pnpm -w build
+
+FROM nginx:1.27-alpine AS runner
+WORKDIR /usr/share/nginx/html
+COPY --from=builder /app/apps/frontend/dist .
+WORKDIR /
+COPY infra/docker/nginx.tmpl.conf /nginx.tmpl.conf
+COPY infra/docker/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+EXPOSE 80
+ENTRYPOINT ["/docker-entrypoint.sh"]

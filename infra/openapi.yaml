@@ -1,0 +1,120 @@
+openapi: 3.0.3
+info:
+  title: Privacy Advisor API
+  version: 0.1.0
+servers:
+  - url: /
+paths:
+  /api/scan/url:
+    post:
+      summary: Queue a URL scan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+              required: [url]
+      responses:
+        '200':
+          description: Queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  scanId: { type: string }
+                  reportSlug: { type: string }
+                required: [scanId, reportSlug]
+  /api/scan/{id}/status:
+    get:
+      summary: Scan status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [queued, running, done, error]
+                  progress:
+                    type: number
+                  score:
+                    type: number
+                  label:
+                    type: string
+        '404': { description: Not Found }
+  /api/report/{slug}:
+    get:
+      summary: Public report
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Report
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  scan: { type: object }
+                  evidence: { type: array, items: { type: object } }
+  /api/scan/app:
+    post:
+      summary: Queue app scan (stub)
+      responses:
+        '200': { description: Queued }
+  /api/scan/address:
+    post:
+      summary: Queue address scan (stub)
+      responses:
+        '200': { description: Queued }
+  /api/admin/refresh-lists:
+    post:
+      summary: Admin refresh lists from fixtures
+      security:
+        - AdminKey: []
+      responses:
+        '200': { description: OK }
+components:
+  securitySchemes:
+    AdminKey:
+      type: apiKey
+      in: header
+      name: X-Admin-Key
+  /api/reports/recent:
+    get:
+      summary: Recent reports (anonymized)
+      responses:
+        '200':
+          description: Recent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        slug: { type: string }
+                        score: { type: number }
+                        label: { type: string }
+                        domain: { type: string }
+                        createdAt: { type: string }

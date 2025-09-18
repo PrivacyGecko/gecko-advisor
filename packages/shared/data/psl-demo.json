@@ -1,0 +1,12 @@
+{
+  "version": "public-1",
+  "note": "Demo subset; in production use full PSL",
+  "entries": [
+    "com",
+    "net",
+    "org",
+    "test",
+    "co.uk",
+    "io"
+  ]
+}

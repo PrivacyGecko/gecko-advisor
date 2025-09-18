@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: privacy
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: true
+      - name: Generate license report
+        run: pnpm run licenses:report
+      - name: Enforce license policy
+        run: pnpm run licenses:check
+      - name: SPDX header check (changed files)
+        run: pnpm run spdx:check
+        env:
+          SPDX_ONLY_CHANGED: '1'
+      - name: Generate Prisma Client
+        run: pnpm prisma:generate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/privacy
+      - name: Migrate DB
+        run: pnpm prisma:migrate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/privacy
+      - name: Check migration diff (schema drift)
+        run: npx prisma migrate diff --from-schema-datamodel-path=infra/prisma/schema.prisma --to-url=postgresql://postgres:postgres@localhost:5432/privacy --shadow-database-url=postgresql://postgres:postgres@localhost:5432/privacy --exit-code
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/privacy
+      - name: Lint
+        run: pnpm -w lint
+      - name: Typecheck
+        run: pnpm -w typecheck
+      - name: Test
+        run: pnpm -w test
+        env:
+          RUN_DB_TESTS: '1'
+      - name: Build
+        run: pnpm -w build

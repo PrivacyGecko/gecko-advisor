@@ -1,0 +1,17 @@
+node_modules/
+dist/
+build/
+.turbo/
+.vite/
+.vercel/
+.DS_Store
+.env
+.env.*
+coverage/
+playwright-report/
+test-results/
+*.log
+**/.eslintcache
+**/.cache
+packages/**/tsconfig.tsbuildinfo
+apps/**/tsconfig.tsbuildinfo

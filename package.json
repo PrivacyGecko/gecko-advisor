@@ -1,0 +1,35 @@
+{
+  "name": "privacy-advisor",
+  "private": true,
+  "packageManager": "pnpm@10.14.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "infra/prisma"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "prisma:generate": "prisma generate --schema=infra/prisma/schema.prisma",
+    "prisma:migrate": "prisma migrate deploy --schema=infra/prisma/schema.prisma",
+    "seed": "tsx infra/prisma/seed.ts",
+    "licenses:report": "license-checker --summary --production --direct --json > LICENSES.json",
+    "licenses:check": "node scripts/check-licenses.js",
+    "spdx:check": "node scripts/check-spdx.js"
+  },
+  "devDependencies": {
+    "@prisma/client": "^5.17.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.1",
+    "@typescript-eslint/parser": "^8.0.1",
+    "license-checker": "^25.0.1",
+    "eslint": "^9.9.0",
+    "prettier": "^3.3.3",
+    "prisma": "^5.17.0",
+    "turbo": "^2.0.3",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  }
+}

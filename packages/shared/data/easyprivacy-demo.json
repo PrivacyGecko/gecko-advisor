@@ -1,0 +1,9 @@
+{
+  "version": "demo-1",
+  "domains": [
+    "doubleclick.net",
+    "facebook.net",
+    "google-analytics.com",
+    "quantserve.com"
+  ]
+}

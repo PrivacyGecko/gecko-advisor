@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/.prisma/client"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Scan {
+  id          String    @id @default(cuid())
+  targetType  String
+  input       String
+  status      String
+  score       Int?
+  label       String?
+  summary     String?
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  reportSlug  String    @unique
+  evidence    Evidence[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Evidence {
+  id        String   @id @default(cuid())
+  scanId    String
+  type      String
+  severity  Int
+  title     String
+  details   Json
+  createdAt DateTime @default(now())
+  Scan      Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+}
+
+model CachedList {
+  id        String   @id @default(cuid())
+  source    String
+  version   String
+  fetchedAt DateTime @default(now())
+  data      Json
+}
