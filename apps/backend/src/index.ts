@@ -6,16 +6,16 @@ import morgan from "morgan";
 import { PrismaClient } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 import { Queue } from "bullmq";
-import Redis from "ioredis";
+import { Redis } from "ioredis";
 import {
   UrlScanRequestSchema,
   AppScanRequestSchema,
   AddressScanRequestSchema,
   ScanQueuedResponseSchema,
 } from "@privacy-advisor/shared";
-import { problem } from "./problem";
-import { adminGuard } from "./middleware/admin";
-import { loadDemoLists } from "./lists";
+import { problem } from "./problem.js";
+import { adminGuard } from "./middleware/admin.js";
+import { loadDemoLists } from "./lists.js";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { etldPlusOne } from "@privacy-advisor/shared";

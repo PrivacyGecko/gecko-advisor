@@ -13,7 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@prisma/client": "^5.17.0",
+    "@prisma/client": "^5.22.0",
     "@privacy-advisor/shared": "workspace:*",
     "bullmq": "^5.11.4",
     "cheerio": "^1.0.0",

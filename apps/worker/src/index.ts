@@ -1,7 +1,7 @@
 import { Worker, QueueEvents } from 'bullmq';
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
 import { PrismaClient } from '@prisma/client';
-import { scanSiteJob } from './scanner';
+import { scanSiteJob } from './scanner.js';
 import http from 'node:http';
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {

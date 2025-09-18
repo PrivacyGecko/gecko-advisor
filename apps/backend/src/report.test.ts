@@ -1,6 +1,6 @@
 import { describe, it, beforeAll, afterAll, expect } from 'vitest';
 import request from 'supertest';
-import { app, prisma } from './index';
+import { app, prisma } from './index.js';
 
 describe('GET /api/report/:slug includes dataSharing meta', () => {
   let scanId = '';

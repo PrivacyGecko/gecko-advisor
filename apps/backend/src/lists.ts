@@ -17,7 +17,13 @@ const extractVersion = (value: Prisma.InputJsonValue): string => {
   return 'demo';
 };
 
-export async function loadDemoLists() {
+export type DemoListRecord = {
+  source: string;
+  version: string;
+  data: Prisma.InputJsonValue;
+};
+
+export async function loadDemoLists(): Promise<DemoListRecord[]> {
   const easy = await importJson('packages/shared/data/easyprivacy-demo.json');
   const who = await importJson('packages/shared/data/whotracks-demo.json');
   const psl = await importJson('packages/shared/data/psl-demo.json');

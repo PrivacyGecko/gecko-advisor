@@ -2,9 +2,18 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "lib": ["ES2022"],
-    "types": ["node"],
-    "noEmitOnError": true
+    "lib": [
+      "ES2022"
+    ],
+    "types": [
+      "node"
+    ],
+    "noEmitOnError": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }

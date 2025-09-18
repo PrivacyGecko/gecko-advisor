@@ -1,7 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { load as loadHtml } from 'cheerio';
 import { normalizeUrl, etldPlusOne } from '@privacy-advisor/shared';
-import { getLists } from './lists';
+import { getLists } from './lists.js';
 
 const SECURITY_HEADERS = [
   'content-security-policy',
@@ -166,7 +166,7 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
   const start = Date.now();
 
   const trackerDomains = new Set(lists.easyprivacy.domains);
-  const fpDomains = new Set((lists.whotracks.fingerprinting ?? []).map((domain) => domain));
+  const fpDomains = new Set((lists.whotracks.fingerprinting ?? []).map((domain: string) => domain));
 
   while (queue.length && visited.size < pagesLimit && Date.now() - start < timeBudgetMs) {
     const curr = queue.shift();
@@ -268,7 +268,7 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
     });
   }
 
-  const { computeScore } = await import('./scoring');
+  const { computeScore } = await import('./scoring.js');
   const result = await computeScore(prisma, scanId);
   await prisma.scan.update({ where: { id: scanId }, data: { score: result.score, label: result.label } });
 }

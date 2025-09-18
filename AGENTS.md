@@ -54,8 +54,8 @@ This file captures context, decisions, and runbooks for this repository. Its sco
   - `APP_ENV=development`
   - `FRONTEND_PORT=5173`
   - `PORT=5000`
-- Staging: use `docker-compose.stage.yml`, set `APP_ENV=stage`, `BASE_URL=https://stage.privamule.com`, unique `ADMIN_API_KEY`
-- Production: use `docker-compose.prod.yml`, set `APP_ENV=production`, `BASE_URL=https://privamule.com`, hardened secrets
+- Staging: use `docker-compose.stage.yml`; load `infra/docker/env/stage.env` (sets `BASE_URL=https://stage.privamule.com`, `BACKEND_PUBLIC_URL=https://stageapi.privamule.com`, `WORKER_PUBLIC_URL=https://sworker.privamule.com`; secrets still come from your manager).
+- Production: use `docker-compose.prod.yml`; load `infra/docker/env/production.env` (maps to `https://privamule.com`, `https://api.privamule.com`, `https://worker.privamule.com`; keep real secrets out of git).
 
 ## Prisma & DB
 
@@ -159,5 +159,6 @@ This file captures context, decisions, and runbooks for this repository. Its sco
 - Refresh lists: `curl -H "X-Admin-Key: changeme" -X POST http://localhost:5000/api/admin/refresh-lists`
 - Start scan: `curl -X POST http://localhost:5000/api/scan/url -H "content-type: application/json" -d '{"url":"https://example.com"}'`
 - Recent reports: `GET http://localhost:5000/api/reports/recent`
+
 
 

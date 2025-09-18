@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { PrismaClient } from '@prisma/client';
-import { computeScore } from './scoring';
+import { computeScore } from './scoring.js';
 
 type MockEvidence = {
   id: string;
