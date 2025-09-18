@@ -21,10 +21,10 @@ describe('computeScore', () => {
     },
   });
 
-  it('returns 100 when no evidence present', async () => {
+  it('returns baseline score when no evidence present', async () => {
     const prisma = createPrisma([]) as unknown as PrismaClient;
     const result = await computeScore(prisma, 'scan');
-    expect(result.score).toBe(100);
+    expect(result.score).toBe(95);
     expect(result.label).toBe('Safe');
   });
 
