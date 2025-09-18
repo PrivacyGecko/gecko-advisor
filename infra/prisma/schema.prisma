@@ -22,7 +22,7 @@ model Scan {
   reportSlug  String    @unique
   evidence    Evidence[]
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  updatedAt   DateTime  @default(now()) @updatedAt
 }
 
 model Evidence {
@@ -34,6 +34,7 @@ model Evidence {
   details   Json
   createdAt DateTime @default(now())
   Scan      Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  @@index([scanId])
 }
 
 model CachedList {
