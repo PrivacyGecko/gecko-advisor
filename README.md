@@ -23,8 +23,8 @@ Frontend is reachable at `http://localhost:8080` when the dev stack is running (
 ### Environments
 
 - **Development (local):** Base compose + `docker-compose.dev.yml` override. Exposes Postgres, Redis, API, and frontend on localhost for rapid iteration.
-- **Stage:** Base compose + dev override + `docker-compose.stage.yml`. Set `APP_ENV=stage`, `BASE_URL=https://stage.privamule.com`, and a stage `ADMIN_API_KEY` in Coolify or your secrets manager.
-- **Production:** Base compose only. `APP_ENV=production`, `BASE_URL=https://privamule.com`, hardened secrets, and persistent volumes.
+- **Stage:** Use the base file together with `infra/docker/docker-compose.stage.yml`. Set `APP_ENV=stage`, `BASE_URL=https://stage.privamule.com`, and provide a stage `ADMIN_API_KEY` in Coolify or your secrets manager.
+- **Production:** Use the base file together with `infra/docker/docker-compose.prod.yml`. Ensure `APP_ENV=production`, `BASE_URL=https://privamule.com`, a production `ADMIN_API_KEY`, and persistent volumes.
 
 ### Monorepo Layout
 
@@ -90,3 +90,4 @@ GitHub Actions workflow `.github/workflows/ci.yml` runs lint, typecheck, test, b
 - Shallow crawl: 10 pages or 10s total.
 - Rate-limited background jobs.
 - For takedown/concerns, contact: contact@example.com.
+
