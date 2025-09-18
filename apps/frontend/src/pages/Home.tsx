@@ -13,11 +13,22 @@ import type { RecentReportsResponse } from '@privacy-advisor/shared';
 const INPUT_MODES = ['url', 'app', 'address'] as const;
 type InputMode = (typeof INPUT_MODES)[number];
 
-type RecentItem = RecentReportsResponse['items'][number];
+type RecentItem = RecentReportsResponse['items'][number] & { evidenceCount: number };
+type RecentQueryResult = { items: RecentItem[] };
 
 const formatCreatedAt = (value: RecentItem['createdAt']): string => {
   const date = typeof value === 'string' ? new Date(value) : value;
   return Number.isNaN(date.getTime()) ? '' : date.toLocaleString();
+};
+
+const fetchRecentReports = async (): Promise<RecentQueryResult> => {
+  const response = await getRecentReports();
+  return {
+    items: response.items.map((item) => ({
+      ...item,
+      evidenceCount: item.evidenceCount ?? 0,
+    })),
+  };
 };
 
 export default function Home() {
@@ -134,7 +145,11 @@ export default function Home() {
 }
 
 function RecentReports() {
-  const { data } = useQuery<RecentReportsResponse>({ queryKey: ['recent'], queryFn: getRecentReports, staleTime: 30_000 });
+  const { data } = useQuery<RecentQueryResult>({
+    queryKey: ['recent'],
+    queryFn: fetchRecentReports,
+    staleTime: 30_000,
+  });
   const items = data?.items ?? [];
   if (items.length === 0) return null;
   return (
@@ -160,7 +175,7 @@ function RecentReports() {
               >
                 {report.label}
               </span>
-              <span className="text-xs text-slate-600" title="Evidence count">{report.evidenceCount ?? 0} items</span>
+              <span className="text-xs text-slate-600" title="Evidence count">{report.evidenceCount} items</span>
               <a href={`/r/${report.slug}`} className="text-security-blue underline">View</a>
             </div>
           </li>
@@ -169,4 +184,3 @@ function RecentReports() {
     </Card>
   );
 }
-
