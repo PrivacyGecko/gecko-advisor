@@ -50,7 +50,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/privacy
       - name: Check migrations match schema
-        run: npx prisma migrate diff --from-migrations=infra/prisma/migrations --to-schema-datamodel=infra/prisma/schema.prisma --exit-code
+        run: npx prisma migrate diff --from-migrations=infra/prisma/migrations --to-schema-datamodel=infra/prisma/schema.prisma --shadow-database-url=postgresql://postgres:postgres@localhost:5432/privacy_shadow --exit-code
       - name: Lint
         run: pnpm -w lint
       - name: Typecheck
@@ -61,6 +61,7 @@ jobs:
           RUN_DB_TESTS: '1'
       - name: Build
         run: pnpm -w build
+
 
 
 
