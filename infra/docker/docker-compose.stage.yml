@@ -1,14 +1,25 @@
 name: privacy-advisor-stage
 services:
   backend:
+    extends:
+      file: ./docker-compose.yml
+      service: backend
     environment:
       APP_ENV: stage
       BASE_URL: ${BASE_URL:-https://stage.privamule.com}
       ADMIN_API_KEY: ${ADMIN_API_KEY:?Set stage ADMIN_API_KEY}
   worker:
+    extends:
+      file: ./docker-compose.yml
+      service: worker
     environment:
       APP_ENV: stage
   frontend:
+    extends:
+      file: ./docker-compose.yml
+      service: frontend
     environment:
       APP_ENV: stage
-
+volumes:
+  privacy-postgres:
+  privacy-redis:
