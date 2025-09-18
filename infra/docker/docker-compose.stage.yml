@@ -1,8 +1,14 @@
+name: privacy-advisor-stage
 services:
   backend:
     environment:
       APP_ENV: stage
       BASE_URL: ${BASE_URL:-https://stage.privamule.com}
+      ADMIN_API_KEY: ${ADMIN_API_KEY:?Set stage ADMIN_API_KEY}
+  worker:
+    environment:
+      APP_ENV: stage
   frontend:
     environment:
       APP_ENV: stage
+

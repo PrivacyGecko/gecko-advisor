@@ -1,0 +1,13 @@
+name: privacy-advisor-prod
+services:
+  backend:
+    environment:
+      APP_ENV: production
+      BASE_URL: ${BASE_URL:-https://privamule.com}
+      ADMIN_API_KEY: ${ADMIN_API_KEY:?Set production ADMIN_API_KEY}
+  worker:
+    environment:
+      APP_ENV: production
+  frontend:
+    environment:
+      APP_ENV: production

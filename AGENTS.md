@@ -30,7 +30,8 @@ This file captures context, decisions, and runbooks for this repository. Its sco
 
 - Docker (recommended):
   - Dev: `docker compose -f infra/docker/docker-compose.yml -f infra/docker/docker-compose.dev.yml up -d --build`
-  - Stage profile: add `-f infra/docker/docker-compose.stage.yml` and set `APP_ENV=stage`
+  - Stage: `docker compose -f infra/docker/docker-compose.yml -f infra/docker/docker-compose.stage.yml up -d --build`
+- Production: `docker compose -f infra/docker/docker-compose.yml -f infra/docker/docker-compose.prod.yml up -d --build`
   - Stop: `docker compose -f ... down -v`
 - Makefile shortcuts:
   - `make dev` - compose up (dev overrides) + apply Prisma migrations + seed demo
@@ -53,8 +54,8 @@ This file captures context, decisions, and runbooks for this repository. Its sco
   - `APP_ENV=development`
   - `FRONTEND_PORT=5173`
   - `PORT=5000`
-- Staging: set `APP_ENV=stage`, `BASE_URL=https://stage.privamule.com`, unique `ADMIN_API_KEY`
-- Production: set `APP_ENV=production`, `BASE_URL=https://privamule.com`, hardened secrets
+- Staging: use `docker-compose.stage.yml`, set `APP_ENV=stage`, `BASE_URL=https://stage.privamule.com`, unique `ADMIN_API_KEY`
+- Production: use `docker-compose.prod.yml`, set `APP_ENV=production`, `BASE_URL=https://privamule.com`, hardened secrets
 
 ## Prisma & DB
 
@@ -152,9 +153,11 @@ This file captures context, decisions, and runbooks for this repository. Its sco
 ## Quick Commands
 
 - Build & start dev: `docker compose -f infra/docker/docker-compose.yml -f infra/docker/docker-compose.dev.yml up -d --build`
-- Build & start stage: `APP_ENV=stage docker compose -f infra/docker/docker-compose.yml -f infra/docker/docker-compose.dev.yml -f infra/docker/docker-compose.stage.yml up -d --build`
+- Build & start stage: `docker compose -f infra/docker/docker-compose.yml -f infra/docker/docker-compose.stage.yml up -d --build`
+- Build & start production: `docker compose -f infra/docker/docker-compose.yml -f infra/docker/docker-compose.prod.yml up -d --build`
 - Health: `GET http://localhost:5000/api/health`
 - Refresh lists: `curl -H "X-Admin-Key: changeme" -X POST http://localhost:5000/api/admin/refresh-lists`
 - Start scan: `curl -X POST http://localhost:5000/api/scan/url -H "content-type: application/json" -d '{"url":"https://example.com"}'`
 - Recent reports: `GET http://localhost:5000/api/reports/recent`
+
 
