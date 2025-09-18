@@ -51,7 +51,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/privacy
       - name: Check migration diff (schema drift)
-        run: npx prisma migrate diff --from-schema-datamodel-path=infra/prisma/schema.prisma --to-url=postgresql://postgres:postgres@localhost:5432/privacy --shadow-database-url=postgresql://postgres:postgres@localhost:5432/privacy --exit-code
+        run: npx prisma migrate diff --from-schema-datamodel=infra/prisma/schema.prisma --to-url=postgresql://postgres:postgres@localhost:5432/privacy --shadow-database-url=postgresql://postgres:postgres@localhost:5432/privacy --exit-code
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/privacy
       - name: Lint
@@ -64,3 +64,4 @@ jobs:
           RUN_DB_TESTS: '1'
       - name: Build
         run: pnpm -w build
+
