@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@eslint/js':
+        specifier: ^9.9.0
+        version: 9.35.0
       '@prisma/client':
         specifier: ^5.17.0
         version: 5.22.0(prisma@5.22.0)
@@ -20,6 +23,9 @@ importers:
       eslint:
         specifier: ^9.9.0
         version: 9.35.0(jiti@1.21.7)
+      globals:
+        specifier: ^14.0.0
+        version: 14.0.0
       license-checker:
         specifier: ^25.0.1
         version: 25.0.1
