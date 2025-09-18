@@ -32,8 +32,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 10.14.0
-          run_install: true
-          cache: true
+          run_install: true
       - name: Generate license report
         run: pnpm run licenses:report
       - name: Enforce license policy
@@ -50,10 +49,8 @@ jobs:
         run: pnpm prisma:migrate
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/privacy
-      - name: Check migration diff (schema drift)
-        run: npx prisma migrate diff --from-schema-datamodel=infra/prisma/schema.prisma --to-url=postgresql://postgres:postgres@localhost:5432/privacy --shadow-database-url=postgresql://postgres:postgres@localhost:5432/privacy --exit-code
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/privacy
+      - name: Check migrations match schema
+        run: npx prisma migrate diff --from-migrations=infra/prisma/migrations --to-schema-datamodel=infra/prisma/schema.prisma --exit-code
       - name: Lint
         run: pnpm -w lint
       - name: Typecheck
@@ -64,4 +61,8 @@ jobs:
           RUN_DB_TESTS: '1'
       - name: Build
         run: pnpm -w build
+
+
+
+
 
