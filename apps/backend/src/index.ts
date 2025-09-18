@@ -6,7 +6,7 @@ import morgan from "morgan";
 import { PrismaClient } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 import { Queue } from "bullmq";
-import { Redis } from "ioredis";
+import Redis from "ioredis";
 import {
   UrlScanRequestSchema,
   AppScanRequestSchema,
@@ -43,7 +43,8 @@ const limiter = rateLimit({ windowMs: 60_000, max: 60 });
 app.use("/api/scan", limiter);
 
 // Queue
-const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379", {
+const RedisConstructor = Redis as unknown as typeof import('ioredis').default;
+const redis = new RedisConstructor(process.env.REDIS_URL || "redis://localhost:6379", {
   maxRetriesPerRequest: null,
 });
 const queue = new Queue("scan.site", { connection: redis });
