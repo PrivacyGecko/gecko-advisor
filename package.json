@@ -21,13 +21,13 @@
     "spdx:check": "node scripts/check-spdx.js"
   },
   "devDependencies": {
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "5.22.0",
     "@typescript-eslint/eslint-plugin": "^8.0.1",
     "@typescript-eslint/parser": "^8.0.1",
     "license-checker": "^25.0.1",
     "eslint": "^9.9.0",
     "prettier": "^3.3.3",
-    "prisma": "^5.22.0",
+    "prisma": "5.22.0",
     "turbo": "^2.0.3",
     "tsx": "^4.19.0",
     "typescript": "^5.5.4",

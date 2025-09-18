@@ -10,10 +10,11 @@
     "build": "tsc -p tsconfig.json",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "postinstall": "prisma generate --schema=../../infra/prisma/schema.prisma"
   },
   "dependencies": {
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "5.22.0",
     "@privacy-advisor/shared": "workspace:*",
     "bullmq": "^5.11.4",
     "cheerio": "^1.0.0",
@@ -23,6 +24,7 @@
     "@types/node": "^20.14.11",
     "typescript": "^5.5.4",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^2.0.5"
+    "vitest": "^2.0.5",
+    "prisma": "5.22.0"
   }
 }

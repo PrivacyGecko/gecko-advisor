@@ -91,8 +91,8 @@ app.post("/api/scan/url", async (req, res) => {
     const resp = { scanId: scan.id, reportSlug };
     const v = ScanQueuedResponseSchema.parse(resp);
     res.json(v);
-  } catch (e) {
-    console.error(e);
+  } catch (error: unknown) {
+    console.error(error);
     return problem(res, 500, "Internal Error");
   }
 });
@@ -217,8 +217,8 @@ app.post("/api/admin/refresh-lists", adminGuard, async (_req, res) => {
       await prisma.cachedList.create({ data: list });
     }
     res.json({ ok: true, sources: loaded.map((list) => list.source) });
-  } catch (e) {
-    console.error(e);
+  } catch (error: unknown) {
+    console.error(error);
     return problem(res, 500, "Failed to refresh lists");
   }
 });
