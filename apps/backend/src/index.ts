@@ -4,9 +4,9 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 import { PrismaClient } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import { Queue } from 'bullmq';
 import Redis from 'ioredis';
-import { z } from 'zod';
 import {
   UrlScanRequestSchema,
   AppScanRequestSchema,
@@ -47,6 +47,21 @@ const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
   maxRetriesPerRequest: null,
 });
 const queue = new Queue('scan.site', { connection: redis });
+type ScanStatusResponse = {
+  status: string;
+  score?: number;
+  label?: string;
+};
+
+const isJsonObject = (value: Prisma.JsonValue): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const extractDomain = (value: Prisma.JsonValue): string => {
+  if (!isJsonObject(value)) return '';
+  const record = value as Record<string, unknown>;
+  const domain = record.domain;
+  return typeof domain === 'string' ? domain : '';
+};
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true });
@@ -88,9 +103,9 @@ app.get('/api/scan/:id/status', async (req, res) => {
   const id = req.params.id;
   const scan = await prisma.scan.findUnique({ where: { id } });
   if (!scan) return problem(res, 404, 'Not Found');
-  const body: any = { status: scan.status };
-  if (scan.score != null) body.score = scan.score;
-  if (scan.label) body.label = scan.label as any;
+  const body: ScanStatusResponse = { status: scan.status };
+  if (typeof scan.score === 'number') body.score = scan.score;
+  if (scan.label) body.label = scan.label;
   res.json(body);
 });
 
@@ -104,7 +119,7 @@ app.get('/api/report/:slug', async (req, res) => {
     new Set(
       evidence
         .filter((e) => e.type === 'tracker')
-        .map((e) => String((e.details as any)?.domain || ''))
+        .map((e) => extractDomain(e.details))
         .filter(Boolean)
     )
   );
@@ -112,7 +127,7 @@ app.get('/api/report/:slug', async (req, res) => {
     new Set(
       evidence
         .filter((e) => e.type === 'thirdparty')
-        .map((e) => String((e.details as any)?.domain || ''))
+        .map((e) => extractDomain(e.details))
         .filter(Boolean)
     )
   );
@@ -148,7 +163,7 @@ app.get('/api/reports/recent', async (_req, res) => {
     return {
       slug: s.reportSlug,
       score: s.score ?? 0,
-      label: (s.label as any) ?? 'Caution',
+      label: s.label ?? 'Caution',
       domain,
       createdAt: s.createdAt,
       evidenceCount: counts[i] ?? 0,
@@ -229,3 +244,10 @@ if (!process.env.VITEST_WORKER_ID) {
     console.log(`Backend running on :${port}`);
   });
 }
+
+
+
+
+
+
+

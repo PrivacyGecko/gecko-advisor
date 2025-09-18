@@ -2,9 +2,17 @@ import { describe, it, beforeAll, afterAll, expect } from 'vitest';
 import request from 'supertest';
 import { app, prisma } from './index';
 
+type RecentItem = {
+  slug: string;
+  domain: string;
+  evidenceCount: number;
+  score: number;
+  label: string;
+};
+
 describe('GET /api/reports/recent', () => {
   let scanId = '';
-  let canRun = process.env.RUN_DB_TESTS === '1';
+  const canRun = process.env.RUN_DB_TESTS === '1';
 
   beforeAll(async () => {
     if (!canRun) return;
@@ -36,12 +44,13 @@ describe('GET /api/reports/recent', () => {
   const run = (canRun ? it : it.skip);
   run('returns recent completed scans with evidence counts', async () => {
     const res = await request(app).get('/api/reports/recent').expect(200);
-    expect(Array.isArray(res.body.items)).toBe(true);
-    const item = res.body.items.find((x: any) => x.slug === 'testslug');
+    const data = res.body as { items?: RecentItem[] };
+    expect(Array.isArray(data.items)).toBe(true);
+    const item = (data.items ?? []).find((x) => x.slug === 'testslug');
     expect(item).toBeTruthy();
-    expect(item.domain).toBe('example.com');
-    expect(item.evidenceCount).toBeGreaterThanOrEqual(2);
-    expect(item.score).toBe(95);
-    expect(item.label).toBe('Safe');
+    expect(item?.domain).toBe('example.com');
+    expect((item?.evidenceCount ?? 0)).toBeGreaterThanOrEqual(2);
+    expect(item?.score).toBe(95);
+    expect(item?.label).toBe('Safe');
   }, 15000);
 });
