@@ -9,7 +9,7 @@ const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
 });
 const prisma = new PrismaClient();
 
-const worker = new Worker(
+export const worker = new Worker(
   'scan.site',
   async (job) => {
     const { scanId, url } = job.data as { scanId: string; url: string };
@@ -26,9 +26,9 @@ const worker = new Worker(
   { connection: redis }
 );
 
-const qe = new QueueEvents('scan.site', { connection: redis });
-qe.on('completed', ({ jobId }) => console.log('Completed job', jobId));
-qe.on('failed', ({ jobId, failedReason }) => console.log('Failed job', jobId, failedReason));
+export const queueEvents = new QueueEvents('scan.site', { connection: redis });
+queueEvents.on('completed', ({ jobId }) => console.log('Completed job', jobId));
+queueEvents.on('failed', ({ jobId, failedReason }) => console.log('Failed job', jobId, failedReason));
 
 console.log('Worker running...');
 
@@ -40,3 +40,7 @@ http
     res.end(JSON.stringify({ ok: true }));
   })
   .listen(HEALTH_PORT, () => console.log(`Worker health on :${HEALTH_PORT}`));
+
+
+
+

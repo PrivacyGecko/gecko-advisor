@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import type { ZodSchema } from 'zod';
 import {
   UrlScanRequestSchema,
   ScanQueuedResponseSchema,
@@ -7,7 +7,7 @@ import {
   RecentReportsResponseSchema,
 } from '@privacy-advisor/shared';
 
-async function json<T>(res: Response, schema: z.ZodSchema<T>): Promise<T> {
+async function json<T>(res: Response, schema: ZodSchema<T>): Promise<T> {
   const data = await res.json();
   return schema.parse(data);
 }

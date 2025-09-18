@@ -2,83 +2,112 @@ import type { PrismaClient } from '@prisma/client';
 import type { ScoreResult } from '@privacy-advisor/shared';
 import { labelForScore } from '@privacy-advisor/shared';
 
+const coerceDetail = <T extends object>(value: unknown): T =>
+  (typeof value === 'object' && value !== null ? (value as T) : ({} as T));
+
+const isString = (value: unknown): value is string => typeof value === 'string';
+
+interface TrackerDetail {
+  domain?: string;
+  fingerprinting?: boolean;
+}
+
+interface ThirdPartyDetail {
+  domain?: string;
+}
+
+interface HeaderDetail {
+  name?: string;
+}
+
+interface TLSDetail {
+  grade?: 'A' | 'B' | 'C' | 'D' | 'F';
+}
+
 export async function computeScore(prisma: PrismaClient, scanId: string): Promise<ScoreResult> {
   const evidence = await prisma.evidence.findMany({ where: { scanId } });
   let score = 100;
   const explanations: { evidenceId: string; points: number; reason: string }[] = [];
 
-  // Trackers
-  const trackers = evidence.filter((e) => e.type === 'tracker');
-  const uniqueTrackerDomains = new Set<string>();
-  trackers.forEach((e) => uniqueTrackerDomains.add(((e.details as any)?.domain) as string));
+  const trackers = evidence.filter((entry) => entry.type === 'tracker');
+  const uniqueTrackerDomains = new Set(
+    trackers.map((entry) => coerceDetail<TrackerDetail>(entry.details).domain).filter(isString),
+  );
   let trackerPenalty = Math.min(uniqueTrackerDomains.size * 5, 40);
-  // fingerprinting domains extra -5
-  trackers.forEach((e) => {
-    if ((e.details as any)?.fingerprinting) trackerPenalty += 5;
+  trackers.forEach((entry) => {
+    if (coerceDetail<TrackerDetail>(entry.details).fingerprinting) trackerPenalty += 5;
   });
   if (trackerPenalty > 0) {
-    trackers.forEach((e) => explanations.push({ evidenceId: e.id, points: -5, reason: 'Tracker domain' }));
+    trackers.forEach((entry) => explanations.push({ evidenceId: entry.id, points: -5, reason: 'Tracker domain' }));
   }
   score -= trackerPenalty;
 
-  // Third-party calls
-  const third = evidence.filter((e) => e.type === 'thirdparty');
-  const uniqueThird = new Set<string>();
-  third.forEach((e) => uniqueThird.add((e.details as any).domain));
+  const thirdParty = evidence.filter((entry) => entry.type === 'thirdparty');
+  const uniqueThird = new Set(
+    thirdParty.map((entry) => coerceDetail<ThirdPartyDetail>(entry.details).domain).filter(isString),
+  );
   const thirdPenalty = Math.min(uniqueThird.size * 2, 20);
-  if (thirdPenalty) third.forEach((e) => explanations.push({ evidenceId: e.id, points: -2, reason: 'Third-party request' }));
+  if (thirdPenalty) {
+    thirdParty.forEach((entry) => explanations.push({ evidenceId: entry.id, points: -2, reason: 'Third-party request' }));
+  }
   score -= thirdPenalty;
 
-  // Insecure/mixed content
-  const insecure = evidence.filter((e) => e.type === 'insecure');
+  const insecure = evidence.filter((entry) => entry.type === 'insecure');
   const insecurePenalty = Math.min(insecure.length * 10, 20);
-  if (insecurePenalty) insecure.forEach((e) => explanations.push({ evidenceId: e.id, points: -10, reason: 'Insecure/mixed content' }));
+  if (insecurePenalty) {
+    insecure.forEach((entry) => explanations.push({ evidenceId: entry.id, points: -10, reason: 'Insecure/mixed content' }));
+  }
   score -= insecurePenalty;
 
-  // Missing headers
-  const header = evidence.filter((e) => e.type === 'header');
-  const headersMissing = header.map((e) => ((e.details as any)?.name as string)).length;
+  const headersMissing = evidence
+    .filter((entry) => entry.type === 'header')
+    .map((entry) => coerceDetail<HeaderDetail>(entry.details).name)
+    .filter(isString).length;
   const headerPenalty = headersMissing * 3;
-  if (headerPenalty) header.forEach((e) => explanations.push({ evidenceId: e.id, points: -3, reason: 'Missing security header' }));
+  if (headerPenalty) {
+    evidence
+      .filter((entry) => entry.type === 'header')
+      .forEach((entry) => explanations.push({ evidenceId: entry.id, points: -3, reason: 'Missing security header' }));
+  }
   score -= headerPenalty;
 
-  // Cookie issues
-  const cookieIssues = evidence.filter((e) => e.type === 'cookie');
+  const cookieIssues = evidence.filter((entry) => entry.type === 'cookie');
   const cookiePenalty = Math.min(cookieIssues.length * 2, 10);
-  if (cookiePenalty) cookieIssues.forEach((e) => explanations.push({ evidenceId: e.id, points: -2, reason: 'Cookie missing flags' }));
+  if (cookiePenalty) {
+    cookieIssues.forEach((entry) => explanations.push({ evidenceId: entry.id, points: -2, reason: 'Cookie missing flags' }));
+  }
   score -= cookiePenalty;
 
-  // Policy
-  const policy = evidence.filter((e) => e.type === 'policy');
-  if (policy.length === 0) {
+  const policyEntries = evidence.filter((entry) => entry.type === 'policy');
+  if (policyEntries.length === 0) {
     score -= 5;
-  } else if (policy.length > 0) {
-    const p0 = policy[0]!;
-    explanations.push({ evidenceId: p0.id, points: 0, reason: 'Privacy policy found' });
+  } else {
+    const [firstPolicy] = policyEntries;
+    if (firstPolicy) explanations.push({ evidenceId: firstPolicy.id, points: 0, reason: 'Privacy policy found' });
   }
 
-  // TLS
-  const tls = evidence.filter((e) => e.type === 'tls');
-  const tls0 = tls[0];
-  if (tls0) {
-    const grade = ((tls0.details as any)?.grade as 'A' | 'B' | 'C' | 'D' | 'F') || 'A';
-    let p = 0;
-    if (grade === 'C') p = 3;
-    else if (grade === 'D') p = 7;
-    else if (grade === 'F') p = 12;
-    score -= p;
-    if (p) explanations.push({ evidenceId: tls0.id, points: -p, reason: `TLS grade ${grade}` });
+  const tlsEntries = evidence.filter((entry) => entry.type === 'tls');
+  const [tlsRecord] = tlsEntries;
+  if (tlsRecord) {
+    const grade = coerceDetail<TLSDetail>(tlsRecord.details).grade ?? 'A';
+    let penalty = 0;
+    if (grade === 'C') penalty = 3;
+    else if (grade === 'D') penalty = 7;
+    else if (grade === 'F') penalty = 12;
+    score -= penalty;
+    if (penalty) explanations.push({ evidenceId: tlsRecord.id, points: -penalty, reason: `TLS grade ${grade}` });
   }
 
-  // Fingerprinting heuristics
-  const fp = evidence.filter((e) => e.type === 'fingerprint');
-  if (fp.length > 0) {
+  const fingerprintEntries = evidence.filter((entry) => entry.type === 'fingerprint');
+  if (fingerprintEntries.length > 0) {
     score -= 5;
-    const f0 = fp[0]!;
-    explanations.push({ evidenceId: f0.id, points: -5, reason: 'Fingerprinting heuristics' });
+    const [firstFingerprint] = fingerprintEntries;
+    if (firstFingerprint) explanations.push({ evidenceId: firstFingerprint.id, points: -5, reason: 'Fingerprinting heuristics' });
   }
 
   score = Math.max(0, score);
   const label = labelForScore(score);
   return { score, label, explanations };
 }
+
+
