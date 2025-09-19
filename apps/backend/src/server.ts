@@ -111,7 +111,7 @@ export function createServer() {
   app.use('/api', apiV2Router);
 
   app.use('/api', adminRouter);
-  app.use('/api', docsRouter);
+  app.use('/docs', docsRouter);
 
   if (sentryEnabled) {
     Sentry.setupExpressErrorHandler(app);
