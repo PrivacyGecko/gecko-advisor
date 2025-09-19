@@ -30,7 +30,7 @@ function extractDomain(details: Prisma.JsonValue): string {
   return '';
 }
 
-async function buildReportPayload(scan: Scan) {
+export async function buildReportPayload(scan: Scan) {
   const evidence = await prisma.evidence.findMany({
     where: { scanId: scan.id },
     orderBy: { createdAt: 'asc' },
@@ -124,9 +124,9 @@ async function buildReportPayload(scan: Scan) {
   };
 }
 
-export const reportRouter = Router();
+export const reportV2Router = Router();
 
-reportRouter.get(['/report/:slug', '/r/:slug'], async (req, res) => {
+reportV2Router.get(['/report/:slug', '/r/:slug'], async (req, res) => {
   const slug = req.params.slug;
   const scan = await prisma.scan.findUnique({ where: { slug } });
   if (!scan) {
@@ -137,7 +137,7 @@ reportRouter.get(['/report/:slug', '/r/:slug'], async (req, res) => {
   res.json(payload);
 });
 
-reportRouter.get('/scan/:id', async (req, res) => {
+reportV2Router.get('/scan/:id', async (req, res) => {
   const scan = await prisma.scan.findUnique({ where: { id: req.params.id } });
   if (!scan) {
     return problem(res, 404, 'Scan not found');
@@ -146,7 +146,7 @@ reportRouter.get('/scan/:id', async (req, res) => {
   res.json(payload);
 });
 
-reportRouter.get('/reports/recent', async (_req, res) => {
+reportV2Router.get('/reports/recent', async (_req, res) => {
   const scans = await prisma.scan.findMany({
     where: { status: 'done' },
     orderBy: { createdAt: 'desc' },
@@ -185,3 +185,4 @@ reportRouter.get('/reports/recent', async (_req, res) => {
 
   res.json({ items });
 });
+

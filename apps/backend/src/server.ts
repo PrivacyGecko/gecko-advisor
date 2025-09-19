@@ -1,4 +1,4 @@
-﻿import express, { type NextFunction, type Request, type Response } from "express";
+import express, { type NextFunction, type Request, type Response } from "express";
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
@@ -8,8 +8,7 @@ import { config } from "./config.js";
 import { logger } from "./logger.js";
 import { requestId } from "./middleware/request-id.js";
 import { withCsp } from "./middleware/csp.js";
-import { scanRouter } from "./routes/scan.js";
-import { reportRouter } from "./routes/reports.js";
+import { apiV1Router, apiV2Router } from "./routes/index.js";
 import { adminRouter } from "./routes/admin.js";
 import { docsRouter } from "./routes/docs.js";
 import { healthRouter } from "./health.js";
@@ -93,10 +92,22 @@ export function createServer() {
   });
 
   app.use('/api', healthRouter);
-  app.use('/api/scan', scanLimiter, scanRouter);
+
+  app.use('/api/v1/scan', scanLimiter);
+  app.use('/api/v2/scan', scanLimiter);
+  app.use('/api/scan', scanLimiter);
+
+  app.use('/api/v1/report', reportLimiter);
+  app.use('/api/v1/reports', reportLimiter);
+  app.use('/api/v2/report', reportLimiter);
+  app.use('/api/v2/reports', reportLimiter);
   app.use('/api/report', reportLimiter);
   app.use('/api/reports', reportLimiter);
-  app.use('/api', reportRouter);
+
+  app.use('/api/v1', apiV1Router);
+  app.use('/api/v2', apiV2Router);
+  app.use('/api', apiV2Router);
+
   app.use('/api', adminRouter);
   app.use('/api', docsRouter);
 
@@ -111,5 +122,8 @@ export function createServer() {
 
   return app;
 }
+
+
+
 
 

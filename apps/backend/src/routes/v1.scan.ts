@@ -23,9 +23,14 @@ const CachedResponseSchema = ScanQueuedResponseSchema.extend({
   deduped: z.literal(true),
 });
 
-export const scanRouter = Router();
+const mapToLegacyQueued = (payload: z.infer<typeof ScanQueuedResponseSchema>) => ({
+  scanId: payload.scanId,
+  reportSlug: payload.slug,
+});
 
-scanRouter.post(['/', '/url'], async (req, res) => {
+export const scanV1Router = Router();
+
+scanV1Router.post(['/', '/url'], async (req, res) => {
   const parsed = UrlScanBodySchema.safeParse(req.body);
   if (!parsed.success) {
     return problem(res, 400, 'Invalid Request', parsed.error.flatten());
@@ -45,13 +50,13 @@ scanRouter.post(['/', '/url'], async (req, res) => {
   if (!force) {
     const cached = await findReusableScan(prisma, normalizedInput);
     if (cached) {
-      logger.info({ scanId: cached.id, requestId: res.locals.requestId }, 'Reusing cached scan result');
+      logger.info({ scanId: cached.id, requestId: res.locals.requestId }, 'Reusing cached scan result (v1)');
       const body = CachedResponseSchema.parse({
         scanId: cached.id,
         slug: cached.slug,
         deduped: true,
       });
-      return res.json(body);
+      return res.json({ ...mapToLegacyQueued(body), deduped: true });
     }
   }
 
@@ -84,19 +89,19 @@ scanRouter.post(['/', '/url'], async (req, res) => {
       }
     );
 
-    const response = ScanQueuedResponseSchema.parse({
+    const response = mapToLegacyQueued(ScanQueuedResponseSchema.parse({
       scanId: scan.id,
       slug: scan.slug,
-    });
+    }));
 
     res.status(202).json(response);
   } catch (error) {
-    logger.error({ error, requestId: res.locals.requestId }, 'Failed to enqueue scan');
+    logger.error({ error, requestId: res.locals.requestId }, 'Failed to enqueue scan (v1)');
     return problem(res, 500, 'Unable to queue scan');
   }
 });
 
-scanRouter.get('/:id/status', async (req, res) => {
+scanV1Router.get('/:id/status', async (req, res) => {
   const scan = await prisma.scan.findUnique({ where: { id: req.params.id } });
   if (!scan) {
     return problem(res, 404, 'Scan not found');
@@ -106,12 +111,12 @@ scanRouter.get('/:id/status', async (req, res) => {
     status: scan.status,
     score: scan.score ?? undefined,
     label: scan.label ?? undefined,
-    slug: scan.slug,
+    reportSlug: scan.slug,
     updatedAt: scan.updatedAt,
   });
 });
 
-scanRouter.post('/app', async (req, res) => {
+scanV1Router.post('/app', async (req, res) => {
   const parsed = AppScanRequestSchema.safeParse(req.body);
   if (!parsed.success) return problem(res, 400, 'Invalid Request', parsed.error.flatten());
 
@@ -125,11 +130,10 @@ scanRouter.post('/app', async (req, res) => {
     label: 'Caution',
     summary: 'App scan stubbed. Detailed analysis coming soon.',
   });
-  const response = ScanQueuedResponseSchema.parse({ scanId: scan.id, slug: scan.slug });
-  res.json(response);
+  res.json(mapToLegacyQueued(ScanQueuedResponseSchema.parse({ scanId: scan.id, slug: scan.slug })));
 });
 
-scanRouter.post('/address', async (req, res) => {
+scanV1Router.post('/address', async (req, res) => {
   const parsed = AddressScanRequestSchema.safeParse(req.body);
   if (!parsed.success) return problem(res, 400, 'Invalid Request', parsed.error.flatten());
   const scan = await createScanWithSlug(prisma, {
@@ -142,7 +146,5 @@ scanRouter.post('/address', async (req, res) => {
     summary: 'Address reputation stubbed. Detailed analysis coming soon.',
     meta: { chain: parsed.data.chain },
   });
-  const response = ScanQueuedResponseSchema.parse({ scanId: scan.id, slug: scan.slug });
-  res.json(response);
+  res.json(mapToLegacyQueued(ScanQueuedResponseSchema.parse({ scanId: scan.id, slug: scan.slug })));
 });
-
