@@ -1,4 +1,4 @@
-﻿import process from "node:process";
+import process from "node:process";
 
 function parseNumber(value: string | undefined, fallback: number): number {
   if (!value) return fallback;
@@ -18,6 +18,9 @@ function isNonEmpty(value: string | undefined): value is string {
   return typeof value === 'string' && value.length > 0;
 }
 
+const nodeEnv = process.env.NODE_ENV ?? 'development';
+const appEnv = process.env.APP_ENV ?? nodeEnv;
+
 const devOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
@@ -35,23 +38,20 @@ const workerOrigin = process.env.WORKER_PUBLIC_URL;
 const allowOrigin = process.env.ALLOW_ORIGIN;
 const extraOrigins = parseOrigins(process.env.CORS_EXTRA_ORIGINS);
 
-const allowedOrigins = Array.from(
-  new Set(
-    [
-      ...devOrigins,
-      stageOrigin,
-      apiOrigin,
-      allowOrigin,
-      ...extraOrigins,
-    ].filter(isNonEmpty)
-  )
-);
+const isLocalEnv = nodeEnv === 'development' || appEnv === 'development' || nodeEnv === 'test' || appEnv === 'test';
 
 const rateLimitPerMinute = parseNumber(process.env.RATE_LIMIT_PER_MINUTE, 30);
+const rateLimitScanPerMinute = parseNumber(process.env.RATE_LIMIT_SCAN_PER_MINUTE, rateLimitPerMinute);
+const rateLimitReportPerMinute = parseNumber(process.env.RATE_LIMIT_REPORT_PER_MINUTE, rateLimitPerMinute * 4);
 const cacheTtlMs = parseNumber(process.env.CACHE_TTL_MS, 15 * 60 * 1000);
+const allowedOrigins = (() => {
+  if (isLocalEnv) {
+    return Array.from(new Set([...devOrigins, ...extraOrigins].filter(isNonEmpty)));
+  }
+  const primary = allowOrigin ?? stageOrigin;
+  return Array.from(new Set([primary, ...extraOrigins].filter(isNonEmpty)));
+})();
 
-const nodeEnv = process.env.NODE_ENV ?? 'development';
-const appEnv = process.env.APP_ENV ?? nodeEnv;
 
 const logLevel = process.env.LOG_LEVEL ?? (nodeEnv === 'development' ? 'debug' : 'info');
 
@@ -77,6 +77,8 @@ export const config = {
   sentryTracesSampleRate: Number.parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE ?? '0.05'),
   allowedOrigins,
   rateLimitPerMinute,
+  rateLimitScanPerMinute,
+  rateLimitReportPerMinute,
   cacheTtlMs,
   logLevel,
   stageOrigin,
@@ -96,6 +98,4 @@ export type AppConfig = typeof config;
 export function isDev() {
   return config.nodeEnv === 'development';
 }
-
-
 

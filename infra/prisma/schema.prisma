@@ -1,4 +1,4 @@
-generator client {
+﻿generator client {
   provider = "prisma-client-js"
   output   = "../../node_modules/.prisma/client"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
@@ -41,7 +41,7 @@ model Scan {
   dedupeOf         Scan?      @relation("ScanDedupe", fields: [dedupeOfId], references: [id])
   dedupedScans     Scan[]     @relation("ScanDedupe")
 
-  @@index([normalizedInput])
+  @@index([normalizedInput, createdAt(sort: Desc)])
   @@index([status, finishedAt])
 }
 
@@ -85,3 +85,4 @@ model CachedList {
   fetchedAt DateTime @default(now())
   data      Json
 }
+

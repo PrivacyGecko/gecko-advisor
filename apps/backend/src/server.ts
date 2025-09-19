@@ -1,7 +1,8 @@
-import express, { type NextFunction, type Request, type Response } from "express";
+﻿import express, { type NextFunction, type Request, type Response } from "express";
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
+import type { Options as RateLimitOptions } from "express-rate-limit";
 import pinoHttp from "pino-http";
 import type { HttpLogger, Options as PinoHttpOptions } from "pino-http";
 import { config } from "./config.js";
@@ -18,9 +19,10 @@ import { problem } from "./problem.js";
 const allowedOrigins = config.allowedOrigins;
 const createHttpLogger = pinoHttp as unknown as (options?: PinoHttpOptions) => HttpLogger;
 
-const rateLimitHandler = (_req: Request, res: Response) => {
-  res.setHeader('Retry-After', '60');
-  return problem(res, 429, 'Too Many Requests', { retryAfterSeconds: 60 });
+const rateLimitHandler: NonNullable<RateLimitOptions['handler']> = (_req, res, _next, options) => {
+  const windowMs = typeof options?.windowMs === 'number' ? options.windowMs : 60_000;
+  res.setHeader('Retry-After', Math.ceil(windowMs / 1000).toString());
+  res.status(429).json({ error: 'rate_limited', retryAfterMs: windowMs });
 };
 
 export function createServer() {
@@ -75,7 +77,7 @@ export function createServer() {
 
   const scanLimiter = rateLimit({
     windowMs: 60_000,
-    limit: config.rateLimitPerMinute,
+    limit: config.rateLimitScanPerMinute,
     standardHeaders: 'draft-7',
     legacyHeaders: false,
     keyGenerator: (req) => req.ip ?? req.headers['x-forwarded-for']?.toString() ?? 'anonymous',
@@ -84,7 +86,7 @@ export function createServer() {
 
   const reportLimiter = rateLimit({
     windowMs: 60_000,
-    limit: config.rateLimitPerMinute * 4,
+    limit: config.rateLimitReportPerMinute,
     standardHeaders: 'draft-7',
     legacyHeaders: false,
     keyGenerator: (req) => req.ip ?? req.headers['x-forwarded-for']?.toString() ?? 'anonymous',
@@ -122,6 +124,10 @@ export function createServer() {
 
   return app;
 }
+
+
+
+
 
 
 
