@@ -1,12 +1,16 @@
-﻿import { Router } from "express";
+﻿import type { RequestHandler } from "express";
+import { Router } from "express";
 import { prisma } from "./prisma.js";
 import { checkRedisConnection } from "./queue.js";
 
 export const healthRouter = Router();
 
-healthRouter.get('/healthz', (_req, res) => {
+const livenessHandler: RequestHandler = (_req, res) => {
   res.json({ ok: true, uptime: process.uptime() });
-});
+};
+
+healthRouter.get('/healthz', livenessHandler);
+healthRouter.get('/health', livenessHandler);
 
 healthRouter.get('/readyz', async (_req, res) => {
   try {
