@@ -1,4 +1,7 @@
-﻿-- Ensure normalized input lookups favor most recent scans
+﻿-- Phase 1 indices and column backfill
+ALTER TABLE "Scan" ADD COLUMN IF NOT EXISTS "normalizedInput" TEXT;
+
+-- Ensure normalized input lookups favor most recent scans
 DROP INDEX IF EXISTS "Scan_normalizedInput_idx";
 CREATE INDEX IF NOT EXISTS "Scan_normalizedInput_createdAt_idx" ON "Scan" ("normalizedInput", "createdAt" DESC);
 
