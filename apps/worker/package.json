@@ -18,7 +18,9 @@
     "@privacy-advisor/shared": "workspace:*",
     "bullmq": "^5.11.4",
     "cheerio": "^1.0.0",
-    "ioredis": "^5.4.1"
+    "ioredis": "^5.4.1",
+    "@sentry/node": "^8.22.0",
+    "pino": "^9.5.0"
   },
   "devDependencies": {
     "@types/node": "^20.14.11",

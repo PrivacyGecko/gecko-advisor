@@ -9,32 +9,73 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum IssueSeverity {
+  info
+  low
+  medium
+  high
+  critical
+}
+
 model Scan {
-  id          String    @id @default(cuid())
-  targetType  String
-  input       String
-  status      String
-  score       Int?
-  label       String?
-  summary     String?
-  startedAt   DateTime?
-  finishedAt  DateTime?
-  reportSlug  String    @unique
-  evidence    Evidence[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @default(now()) @updatedAt
+  id               String     @id @default(cuid())
+  targetType       String
+  input            String
+  normalizedInput  String?
+  status           String
+  score            Int?
+  label            String?
+  summary          String?
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  slug             String     @unique
+  source           String     @default("manual")
+  dedupeOfId       String?
+  shareMessage     String?
+  meta             Json?
+  evidence         Evidence[]
+  issues           Issue[]
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @default(now()) @updatedAt
+
+  dedupeOf         Scan?      @relation("ScanDedupe", fields: [dedupeOfId], references: [id])
+  dedupedScans     Scan[]     @relation("ScanDedupe")
+
+  @@index([normalizedInput])
+  @@index([status, finishedAt])
 }
 
 model Evidence {
   id        String   @id @default(cuid())
   scanId    String
-  type      String
+  kind      String
   severity  Int
   title     String
   details   Json
   createdAt DateTime @default(now())
-  Scan      Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  scan      Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
   @@index([scanId])
+}
+
+model Issue {
+  id             String        @id @default(cuid())
+  scanId         String
+  key            String?
+  severity       IssueSeverity
+  category       String
+  title          String
+  summary        String?
+  howToFix       String?
+  whyItMatters   String?
+  references     Json?
+  sortWeight     Int?          @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now()) @updatedAt
+  scan           Scan          @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  @@index([scanId])
+  @@index([severity, sortWeight])
 }
 
 model CachedList {

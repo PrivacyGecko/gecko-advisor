@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
+﻿import type { Prisma, PrismaClient } from '@prisma/client';
 import { load as loadHtml } from 'cheerio';
 import { normalizeUrl, etldPlusOne } from '@privacy-advisor/shared';
 import { getLists } from './lists.js';
@@ -86,7 +86,7 @@ async function recordHeaderIssues(
         await prisma.evidence.create({
           data: {
             scanId,
-            type: 'header',
+            kind: 'header',
             severity: 2,
             title: `Missing header: ${name}`,
             details: { name },
@@ -110,7 +110,7 @@ async function recordCookieIssues(
         await prisma.evidence.create({
           data: {
             scanId,
-            type: 'cookie',
+            kind: 'cookie',
             severity: 2,
             title: 'Cookie missing Secure/SameSite',
             details: { cookie },
@@ -129,7 +129,7 @@ async function recordThirdParty(
   await prisma.evidence.create({
     data: {
       scanId,
-      type: 'thirdparty',
+      kind: 'thirdparty',
       severity: 2,
       title: `Third-party request: ${hostname}`,
       details: { domain: hostname, root, fingerprinting },
@@ -145,7 +145,7 @@ async function recordTracker(
   await prisma.evidence.create({
     data: {
       scanId,
-      type: 'tracker',
+      kind: 'tracker',
       severity: 3,
       title: `Tracker matched: ${root}`,
       details: { domain: root, fingerprinting },
@@ -185,7 +185,7 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
     if (visited.size === 1) {
       const grade = await gradeTls(u);
       await prisma.evidence.create({
-        data: { scanId, type: 'tls', severity: 1, title: `TLS grade ${grade}`, details: { grade } },
+        data: { scanId, kind: 'tls', severity: 1, title: `TLS grade ${grade}`, details: { grade } },
       });
     }
 
@@ -202,7 +202,7 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
       await prisma.evidence.create({
         data: {
           scanId,
-          type: 'policy',
+          kind: 'policy',
           severity: 1,
           title: 'Privacy policy link detected',
           details: { href: $(policyAnchor).attr('href') ?? '' },
@@ -236,7 +236,7 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
       await prisma.evidence.create({
         data: {
           scanId,
-          type: 'fingerprint',
+          kind: 'fingerprint',
           severity: 3,
           title: 'Fingerprinting heuristics detected',
           details: {},
@@ -248,7 +248,7 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
       await prisma.evidence.create({
         data: {
           scanId,
-          type: 'insecure',
+          kind: 'insecure',
           severity: 3,
           title: 'Mixed content detected',
           details: {},
@@ -270,5 +270,41 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
 
   const { computeScore } = await import('./scoring.js');
   const result = await computeScore(prisma, scanId);
-  await prisma.scan.update({ where: { id: scanId }, data: { score: result.score, label: result.label } });
+
+  await prisma.$transaction(async (tx) => {
+    await tx.issue.deleteMany({ where: { scanId } });
+    if (result.issues.length) {
+      await tx.issue.createMany({
+        data: result.issues.map((issue) => ({
+          scanId,
+          key: issue.key,
+          severity: issue.severity,
+          category: issue.category,
+          title: issue.title,
+          summary: issue.summary,
+          howToFix: issue.howToFix,
+          whyItMatters: issue.whyItMatters,
+          references: issue.references ?? [],
+          sortWeight: issue.sortWeight ?? 0,
+        })),
+      });
+    }
+    await tx.scan.update({
+      where: { id: scanId },
+      data: {
+        score: result.score,
+        label: result.label,
+        summary: result.summary,
+        meta: result.meta as Prisma.InputJsonValue,
+      },
+    });
+  });
 }
+
+
+
+
+
+
+
+
