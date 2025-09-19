@@ -1,4 +1,4 @@
-import process from "node:process";
+﻿import process from "node:process";
 
 function parseNumber(value: string | undefined, fallback: number): number {
   if (!value) return fallback;
@@ -98,4 +98,5 @@ export type AppConfig = typeof config;
 export function isDev() {
   return config.nodeEnv === 'development';
 }
+
 
