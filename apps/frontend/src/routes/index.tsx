@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import type { RecentReportsResponse } from '@privacy-advisor/shared';
@@ -48,18 +48,18 @@ export default function HomeRoute() {
   });
 
   useEffect(() => {
-    const handler = () => setHistory(readHistory());
-    window.addEventListener('privacy-history-updated', handler as EventListener);
-    window.addEventListener('storage', handler);
+    const handleHistoryUpdate = () => setHistory(readHistory());
+    window.addEventListener('privacy-history-updated', handleHistoryUpdate);
+    window.addEventListener('storage', handleHistoryUpdate);
     return () => {
-      window.removeEventListener('privacy-history-updated', handler as EventListener);
-      window.removeEventListener('storage', handler);
+      window.removeEventListener('privacy-history-updated', handleHistoryUpdate);
+      window.removeEventListener('storage', handleHistoryUpdate);
     };
   }, []);
 
   const recentReports = useMemo(() => recent?.items ?? [], [recent?.items]);
 
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (mutation.isPending) return;
     mutation.mutate();
@@ -110,7 +110,7 @@ export default function HomeRoute() {
               disabled={!isUrlMode || mutation.isPending}
               className="inline-flex min-h-[48px] w-full justify-center rounded-xl bg-security-blue px-5 text-base font-semibold text-white shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-security-blue disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
-              {mutation.isPending ? 'Scanning…' : 'Start Scan'}
+              {mutation.isPending ? 'Scanningâ€¦' : 'Start Scan'}
             </button>
           </div>
           <p className="text-xs text-slate-500">URL scanning is live. App and wallet checks are coming soon.</p>
@@ -120,7 +120,7 @@ export default function HomeRoute() {
 
       <section className="grid gap-4 md:grid-cols-2">
         <Card>
-          <h2 className="text-base font-semibold text-slate-800">What you’ll see</h2>
+          <h2 className="text-base font-semibold text-slate-800">What youâ€™ll see</h2>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div className="rounded-xl border border-slate-200 p-3">
               <div className="text-xs uppercase tracking-wide text-slate-500">Privacy Score</div>

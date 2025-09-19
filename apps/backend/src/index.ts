@@ -1,4 +1,4 @@
-﻿import type { Server } from "node:http";
+import type { Server } from "node:http";
 import { createServer } from "./server.js";
 import { config } from "./config.js";
 import { logger } from "./logger.js";
@@ -16,7 +16,8 @@ if (!process.env.VITEST_WORKER_ID) {
     });
   };
 
-  const shutdown = async (signal: NodeJS.Signals) => {
+  type ShutdownSignal = 'SIGINT' | 'SIGTERM';
+  const shutdown = async (signal: ShutdownSignal) => {
     logger.info({ signal }, 'Shutting down backend');
     if (server) {
       await new Promise<void>((resolve) => server?.close(() => resolve()));

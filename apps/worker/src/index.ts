@@ -1,4 +1,4 @@
-﻿import http from "node:http";
+import http from "node:http";
 import { Worker, QueueEvents, Queue, type Job } from "bullmq";
 import Redis from "ioredis";
 import { PrismaClient } from "@prisma/client";
@@ -7,6 +7,7 @@ import { config } from "./config.js";
 import { logger } from "./logger.js";
 import { initSentry, Sentry } from "./sentry.js";
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 const RedisConstructor = Redis as unknown as typeof import('ioredis').default;
 const baseConnection = new RedisConstructor(config.redisUrl, {
   maxRetriesPerRequest: null,

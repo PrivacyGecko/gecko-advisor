@@ -43,7 +43,7 @@ function isPrivateIpv4(hostname: string): boolean {
   if (octets.length !== 4 || octets.some((part) => Number.isNaN(part) || part < 0 || part > 255)) {
     return false;
   }
-  const [a, b] = octets;
+  const [a, b = -1] = octets;
   if (a === 10) return true;
   if (a === 127) return true;
   if (a === 0) return true;

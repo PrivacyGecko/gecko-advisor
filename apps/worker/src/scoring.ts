@@ -1,4 +1,4 @@
-﻿import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 import type { ScoreResult } from "@privacy-advisor/shared";
 import { labelForScore } from "@privacy-advisor/shared";
 
@@ -34,9 +34,6 @@ interface TLSDetail {
   grade?: 'A' | 'B' | 'C' | 'D' | 'F';
 }
 
-interface PolicyDetail {
-  href?: string;
-}
 
 interface IssueInput {
   key: string;
@@ -152,7 +149,7 @@ export async function computeScore(prisma: PrismaClient, scanId: string): Promis
       severity: 'high',
       category: 'tracking',
       title: `${uniqueTrackerDomains.size} tracker${uniqueTrackerDomains.size > 1 ? 's' : ''} observed`,
-      summary: `Trackers detected: ${domains}${uniqueTrackerDomains.size > 5 ? '…' : ''}`,
+      summary: `Trackers detected: ${domains}${uniqueTrackerDomains.size > 5 ? 'â€¦' : ''}`,
       howToFix: 'Review marketing and analytics tags. Remove unnecessary trackers or load them only after explicit consent via a consent management platform.',
       whyItMatters: 'Trackers monitor user behaviour and may violate privacy laws if deployed without consent or disclosures.',
       references: [
@@ -169,7 +166,7 @@ export async function computeScore(prisma: PrismaClient, scanId: string): Promis
       severity: 'medium',
       category: 'tracking',
       title: `${uniqueThird.size} third-party domains contacted`,
-      summary: `Notable domains: ${domains}${uniqueThird.size > 5 ? '…' : ''}`,
+      summary: `Notable domains: ${domains}${uniqueThird.size > 5 ? 'â€¦' : ''}`,
       howToFix: 'Audit external requests and remove unused libraries. Where possible, self-host critical assets or route via privacy-preserving CDNs.',
       whyItMatters: 'Each third-party call shares visitor metadata (IP, user agent) with outside companies, which can be used for profiling.',
       references: [

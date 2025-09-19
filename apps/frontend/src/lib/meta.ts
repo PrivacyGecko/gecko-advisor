@@ -1,4 +1,4 @@
-﻿export interface ShareMetaOptions {
+export interface ShareMetaOptions {
   title: string;
   description: string;
   url: string;
@@ -44,7 +44,7 @@ export function applyShareMeta(meta: ShareMetaOptions): () => void {
 }
 
 function ensureMetaElement(attr: 'name' | 'property', value: string): HTMLMetaElement {
-  const escaped = typeof CSS !== 'undefined' && typeof CSS.escape === 'function' ? CSS.escape(value) : value.replace(/"/g, '\"');
+  const escaped = typeof CSS !== 'undefined' && typeof CSS.escape === 'function' ? CSS.escape(value) : value.replace(/"/g, '\\"');
   const selector = `meta[${attr}="${escaped}"]`;
   const existing = document.head.querySelector<HTMLMetaElement>(selector);
   if (existing) return existing;

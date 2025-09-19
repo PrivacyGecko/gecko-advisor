@@ -1,8 +1,6 @@
-﻿import * as Sentry from "@sentry/node";
+import * as Sentry from "@sentry/node";
 import { config } from "./config.js";
 import { logger } from "./logger.js";
-
-let enabled = false;
 
 export function initSentry() {
   if (!config.sentryDsn) {
@@ -19,7 +17,6 @@ export function initSentry() {
       : 0.05,
   });
 
-  enabled = true;
   logger.info('Sentry initialized for worker');
   return true;
 }

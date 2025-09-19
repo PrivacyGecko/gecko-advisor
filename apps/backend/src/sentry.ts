@@ -1,8 +1,6 @@
-﻿import * as Sentry from "@sentry/node";
+import * as Sentry from "@sentry/node";
 import { config } from "./config.js";
 import { logger } from "./logger.js";
-
-let enabled = false;
 
 export function initSentry() {
   if (!config.sentryDsn) {
@@ -20,11 +18,8 @@ export function initSentry() {
     integrations: [Sentry.expressIntegration()],
   });
 
-  enabled = true;
   logger.info('Sentry initialized for backend');
   return true;
 }
 
 export { Sentry };
-
-

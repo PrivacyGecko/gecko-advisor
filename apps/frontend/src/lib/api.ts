@@ -1,4 +1,4 @@
-import { z, type ZodSchema } from 'zod';
+import { z } from 'zod';
 import {
   UrlScanRequestSchema,
   ScanQueuedResponseSchema,
@@ -90,7 +90,7 @@ function resolve(path: string): string {
   return `${API_ORIGIN}${normalized}`;
 }
 
-async function fetchJson<T extends z.ZodTypeAny>(path: string, schema: T, init?: RequestInit): Promise<z.infer<T>> {
+async function fetchJson<T extends z.ZodTypeAny>(path: string, schema: T, init?: globalThis.RequestInit): Promise<z.infer<T>> {
   const response = await fetch(resolve(path), init);
   const contentType = response.headers.get('content-type') ?? '';
   let payload: unknown;
@@ -151,7 +151,7 @@ async function fetchJson<T extends z.ZodTypeAny>(path: string, schema: T, init?:
 
 export async function startUrlScan(url: string, opts: { force?: boolean } = {}): Promise<ScanQueuedResponse> {
   const requestBody = UrlScanRequestSchema.parse({ url, force: opts.force });
-  const init: RequestInit = {
+  const init: globalThis.RequestInit = {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(requestBody),
