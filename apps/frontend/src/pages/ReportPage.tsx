@@ -15,11 +15,11 @@ import VirtualizedEvidenceList from '../components/VirtualizedEvidenceList';
 import { ScoreDialSkeleton, CardSkeleton, EvidenceCardSkeleton } from '../components/Skeleton';
 import { ErrorState } from '../components/ErrorBoundary';
 import Footer from '../components/Footer';
-import type { LegacyReportResponse } from '@privacy-advisor/shared';
+import type { ReportResponse } from '@privacy-advisor/shared';
 import { computeDataSharingLevel, type DataSharingLevel } from '../lib/dataSharing';
 
-type EvidenceItem = LegacyReportResponse['evidence'][number];
-type EvidenceType = EvidenceItem['type'];
+type EvidenceItem = ReportResponse['evidence'][number];
+type EvidenceType = EvidenceItem['kind'];
 type SeverityFilter = 'all' | 'high' | 'medium' | 'low';
 
 type Tip = { text: string; url?: string };

@@ -4,9 +4,9 @@ SPDX-License-Identifier: MIT
 */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import SeverityBadge, { SeverityIndicator } from './SeverityBadge';
-import type { LegacyReportResponse } from '@privacy-advisor/shared';
+import type { ReportResponse } from '@privacy-advisor/shared';
 
-type EvidenceItem = LegacyReportResponse['evidence'][number];
+type EvidenceItem = ReportResponse['evidence'][number];
 
 export interface VirtualizedEvidenceListProps {
   /** Evidence items to display */

@@ -3,7 +3,7 @@ import {
   UrlScanRequestSchema,
   ScanQueuedResponseSchema,
   ScanStatusSchema,
-  LegacyReportResponseSchema,
+  ReportResponseSchema,
   RecentReportsResponseSchema,
 } from '@privacy-advisor/shared';
 
@@ -142,7 +142,7 @@ export const scanStatusQueryOptions = (id: string) => {
 export async function getReport(slug: string) {
   const res = await fetch(`/api/report/${slug}`);
   if (!res.ok) throw new Error('Report not found');
-  return parseJson(res, LegacyReportResponseSchema);
+  return parseJson(res, ReportResponseSchema);
 }
 
 /**
