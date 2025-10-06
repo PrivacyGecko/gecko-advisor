@@ -75,9 +75,9 @@ export const IssueSchema = z.object({
   category: z.string(),
   severity: IssueSeverity,
   title: z.string(),
-  summary: z.string().optional(),
-  howToFix: z.string().optional(),
-  whyItMatters: z.string().optional(),
+  summary: z.string().nullable().optional(),
+  howToFix: z.string().nullable().optional(),
+  whyItMatters: z.string().nullable().optional(),
   references: z.array(IssueReferenceSchema).optional().default([]),
   sortWeight: z.number().optional(),
 });
