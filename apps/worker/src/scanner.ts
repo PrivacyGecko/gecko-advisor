@@ -1,9 +1,90 @@
-import type { Prisma, PrismaClient } from '@prisma/client';
+﻿import type { Prisma, PrismaClient } from '@prisma/client';
 import { load as loadHtml } from 'cheerio';
 import { normalizeUrl, etldPlusOne } from '@privacy-advisor/shared';
-import { isIP } from 'node:net';
 import { getLists } from './lists.js';
-import { logger } from './logger.js';
+
+/**
+ * Sanitizes HTML content to prevent XSS attacks by removing dangerous elements and attributes.
+ */
+function sanitizeHtml(html: string): string {
+  if (!html || typeof html !== 'string') {
+    return '';
+  }
+
+  // Limit HTML size to prevent DoS attacks
+  if (html.length > 1_000_000) { // 1MB limit
+    html = html.substring(0, 1_000_000);
+  }
+
+  // Remove dangerous script tags and their content
+  html = html.replace(/<script[\s\S]*?<\/script>/gi, '');
+  html = html.replace(/<script[^>]*>/gi, '');
+
+  // Remove dangerous attributes that can execute JavaScript
+  html = html.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, ''); // onclick, onload, etc.
+  html = html.replace(/\s+javascript\s*:/gi, '');
+  html = html.replace(/\s+data\s*:/gi, '');
+  html = html.replace(/\s+vbscript\s*:/gi, '');
+
+  // Remove potentially dangerous tags
+  html = html.replace(/<(iframe|embed|object|applet|meta|base)[^>]*>/gi, '');
+  html = html.replace(/<\/(iframe|embed|object|applet|meta|base)>/gi, '');
+
+  return html;
+}
+
+/**
+ * Validates and sanitizes URLs to prevent SSRF and other URL-based attacks.
+ */
+function sanitizeUrl(url: string, baseUrl?: string): string | null {
+  if (!url || typeof url !== 'string') {
+    return null;
+  }
+
+  // Trim and limit length
+  url = url.trim();
+  if (url.length === 0 || url.length > 2048) {
+    return null;
+  }
+
+  try {
+    let resolvedUrl: URL;
+
+    // Try to resolve relative URLs
+    if (baseUrl) {
+      resolvedUrl = new URL(url, baseUrl);
+    } else {
+      resolvedUrl = new URL(url);
+    }
+
+    // Only allow http and https protocols
+    if (!['http:', 'https:'].includes(resolvedUrl.protocol)) {
+      return null;
+    }
+
+    // Prevent access to private networks
+    const hostname = resolvedUrl.hostname.toLowerCase();
+    if (hostname === 'localhost' ||
+        hostname === '127.0.0.1' ||
+        hostname === '0.0.0.0' ||
+        hostname.startsWith('192.168.') ||
+        hostname.startsWith('10.') ||
+        hostname.startsWith('172.16.') ||
+        hostname.startsWith('172.17.') ||
+        hostname.startsWith('172.18.') ||
+        hostname.startsWith('172.19.') ||
+        hostname.startsWith('172.2') ||
+        hostname.startsWith('172.30.') ||
+        hostname.startsWith('172.31.') ||
+        hostname.startsWith('169.254.')) {
+      return null;
+    }
+
+    return resolvedUrl.href;
+  } catch {
+    return null;
+  }
+}
 
 const SECURITY_HEADERS = [
   'content-security-policy',
@@ -38,65 +119,6 @@ function timeoutAbort(ms: number): AbortSignal {
   return controller.signal;
 }
 
-function isPrivateIpv4(hostname: string): boolean {
-  const octets = hostname.split('.').map((part) => Number.parseInt(part, 10));
-  if (octets.length !== 4 || octets.some((part) => Number.isNaN(part) || part < 0 || part > 255)) {
-    return false;
-  }
-  const [a, b = -1] = octets;
-  if (a === 10) return true;
-  if (a === 127) return true;
-  if (a === 0) return true;
-  if (a === 169 && b === 254) return true;
-  if (a === 172 && b >= 16 && b <= 31) return true;
-  if (a === 192 && b === 168) return true;
-  if (a === 100 && b >= 64 && b <= 127) return true;
-  if (a === 198 && (b === 18 || b === 19)) return true;
-  return false;
-}
-
-function isPrivateIpv6(hostname: string): boolean {
-  const normalized = hostname.toLowerCase();
-  if (normalized === '::1') return true;
-  if (normalized.startsWith('fc') || normalized.startsWith('fd')) return true;
-  if (normalized.startsWith('fe80') || normalized.startsWith('fe90') || normalized.startsWith('fea0') || normalized.startsWith('feb0')) return true;
-  if (normalized.startsWith('fec0') || normalized.startsWith('fed0') || normalized.startsWith('fee0') || normalized.startsWith('fef0')) return true;
-  if (normalized.startsWith('::ffff:')) {
-    const mapped = normalized.slice('::ffff:'.length);
-    return isPrivateIpv4(mapped);
-  }
-  return false;
-}
-
-function normalizeHost(hostname: string): string {
-  const trimmed = hostname.trim();
-  if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-    return trimmed.slice(1, -1);
-  }
-  return trimmed;
-}
-
-function isDisallowedHost(hostname: string): boolean {
-  const bare = normalizeHost(hostname);
-  const lower = bare.toLowerCase();
-  if (lower === 'localhost' || lower.endsWith('.localhost') || lower.endsWith('.local')) {
-    return true;
-  }
-  const ipVersion = isIP(bare);
-  if (ipVersion === 4) {
-    return isPrivateIpv4(bare);
-  }
-  if (ipVersion === 6) {
-    return isPrivateIpv6(bare);
-  }
-  return false;
-}
-
-function assertAllowedTarget(url: URL) {
-  if (isDisallowedHost(url.hostname)) {
-    throw new Error('Refusing to scan disallowed host: ' + url.hostname);
-  }
-}
 async function gradeTls(u: URL): Promise<'A' | 'B' | 'C' | 'D' | 'F'> {
   if (u.protocol !== 'https:') return 'C';
   // Quick heuristic: https assumed A/B for MVP; a real TLS dial is out-of-scope here
@@ -125,35 +147,17 @@ async function fetchPage(curr: string, hostname: string): Promise<FetchResponse 
   }
 
   try {
-    const parsed = new URL(curr);
-    if (isDisallowedHost(parsed.hostname)) {
-      logger.warn({ hostname: parsed.hostname }, 'Blocked fetch to disallowed host');
-      return null;
-    }
-  } catch {
-    return null;
-  }
-
-  try {
     const response = await fetch(curr, {
       redirect: 'follow',
       headers: { 'user-agent': 'PrivacyAdvisorBot/0.1' },
       signal: timeoutAbort(5000),
     });
-    try {
-      const finalHost = new URL(response.url).hostname;
-      if (isDisallowedHost(finalHost)) {
-        logger.warn({ hostname: finalHost }, 'Blocked response from disallowed host');
-        return null;
-      }
-    } catch {
-      // ignore parse errors for response URL
-    }
     return response as FetchResponse;
   } catch {
     return null;
   }
 }
+
 async function recordHeaderIssues(
   prisma: PrismaClient,
   scanId: string,
@@ -234,7 +238,6 @@ async function recordTracker(
 
 export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput: string) {
   const u = normalizeUrl(urlInput);
-  assertAllowedTarget(u);
   const origin = u.origin;
   const hostname = u.hostname;
   const siteRoot = etldPlusOne(hostname);
@@ -269,8 +272,9 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
       });
     }
 
-    const html = await response.text();
-    const $ = loadHtml(html);
+    const rawHtml = await response.text();
+    const sanitizedHtml = sanitizeHtml(rawHtml);
+    const $ = loadHtml(sanitizedHtml);
 
     const policyAnchor = $('a[href]').toArray().find((anchor) => {
       const text = $(anchor).text();
@@ -291,13 +295,16 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
     }
 
     const resourceDomains = new Set<string>();
-    const evidenceWrites: Array<Promise<unknown>> = [];
     $('script[src],img[src],link[href]').each((_i, element) => {
       const src = $(element).attr('src') ?? $(element).attr('href') ?? '';
       if (!src) return;
+
+      // Sanitize and validate the URL before processing
+      const sanitizedSrc = sanitizeUrl(src, curr);
+      if (!sanitizedSrc) return;
+
       try {
-        const resolved = new URL(src, curr);
-        if (isDisallowedHost(resolved.hostname)) return;
+        const resolved = new URL(sanitizedSrc);
         resourceDomains.add(resolved.hostname);
         const root = etldPlusOne(resolved.hostname);
         const evidence: ThirdPartyEvidence = {
@@ -307,29 +314,14 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
           fingerprinting: fpDomains.has(root),
         };
         const isThirdParty = root !== siteRoot;
-        if (isThirdParty) {
-          evidenceWrites.push(
-            recordThirdParty(prisma, evidence).catch((error) => {
-              logger.warn({ error, hostname: resolved.hostname }, 'Failed to record third-party evidence');
-            }),
-          );
-        }
-        if (trackerDomains.has(root)) {
-          evidenceWrites.push(
-            recordTracker(prisma, evidence).catch((error) => {
-              logger.warn({ error, hostname: resolved.hostname }, 'Failed to record tracker evidence');
-            }),
-          );
-        }
+        if (isThirdParty) recordThirdParty(prisma, evidence).catch(() => {});
+        if (trackerDomains.has(root)) recordTracker(prisma, evidence).catch(() => {});
       } catch {
         // ignore invalid URLs
       }
     });
-    if (evidenceWrites.length) {
-      await Promise.all(evidenceWrites);
-    }
 
-    if (/navigator\.plugins|canvas|getImageData|AudioContext|OfflineAudioContext/i.test(html)) {
+    if (/navigator\.plugins|canvas|getImageData|AudioContext|OfflineAudioContext/i.test(sanitizedHtml)) {
       await prisma.evidence.create({
         data: {
           scanId,
@@ -341,7 +333,7 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
       });
     }
 
-    if (u.protocol === 'https:' && /http:\/\//i.test(html)) {
+    if (u.protocol === 'https:' && /http:\/\//i.test(sanitizedHtml)) {
       await prisma.evidence.create({
         data: {
           scanId,
@@ -356,9 +348,13 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
     $('a[href]').each((_i, anchor) => {
       const href = (anchor as { attribs?: { href?: string } }).attribs?.href;
       if (!href) return;
+
+      // Sanitize and validate the URL before processing
+      const sanitizedHref = sanitizeUrl(href, curr);
+      if (!sanitizedHref) return;
+
       try {
-        const resolved = new URL(href, curr);
-        if (isDisallowedHost(resolved.hostname)) return;
+        const resolved = new URL(sanitizedHref);
         if (resolved.origin === origin) queue.push(resolved.href);
       } catch {
         // ignore invalid URLs

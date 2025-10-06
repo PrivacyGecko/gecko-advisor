@@ -3,6 +3,7 @@ import type { Prisma, Scan } from "@prisma/client";
 import { prisma } from "../prisma.js";
 import { problem } from "../problem.js";
 import { etldPlusOne } from "@privacy-advisor/shared";
+import { CacheService, CACHE_KEYS, CACHE_TTL } from "../cache.js";
 
 type IssueSeverity = 'critical' | 'high' | 'medium' | 'low' | 'info';
 
@@ -30,12 +31,37 @@ function extractDomain(details: Prisma.JsonValue): string {
   return '';
 }
 
-export async function buildReportPayload(scan: Scan) {
-  const evidence = await prisma.evidence.findMany({
+export async function buildReportPayload(scan: Scan & {
+  evidence?: Array<{
+    id: string;
+    scanId: string;
+    kind: string;
+    severity: number;
+    title: string;
+    details: any;
+    createdAt: Date;
+  }>;
+  issues?: Array<{
+    id: string;
+    scanId: string;
+    key: string | null;
+    severity: string;
+    category: string;
+    title: string;
+    summary: string | null;
+    howToFix: string | null;
+    whyItMatters: string | null;
+    references: any;
+    sortWeight: number | null;
+    createdAt: Date;
+  }>;
+}) {
+  // If evidence and issues are already included, use them; otherwise fetch separately
+  const evidence = scan.evidence ?? await prisma.evidence.findMany({
     where: { scanId: scan.id },
     orderBy: { createdAt: 'asc' },
   });
-  const issues = await prisma.issue.findMany({
+  const issues = scan.issues ?? await prisma.issue.findMany({
     where: { scanId: scan.id },
     orderBy: [{ sortWeight: 'asc' }, { createdAt: 'asc' }],
   });
@@ -128,7 +154,17 @@ export const reportV2Router = Router();
 
 reportV2Router.get(['/report/:slug', '/r/:slug'], async (req, res) => {
   const slug = req.params.slug;
-  const scan = await prisma.scan.findUnique({ where: { slug } });
+  const scan = await prisma.scan.findUnique({
+    where: { slug },
+    include: {
+      evidence: {
+        orderBy: { createdAt: 'asc' },
+      },
+      issues: {
+        orderBy: [{ sortWeight: 'asc' }, { createdAt: 'asc' }],
+      },
+    },
+  });
   if (!scan) {
     return problem(res, 404, 'Report not found');
   }
@@ -138,7 +174,17 @@ reportV2Router.get(['/report/:slug', '/r/:slug'], async (req, res) => {
 });
 
 reportV2Router.get('/scan/:id', async (req, res) => {
-  const scan = await prisma.scan.findUnique({ where: { id: req.params.id } });
+  const scan = await prisma.scan.findUnique({
+    where: { id: req.params.id },
+    include: {
+      evidence: {
+        orderBy: { createdAt: 'asc' },
+      },
+      issues: {
+        orderBy: [{ sortWeight: 'asc' }, { createdAt: 'asc' }],
+      },
+    },
+  });
   if (!scan) {
     return problem(res, 404, 'Scan not found');
   }
@@ -147,41 +193,48 @@ reportV2Router.get('/scan/:id', async (req, res) => {
 });
 
 reportV2Router.get('/reports/recent', async (_req, res) => {
-  const scans = await prisma.scan.findMany({
-    where: { status: 'done' },
-    orderBy: { createdAt: 'desc' },
-    take: 10,
-    select: {
-      id: true,
-      slug: true,
-      input: true,
-      score: true,
-      label: true,
-      createdAt: true,
+  const items = await CacheService.getOrSet(
+    CACHE_KEYS.RECENT_REPORTS,
+    async () => {
+      const scans = await prisma.scan.findMany({
+        where: { status: 'done' },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        select: {
+          id: true,
+          slug: true,
+          input: true,
+          score: true,
+          label: true,
+          createdAt: true,
+          _count: {
+            select: {
+              evidence: true,
+            },
+          },
+        },
+      });
+
+      return scans.map((scan) => {
+        let domain = scan.input;
+        try {
+          const url = new URL(scan.input);
+          domain = etldPlusOne(url.hostname);
+        } catch {
+          // ignore
+        }
+        return {
+          slug: scan.slug,
+          score: scan.score ?? 0,
+          label: scan.label ?? 'Caution',
+          domain,
+          createdAt: scan.createdAt,
+          evidenceCount: scan._count.evidence,
+        };
+      });
     },
-  });
-
-  const counts = await Promise.all(
-    scans.map((s) => prisma.evidence.count({ where: { scanId: s.id } }))
+    CACHE_TTL.RECENT_REPORTS
   );
-
-  const items = scans.map((scan, index) => {
-    let domain = scan.input;
-    try {
-      const url = new URL(scan.input);
-      domain = etldPlusOne(url.hostname);
-    } catch {
-      // ignore
-    }
-    return {
-      slug: scan.slug,
-      score: scan.score ?? 0,
-      label: scan.label ?? 'Caution',
-      domain,
-      createdAt: scan.createdAt,
-      evidenceCount: counts[index] ?? 0,
-    };
-  });
 
   res.json({ items });
 });

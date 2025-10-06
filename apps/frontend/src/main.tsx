@@ -1,4 +1,4 @@
-﻿/*
+/*
 SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
 SPDX-License-Identifier: MIT
 */
@@ -6,43 +6,113 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import './lib/performance'; // Initialize performance monitoring
 import './styles.css';
-import HomeRoute from './routes/index';
-import ScanRoute from './routes/scan/[id]';
-import ShareRoute from './routes/r/[slug]';
-import Compare from './pages/Compare';
-import Docs from './pages/Docs';
-import About from './pages/About';
-import NotFound from './pages/NotFound';
-import { SentryErrorBoundary } from './sentry';
+
+// Lazy load components for code splitting
+const Home = React.lazy(() => import('./pages/Home'));
+const Scan = React.lazy(() => import('./pages/Scan'));
+const Report = React.lazy(() => import('./pages/ReportPage'));
+const Compare = React.lazy(() => import('./pages/Compare'));
+const Docs = React.lazy(() => import('./pages/Docs'));
+const About = React.lazy(() => import('./pages/About'));
+const NotFound = React.lazy(() => import('./pages/NotFound'));
+
+// Loading component for Suspense fallback
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+  </div>
+);
 
 const router = createBrowserRouter([
-  { path: '/', element: <HomeRoute /> },
-  { path: '/scan/:id', element: <ScanRoute /> },
-  { path: '/r/:slug', element: <ShareRoute /> },
-  { path: '/compare', element: <Compare /> },
-  { path: '/docs', element: <Docs /> },
-  { path: '/about', element: <About /> },
-  { path: '*', element: <NotFound /> },
+  {
+    path: '/',
+    element: (
+      <React.Suspense fallback={<PageLoader />}>
+        <Home />
+      </React.Suspense>
+    )
+  },
+  {
+    path: '/scan/:id',
+    element: (
+      <React.Suspense fallback={<PageLoader />}>
+        <Scan />
+      </React.Suspense>
+    )
+  },
+  {
+    path: '/r/:slug',
+    element: (
+      <React.Suspense fallback={<PageLoader />}>
+        <Report />
+      </React.Suspense>
+    )
+  },
+  {
+    path: '/compare',
+    element: (
+      <React.Suspense fallback={<PageLoader />}>
+        <Compare />
+      </React.Suspense>
+    )
+  },
+  {
+    path: '/docs',
+    element: (
+      <React.Suspense fallback={<PageLoader />}>
+        <Docs />
+      </React.Suspense>
+    )
+  },
+  {
+    path: '/about',
+    element: (
+      <React.Suspense fallback={<PageLoader />}>
+        <About />
+      </React.Suspense>
+    )
+  },
+  {
+    path: '*',
+    element: (
+      <React.Suspense fallback={<PageLoader />}>
+        <NotFound />
+      </React.Suspense>
+    )
+  },
 ]);
 
-const qc = new QueryClient();
+const qc = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors
+        if (error instanceof Error && error.message.includes('4')) return false;
+        return failureCount < 3;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    },
+  },
+});
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <QueryClientProvider client={qc}>
-      <SentryErrorBoundary fallback={<ErrorFallback />}>
+    <ErrorBoundary
+      onError={(error, errorInfo) => {
+        // Log errors in development
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Global error caught:', error, errorInfo);
+        }
+        // In production, send to error reporting service
+        // Example: Sentry.captureException(error, { extra: errorInfo });
+      }}
+    >
+      <QueryClientProvider client={qc}>
         <RouterProvider router={router} />
-      </SentryErrorBoundary>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 );
-
-function ErrorFallback() {
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-slate-50 p-6 text-center text-slate-700">
-      <div className="text-2xl font-semibold text-red-700">Something went wrong</div>
-      <p>Please refresh the page or run a new scan.</p>
-    </div>
-  );
-}

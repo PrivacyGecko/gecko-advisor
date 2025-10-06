@@ -41,8 +41,9 @@ model Scan {
   dedupeOf         Scan?      @relation("ScanDedupe", fields: [dedupeOfId], references: [id])
   dedupedScans     Scan[]     @relation("ScanDedupe")
 
-  @@index([normalizedInput, createdAt(sort: Desc)])
-  @@index([status, finishedAt])
+  // Optimized indexes for critical performance paths
+  @@index([normalizedInput, status, finishedAt(sort: Desc)], map: "Scan_dedupe_lookup_idx")
+  @@index([status, createdAt(sort: Desc)], map: "Scan_recent_reports_idx")
 }
 
 model Evidence {
@@ -55,7 +56,8 @@ model Evidence {
   createdAt DateTime @default(now())
   scan      Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
 
-  @@index([scanId])
+  // Covering index for optimal evidence queries and counting
+  @@index([scanId, createdAt], map: "Evidence_scan_covering_idx")
 }
 
 model Issue {
@@ -74,8 +76,9 @@ model Issue {
   updatedAt      DateTime      @default(now()) @updatedAt
   scan           Scan          @relation(fields: [scanId], references: [id], onDelete: Cascade)
 
-  @@index([scanId])
-  @@index([severity, sortWeight])
+  // Covering index for optimal issue queries with proper sorting
+  @@index([scanId, sortWeight, createdAt], map: "Issue_scan_covering_idx")
+  @@index([severity, sortWeight], map: "Issue_severity_idx")
 }
 
 model CachedList {
