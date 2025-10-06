@@ -19,8 +19,8 @@ DROP INDEX IF EXISTS "Scan_normalizedInput_createdAt_idx";
 
 -- Create optimized composite index for dedupe lookups
 -- This handles the query in dedupe.ts: WHERE normalizedInput = ? AND status = 'done' AND finishedAt >= ?
--- Using CONCURRENT to avoid blocking production
-CREATE INDEX CONCURRENTLY IF NOT EXISTS "Scan_dedupe_lookup_idx"
+-- Note: CONCURRENTLY removed as Prisma runs migrations in transactions
+CREATE INDEX IF NOT EXISTS "Scan_dedupe_lookup_idx"
 ON "Scan" ("normalizedInput", "status", "finishedAt" DESC)
 WHERE "normalizedInput" IS NOT NULL AND "status" = 'done';
 
@@ -31,13 +31,13 @@ WHERE "normalizedInput" IS NOT NULL AND "status" = 'done';
 -- Index for evidence queries in buildReportPayload
 -- This covers: SELECT * FROM Evidence WHERE scanId = ? ORDER BY createdAt ASC
 -- Note: Without INCLUDE, the index still helps but may need to access the table for other columns
-CREATE INDEX CONCURRENTLY IF NOT EXISTS "Evidence_scan_covering_idx"
+CREATE INDEX IF NOT EXISTS "Evidence_scan_covering_idx"
 ON "Evidence" ("scanId", "createdAt" ASC);
 
 -- Optimize evidence counting for recent reports
 -- This covers: SELECT COUNT(*) FROM Evidence WHERE scanId = ?
 -- The scanId index already exists, but ensure it's optimal
-CREATE INDEX CONCURRENTLY IF NOT EXISTS "Evidence_scanId_count_idx"
+CREATE INDEX IF NOT EXISTS "Evidence_scanId_count_idx"
 ON "Evidence" ("scanId");
 
 -- ==================================================
@@ -47,7 +47,7 @@ ON "Evidence" ("scanId");
 -- Index for issue queries in buildReportPayload
 -- This covers: SELECT * FROM Issue WHERE scanId = ? ORDER BY sortWeight ASC, createdAt ASC
 -- Note: Without INCLUDE, the index still helps but may need to access the table for other columns
-CREATE INDEX CONCURRENTLY IF NOT EXISTS "Issue_scan_covering_idx"
+CREATE INDEX IF NOT EXISTS "Issue_scan_covering_idx"
 ON "Issue" ("scanId", "sortWeight" ASC, "createdAt" ASC);
 
 -- ==================================================
@@ -56,7 +56,7 @@ ON "Issue" ("scanId", "sortWeight" ASC, "createdAt" ASC);
 
 -- Optimize recent reports query: WHERE status = 'done' ORDER BY createdAt DESC LIMIT 10
 -- Note: Without INCLUDE, the index still helps but may need to access the table for other columns
-CREATE INDEX CONCURRENTLY IF NOT EXISTS "Scan_recent_reports_idx"
+CREATE INDEX IF NOT EXISTS "Scan_recent_reports_idx"
 ON "Scan" ("status", "createdAt" DESC)
 WHERE "status" = 'done';
 
