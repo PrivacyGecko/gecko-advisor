@@ -3,13 +3,20 @@ import {
   UrlScanRequestSchema,
   ScanQueuedResponseSchema,
   ScanStatusSchema,
-  ReportResponseSchema,
+  LegacyReportResponseSchema,
   RecentReportsResponseSchema,
 } from '@privacy-advisor/shared';
 
 async function parseJson<T>(res: Response, schema: ZodSchema<T>): Promise<T> {
   const data = await res.json();
-  return schema.parse(data);
+  try {
+    return schema.parse(data);
+  } catch (error) {
+    // Log schema validation errors for debugging
+    console.error('[API] Schema validation failed:', error);
+    console.error('[API] Response data:', JSON.stringify(data, null, 2));
+    throw error;
+  }
 }
 
 export async function startUrlScan(url: string) {
@@ -135,7 +142,7 @@ export const scanStatusQueryOptions = (id: string) => {
 export async function getReport(slug: string) {
   const res = await fetch(`/api/report/${slug}`);
   if (!res.ok) throw new Error('Report not found');
-  return parseJson(res, ReportResponseSchema);
+  return parseJson(res, LegacyReportResponseSchema);
 }
 
 /**

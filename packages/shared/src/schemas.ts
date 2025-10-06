@@ -53,6 +53,17 @@ export const EvidenceSchema = z.object({
   createdAt: z.string().or(z.date()),
 });
 
+// Legacy schema for v1 API that uses 'type' instead of 'kind'
+export const LegacyEvidenceSchema = z.object({
+  id: z.string(),
+  scanId: z.string(),
+  type: EvidenceKind,
+  severity: z.number().int().min(1).max(5),
+  title: z.string(),
+  details: z.any(),
+  createdAt: z.string().or(z.date()),
+});
+
 export const IssueReferenceSchema = z.object({
   label: z.string().max(120).optional(),
   url: z.string().url(),
@@ -114,6 +125,18 @@ export const ReportResponseSchema = z.object({
     .optional(),
 });
 
+// Legacy report response schema for v1 API (uses 'type' instead of 'kind')
+export const LegacyReportResponseSchema = z.object({
+  scan: ScanSchema,
+  evidence: z.array(LegacyEvidenceSchema),
+  meta: z
+    .object({
+      dataSharing: z.enum(['None', 'Low', 'Medium', 'High']).optional(),
+      domain: z.string().optional(),
+    })
+    .optional(),
+});
+
 export const RecentReportItemSchema = z.object({
   slug: z.string(),
   score: z.number(),
@@ -131,7 +154,9 @@ export type UrlScanRequest = z.infer<typeof UrlScanRequestSchema>;
 export type ScanQueuedResponse = z.infer<typeof ScanQueuedResponseSchema>;
 export type ScanStatus = z.infer<typeof ScanStatusSchema>;
 export type Evidence = z.infer<typeof EvidenceSchema>;
+export type LegacyEvidence = z.infer<typeof LegacyEvidenceSchema>;
 export type Issue = z.infer<typeof IssueSchema>;
 export type TopFix = z.infer<typeof TopFixSchema>;
 export type ReportResponse = z.infer<typeof ReportResponseSchema>;
+export type LegacyReportResponse = z.infer<typeof LegacyReportResponseSchema>;
 export type RecentReportsResponse = z.infer<typeof RecentReportsResponseSchema>;

@@ -15,10 +15,10 @@ import VirtualizedEvidenceList from '../components/VirtualizedEvidenceList';
 import { ScoreDialSkeleton, CardSkeleton, EvidenceCardSkeleton } from '../components/Skeleton';
 import { ErrorState } from '../components/ErrorBoundary';
 import Footer from '../components/Footer';
-import type { ReportResponse } from '@privacy-advisor/shared';
+import type { LegacyReportResponse } from '@privacy-advisor/shared';
 import { computeDataSharingLevel, type DataSharingLevel } from '../lib/dataSharing';
 
-type EvidenceItem = ReportResponse['evidence'][number];
+type EvidenceItem = LegacyReportResponse['evidence'][number];
 type EvidenceType = EvidenceItem['type'];
 type SeverityFilter = 'all' | 'high' | 'medium' | 'low';
 
@@ -74,6 +74,12 @@ const TIPS: Record<EvidenceType, Tip[]> = {
       url: 'https://privacyguides.org/en/advanced/browser-fingerprinting/',
     },
   ],
+  'mixed-content': [
+    {
+      text: 'Ensure all resources are loaded over HTTPS to prevent mixed content warnings.',
+      url: 'https://developer.mozilla.org/docs/Web/Security/Mixed_content',
+    },
+  ],
 };
 
 const severityOptions: { key: SeverityFilter; label: string }[] = [
@@ -124,10 +130,12 @@ const sanitizeEvidence = (evidence: EvidenceItem[]): EvidenceItem[] => {
     // Create a safe copy with only public fields
     const sanitized: EvidenceItem = {
       id: item.id,
+      scanId: item.scanId,
       type: item.type,
       title: item.title,
       severity: item.severity,
-      details: sanitizeDetails(item.details)
+      details: sanitizeDetails(item.details),
+      createdAt: item.createdAt
     };
 
     return sanitized;
@@ -198,6 +206,22 @@ export default function ReportPage() {
   }
 
   if (isError || !data) {
+    // Determine the type of error for better user messaging
+    const isSchemaError = error?.message?.includes('validation') || error?.name === 'ZodError';
+    const is404Error = error?.message?.includes('Report not found');
+
+    const errorTitle = isSchemaError
+      ? "Report Data Error"
+      : is404Error
+      ? "Report Not Found"
+      : "Failed to Load Report";
+
+    const errorDescription = isSchemaError
+      ? `The report data for "${slug}" could not be processed correctly. This might be due to a data format issue. Our team has been notified.`
+      : is404Error
+      ? `The report with ID "${slug}" could not be found. It may have been removed or the link might be incorrect.`
+      : `There was an error loading the report "${slug}". This might be a temporary issue. Please try again.`;
+
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
@@ -213,8 +237,8 @@ export default function ReportPage() {
 
         <ErrorState
           error={error || new Error('Report not found')}
-          title="Report Not Found"
-          description={`The report with ID "${slug}" could not be found or failed to load. It may have been removed or the link might be incorrect.`}
+          title={errorTitle}
+          description={errorDescription}
           onRetry={() => refetch()}
           onGoHome={() => window.location.href = '/'}
           showDetails={process.env.NODE_ENV === 'development'}
@@ -276,7 +300,7 @@ function ReportSkeleton() {
   );
 }
 
-function ReportBody({ slug, data }: { slug: string; data: ReportResponse }) {
+function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }) {
   const { scan, evidence, meta } = data;
 
   const trackerDomains = React.useMemo(() => {

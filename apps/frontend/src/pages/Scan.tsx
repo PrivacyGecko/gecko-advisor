@@ -14,8 +14,6 @@ import Footer from '../components/Footer';
 
 export default function Scan() {
   const { id = '' } = useParams();
-  const [sp] = useSearchParams();
-  const slug = sp.get('slug') || '';
   const nav = useNavigate();
   const { data, isLoading, error, isError, refetch } = useQuery(scanStatusQueryOptions(id));
 
@@ -24,9 +22,12 @@ export default function Scan() {
     return isError && error && (error as any).status === 429;
   }, [isError, error]);
 
+  // Redirect to report page when scan is complete using slug from API response
   React.useEffect(() => {
-    if (data?.status === 'done' && slug) nav(`/r/${slug}`);
-  }, [data]);
+    if (data?.status === 'done' && data?.slug) {
+      nav(`/r/${data.slug}`);
+    }
+  }, [data, nav]);
 
   return (
     <div className="max-w-3xl mx-auto p-4 md:p-6 space-y-4">
