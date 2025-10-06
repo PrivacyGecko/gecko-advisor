@@ -3,7 +3,7 @@ import {
   UrlScanRequestSchema,
   ScanQueuedResponseSchema,
   ScanStatusSchema,
-  ReportResponseSchema,
+  ReportResponseSchema, // Uses 'kind' field (correct after schema migration)
   RecentReportsResponseSchema,
 } from '@privacy-advisor/shared';
 
@@ -15,6 +15,7 @@ async function parseJson<T>(res: Response, schema: ZodSchema<T>): Promise<T> {
     // Log schema validation errors for debugging
     console.error('[API] Schema validation failed:', error);
     console.error('[API] Response data:', JSON.stringify(data, null, 2));
+    console.error('[API] Schema used:', schema);
     throw error;
   }
 }
