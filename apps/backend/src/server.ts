@@ -30,7 +30,24 @@ export function createServer() {
 
   app.use(requestId);
 
-  // Add performance monitoring and headers
+  // Enable gzip/deflate compression for all responses
+  // IMPORTANT: Must come BEFORE performance monitor to avoid res.end() conflicts
+  // This significantly reduces payload size for large JSON responses (e.g., reports with 400+ evidence items)
+  // Compression is applied to responses >= 1KB by default
+  app.use(compression({
+    level: 6, // Balanced compression (0-9, where 6 is default and recommended)
+    threshold: 1024, // Only compress responses larger than 1KB
+    filter: (req, res) => {
+      // Don't compress responses with 'Cache-Control: no-transform' directive
+      if (req.headers['x-no-compression']) {
+        return false;
+      }
+      // Use compression's default filter (text/html, application/json, etc.)
+      return compression.filter(req, res);
+    }
+  }));
+
+  // Add performance monitoring and headers (must come AFTER compression)
   app.use(addPerformanceHeaders);
   app.use(performanceMonitor);
 
@@ -46,22 +63,6 @@ export function createServer() {
       }),
     }) as unknown as express.RequestHandler
   );
-
-  // Enable gzip/deflate compression for all responses
-  // This significantly reduces payload size for large JSON responses (e.g., reports with 400+ evidence items)
-  // Compression is applied to responses >= 1KB by default
-  app.use(compression({
-    level: 6, // Balanced compression (0-9, where 6 is default and recommended)
-    threshold: 1024, // Only compress responses larger than 1KB
-    filter: (req, res) => {
-      // Don't compress responses with 'Cache-Control: no-transform' directive
-      if (req.headers['x-no-compression']) {
-        return false;
-      }
-      // Use compression's default filter (text/html, application/json, etc.)
-      return compression.filter(req, res);
-    }
-  }));
 
   app.use(express.json({ limit: '200kb' }));
 
