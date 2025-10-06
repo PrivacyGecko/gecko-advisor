@@ -31,44 +31,106 @@ export async function getScanStatus(id: string) {
       'Pragma': 'no-cache'
     }
   });
-  if (!res.ok) throw new Error('Scan not found');
+  if (!res.ok) {
+    // Handle rate limiting with specific error
+    if (res.status === 429) {
+      const error = new Error('Rate limit exceeded');
+      (error as any).status = 429;
+      throw error;
+    }
+    throw new Error('Scan not found');
+  }
   return parseJson(res, ScanStatusSchema);
 }
 
 /**
  * React Query configuration for scan status polling
- * Optimized for performance and reduced backend load
+ * Optimized for performance and reduced backend load with exponential backoff
+ *
+ * Key improvements:
+ * - Conservative base polling interval (2-3s) to avoid rate limiting
+ * - Exponential backoff on 429 errors (2s → 4s → 8s → 15s max)
+ * - Automatic reset to base interval on successful response
+ * - Smart retry logic that distinguishes between rate limits and real errors
  */
-export const scanStatusQueryOptions = (id: string) => ({
-  queryKey: ['scan', id],
-  queryFn: () => getScanStatus(id),
-  // Polling configuration with smart intervals
-  refetchInterval: (query: any) => {
-    const data = query.state.data;
-    if (!data) return 2000; // Initial fetch, check every 2s
-    if (data.status === 'done') return false; // Stop polling when done
-    if (data.status === 'error') return false; // Stop polling on error
+export const scanStatusQueryOptions = (id: string) => {
+  // Track consecutive rate limit errors for exponential backoff
+  let consecutiveRateLimits = 0;
+  let lastSuccessTime = Date.now();
 
-    // Adaptive polling based on progress
-    const progress = data.progress || 0;
-    if (progress < 30) return 1500; // Fast polling during startup
-    if (progress < 70) return 2000; // Normal polling during processing
-    return 1000; // Fast polling near completion
-  },
-  // Cache configuration
-  staleTime: 0, // Always consider stale for real-time updates
-  gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes after unmount
-  retry: (failureCount: number, error: any) => {
-    // Don't retry 404 errors (scan not found)
-    if (error.message?.includes('Scan not found')) return false;
-    // Retry up to 3 times for other errors
-    return failureCount < 3;
-  },
-  retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 5000),
-  // Network status awareness
-  refetchOnWindowFocus: true,
-  refetchOnReconnect: true,
-});
+  return {
+    queryKey: ['scan', id],
+    queryFn: () => getScanStatus(id),
+    // Polling configuration with exponential backoff for rate limiting
+    refetchInterval: (query: any) => {
+      const data = query.state.data;
+      const error = query.state.error;
+
+      // Stop polling when scan is complete or failed
+      if (data?.status === 'done') return false;
+      if (data?.status === 'error') return false;
+
+      // Implement exponential backoff for rate limiting
+      if (error && (error as any).status === 429) {
+        consecutiveRateLimits++;
+        // Exponential backoff: 2s → 4s → 8s → 15s (max)
+        const backoffInterval = Math.min(2000 * Math.pow(2, consecutiveRateLimits - 1), 15000);
+        console.warn(`[Polling] Rate limited. Backing off to ${backoffInterval}ms. Attempt ${consecutiveRateLimits}`);
+        return backoffInterval;
+      }
+
+      // Reset backoff counter on successful response
+      if (data && !error) {
+        if (consecutiveRateLimits > 0) {
+          console.info('[Polling] Rate limit cleared. Resetting to normal interval.');
+        }
+        consecutiveRateLimits = 0;
+        lastSuccessTime = Date.now();
+      }
+
+      // Conservative base polling intervals
+      if (!data) return 2000; // Initial fetch, 2 second interval
+
+      // Adaptive polling based on progress (more conservative than before)
+      const progress = data.progress || 0;
+      if (progress < 30) return 3000; // Slower during startup (3s)
+      if (progress < 70) return 2500; // Normal polling during processing (2.5s)
+      return 2000; // Faster near completion but still conservative (2s)
+    },
+    // Cache configuration
+    staleTime: 0, // Always consider stale for real-time updates
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes after unmount
+    retry: (failureCount: number, error: any) => {
+      // Don't retry 404 errors (scan not found)
+      if (error.message?.includes('Scan not found')) return false;
+
+      // For rate limit errors, allow unlimited retries (backoff handles the delay)
+      if ((error as any).status === 429) {
+        // Only retry if we haven't been rate limited for too long (5 minutes max)
+        const timeSinceLastSuccess = Date.now() - lastSuccessTime;
+        if (timeSinceLastSuccess > 5 * 60 * 1000) {
+          console.error('[Polling] Rate limited for too long. Stopping retries.');
+          return false;
+        }
+        return true; // Keep retrying with exponential backoff
+      }
+
+      // Retry up to 3 times for other errors
+      return failureCount < 3;
+    },
+    retryDelay: (attemptIndex: number, error: any) => {
+      // For rate limits, use exponential backoff calculated in refetchInterval
+      if ((error as any).status === 429) {
+        return Math.min(2000 * Math.pow(2, attemptIndex), 15000);
+      }
+      // For other errors, standard exponential backoff
+      return Math.min(1000 * 2 ** attemptIndex, 5000);
+    },
+    // Network status awareness
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+  };
+};
 
 export async function getReport(slug: string) {
   const res = await fetch(`/api/report/${slug}`);

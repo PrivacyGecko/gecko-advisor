@@ -1,6 +1,6 @@
 import rateLimit from 'express-rate-limit';
 import type { Options as RateLimitOptions } from 'express-rate-limit';
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response } from 'express';
 import { config } from '../config.js';
 import { logger } from '../logger.js';
 import { getQueueMetrics } from '../queue.js';
@@ -227,4 +227,19 @@ export const generalRateLimit = createIntelligentRateLimit({
     bulk: 0.7,
   },
   enableDynamicAdjustment: false,
+});
+
+/**
+ * Very lenient rate limiter for status polling endpoints
+ * Status checks are lightweight read operations that need high frequency
+ * to support real-time UI updates during scan processing
+ */
+export const statusRateLimit = createIntelligentRateLimit({
+  baseLimit: 120, // 120 requests per minute = 2 per second
+  complexityMultiplier: {
+    simple: 1.0,
+    complex: 1.0,
+    bulk: 1.0,
+  },
+  enableDynamicAdjustment: false, // Status checks don't need queue-based adjustment
 });

@@ -19,6 +19,11 @@ export default function Scan() {
   const nav = useNavigate();
   const { data, isLoading, error, isError, refetch } = useQuery(scanStatusQueryOptions(id));
 
+  // Track if we're experiencing rate limiting
+  const isRateLimited = React.useMemo(() => {
+    return isError && error && (error as any).status === 429;
+  }, [isError, error]);
+
   React.useEffect(() => {
     if (data?.status === 'done' && slug) nav(`/r/${slug}`);
   }, [data]);
@@ -35,8 +40,14 @@ export default function Scan() {
         ) : isError ? (
           <ErrorState
             error={error || new Error('Failed to load scan status')}
-            title="Scan Status Error"
-            description="There was an error checking the scan progress. This might be due to a network issue or the scan ID being invalid."
+            title={isRateLimited ? "Scan Temporarily Slowed" : "Scan Status Error"}
+            description={
+              isRateLimited
+                ? "We're checking your scan progress a bit slower to avoid overloading the server. Your scan is still running and will complete normally. This is temporary and will resolve automatically."
+                : error?.message?.includes('Scan not found')
+                ? "The scan ID could not be found. It may have expired or been deleted. Please start a new scan."
+                : "There was an error checking the scan progress. This might be due to a network issue or a temporary server problem. The scan may still be running in the background."
+            }
             onRetry={() => refetch()}
             onGoHome={() => nav('/')}
             showDetails={process.env.NODE_ENV === 'development'}
@@ -63,6 +74,22 @@ export default function Scan() {
           </div>
         )}
       </Card>
+
+      {/* Rate limit info banner - only show when experiencing rate limiting but still polling */}
+      {isRateLimited && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
+          <div className="flex items-start gap-3">
+            <div className="text-blue-600 flex-shrink-0 text-xl" aria-hidden="true">ℹ️</div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-blue-900 mb-1">Automatic Rate Limit Protection</h3>
+              <p className="text-blue-800">
+                We're automatically slowing down status checks to respect server limits.
+                Your scan is still running normally. We'll automatically speed up again once the rate limit clears.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       <Link to="/" className="text-security-blue underline">New scan</Link>
       <Footer />
     </div>

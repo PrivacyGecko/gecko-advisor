@@ -7,7 +7,7 @@ import { config } from "./config.js";
 import { logger } from "./logger.js";
 import { requestId } from "./middleware/request-id.js";
 import { withCsp } from "./middleware/csp.js";
-import { scanRateLimit, reportRateLimit, generalRateLimit } from "./middleware/intelligent-rate-limit.js";
+import { scanRateLimit, reportRateLimit, generalRateLimit, statusRateLimit } from "./middleware/intelligent-rate-limit.js";
 import { performanceMonitor, addPerformanceHeaders } from "./middleware/performance-monitor.js";
 import { apiV1Router, apiV2Router } from "./routes/index.js";
 import { adminRouter } from "./routes/admin.js";
@@ -77,10 +77,19 @@ export function createServer() {
   app.use('/api', healthRouter);
 
   // Apply intelligent rate limiting to different endpoint groups
+  // IMPORTANT: More specific routes must come BEFORE general routes in Express
+
+  // Status endpoints need lenient rate limiting (lightweight read operations)
+  app.use('/api/v1/scan/:id/status', statusRateLimit);
+  app.use('/api/v2/scan/:id/status', statusRateLimit);
+  app.use('/api/scan/:id/status', statusRateLimit);
+
+  // Scan submission endpoints have stricter limits
   app.use('/api/v1/scan', scanRateLimit);
   app.use('/api/v2/scan', scanRateLimit);
   app.use('/api/scan', scanRateLimit);
 
+  // Report endpoints (read-heavy, moderate limits)
   app.use('/api/v1/report', reportRateLimit);
   app.use('/api/v1/reports', reportRateLimit);
   app.use('/api/v2/report', reportRateLimit);
