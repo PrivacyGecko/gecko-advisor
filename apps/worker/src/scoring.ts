@@ -1,6 +1,8 @@
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient, Evidence } from "@prisma/client";
 import type { ScoreResult } from "@privacy-advisor/shared";
 import { labelForScore } from "@privacy-advisor/shared";
+import { isFirstParty } from './utils/firstPartyDetection.js';
+import { parse } from 'tldts';
 
 const coerceDetail = <T extends object>(value: unknown): T =>
   (typeof value === 'object' && value !== null ? (value as T) : ({} as T));
@@ -31,9 +33,12 @@ interface HeaderDetail {
 }
 
 interface TLSDetail {
-  grade?: 'A' | 'B' | 'C' | 'D' | 'F';
+  grade?: 'A+' | 'A' | 'B' | 'C' | 'D' | 'F';
 }
 
+interface InsecureDetail {
+  url?: string;
+}
 
 interface IssueInput {
   key: string;
@@ -53,35 +58,171 @@ export interface ComputedScanResult extends ScoreResult {
   meta: Record<string, unknown>;
 }
 
+/**
+ * FIX #1: Deduplicate evidence across crawled pages
+ *
+ * Creates a unique key for each evidence entry based on its kind and identifying details.
+ * This prevents the same violation from being counted multiple times across different pages.
+ *
+ * Example: Missing "permissions-policy" header should only be counted once,
+ * not 10 times if we crawled 10 pages.
+ */
+function getEvidenceKey(ev: Evidence): string {
+  const details = ev.details as Record<string, unknown>;
+
+  switch (ev.kind) {
+    case 'header':
+      // Same missing header = same violation (e.g., "permissions-policy" missing)
+      return `header:${details.name}`;
+    case 'thirdparty':
+      // Same third-party domain = same violation (e.g., "cdn.example.com")
+      return `thirdparty:${details.domain}`;
+    case 'tracker':
+      // Same tracker domain = same violation (e.g., "google-analytics.com")
+      return `tracker:${details.domain}`;
+    case 'insecure':
+      // Same insecure URL = same violation
+      return `insecure:${details.url}`;
+    case 'cookie':
+      // Same cookie name = same violation (e.g., "session_id" without Secure flag)
+      return `cookie:${details.name}`;
+    case 'fingerprint':
+      // Treat all fingerprinting signals as one issue (aggregated detection)
+      return `fingerprint`;
+    case 'policy':
+      // Privacy policy found/not found is a single issue
+      return `policy:found`;
+    case 'tls':
+      // TLS grade is a single global assessment
+      return `tls:grade`;
+    default:
+      // Fallback: use evidence ID to keep unknown types
+      return `${ev.kind}:${ev.id}`;
+  }
+}
+
+/**
+ * Deduplicates evidence array by unique key.
+ * Keeps the first occurrence of each unique violation.
+ */
+function deduplicateEvidence(evidence: Evidence[]): Evidence[] {
+  const uniqueMap = new Map<string, Evidence>();
+
+  for (const ev of evidence) {
+    const key = getEvidenceKey(ev);
+    if (!uniqueMap.has(key)) {
+      uniqueMap.set(key, ev);
+    }
+  }
+
+  return Array.from(uniqueMap.values());
+}
+
+/**
+ * Extracts the root domain from a scan record.
+ * Falls back to parsing normalizedInput if not available.
+ */
+function getRootDomain(scan: { input: string; normalizedInput?: string | null }): string {
+  const input = scan.normalizedInput || scan.input;
+
+  // Parse URL to extract domain
+  try {
+    const url = new URL(input.startsWith('http') ? input : `https://${input}`);
+    const parsed = parse(url.hostname);
+    return parsed.domain || url.hostname;
+  } catch {
+    // Fallback: assume input is domain-like
+    const parsed = parse(input);
+    return parsed.domain || input;
+  }
+}
+
 export async function computeScore(prisma: PrismaClient, scanId: string): Promise<ComputedScanResult> {
-  const evidence = await prisma.evidence.findMany({ where: { scanId } });
+  // Fetch all evidence and scan metadata
+  const [rawEvidence, scan] = await Promise.all([
+    prisma.evidence.findMany({ where: { scanId } }),
+    prisma.scan.findUnique({ where: { id: scanId }, select: { input: true, normalizedInput: true } })
+  ]);
+
+  if (!scan) {
+    throw new Error(`Scan ${scanId} not found`);
+  }
+
+  // Extract root domain for first-party detection (FIX #2)
+  const rootDomain = getRootDomain(scan);
+
+  // FIX #1: Deduplicate evidence to prevent counting the same violation multiple times
+  // IMPORTANT: For fingerprinting, we count signals BEFORE deduplication to properly detect 3+ signals
+  const fingerprintSignalsCount = rawEvidence.filter((entry) => entry.kind === 'fingerprint').length;
+  const evidence = deduplicateEvidence(rawEvidence);
+
   let score = 100;
+  let bonuses = 0; // FIX #3: Track positive rewards
   const explanations: { evidenceId: string; points: number; reason: string }[] = [];
 
+  // ===== TRACKER PENALTIES =====
+  // Trackers are always third-party by definition (monitoring/analytics services)
   const trackers = evidence.filter((entry) => entry.kind === 'tracker');
   const uniqueTrackerDomains = new Set(
     trackers.map((entry) => coerceDetail<TrackerDetail>(entry.details).domain).filter(isString),
   );
+
+  // Penalty: 5 points per unique tracker, capped at 40 points
   let trackerPenalty = Math.min(uniqueTrackerDomains.size * 5, 40);
+
+  // Additional penalty for fingerprinting trackers
   trackers.forEach((entry) => {
     if (coerceDetail<TrackerDetail>(entry.details).fingerprinting) trackerPenalty += 5;
   });
+
   if (trackerPenalty > 0) {
     trackers.forEach((entry) => explanations.push({ evidenceId: entry.id, points: -5, reason: 'Tracker domain' }));
   }
   score -= trackerPenalty;
 
+  // ===== THIRD-PARTY PENALTIES =====
+  // FIX #2: Filter out first-party CDNs and infrastructure before penalizing
   const thirdParty = evidence.filter((entry) => entry.kind === 'thirdparty');
-  const uniqueThird = new Set(
-    thirdParty.map((entry) => coerceDetail<ThirdPartyDetail>(entry.details).domain).filter(isString),
-  );
+  const thirdPartyDomains = thirdParty
+    .map((entry) => coerceDetail<ThirdPartyDetail>(entry.details).domain)
+    .filter(isString);
+
+  // Filter out first-party domains (e.g., github.githubassets.com for github.com)
+  const actualThirdParty = thirdPartyDomains.filter(domain => {
+    // Skip first-party CDNs/infrastructure
+    if (isFirstParty(domain, rootDomain)) {
+      return false;
+    }
+    return true;
+  });
+
+  const uniqueThird = new Set(actualThirdParty);
+
+  // Penalty: 2 points per unique third-party domain, capped at 20 points
   const thirdPenalty = Math.min(uniqueThird.size * 2, 20);
   if (thirdPenalty) {
-    thirdParty.forEach((entry) => explanations.push({ evidenceId: entry.id, points: -2, reason: 'Third-party request' }));
+    thirdParty
+      .filter(entry => {
+        const domain = coerceDetail<ThirdPartyDetail>(entry.details).domain;
+        return domain && !isFirstParty(domain, rootDomain);
+      })
+      .forEach((entry) => explanations.push({ evidenceId: entry.id, points: -2, reason: 'Third-party request' }));
   }
   score -= thirdPenalty;
 
-  const insecure = evidence.filter((entry) => entry.kind === 'insecure');
+  // ===== MIXED CONTENT PENALTIES =====
+  // FIX #4: Filter out false positives (null URLs, empty URLs)
+  const insecure = evidence.filter((entry) => {
+    if (entry.kind !== 'insecure') return false;
+
+    const details = coerceDetail<InsecureDetail>(entry.details);
+    const url = details.url;
+
+    // Only count actual HTTP resources with valid URLs
+    return url && url !== 'null' && url !== '' && url.startsWith('http://');
+  });
+
+  // Penalty: 10 points per insecure resource, capped at 20 points
   const insecurePenalty = Math.min(insecure.length * 10, 20);
   if (insecurePenalty) {
     insecure.forEach((entry) => explanations.push({ evidenceId: entry.id, points: -10, reason: 'Insecure/mixed content' }));
@@ -107,13 +248,14 @@ export async function computeScore(prisma: PrismaClient, scanId: string): Promis
   }
   score -= cookiePenalty;
 
+  // ===== PRIVACY POLICY PENALTIES =====
   const policyEntries = evidence.filter((entry) => entry.kind === 'policy');
   const policyFound = policyEntries.length > 0;
+
+  // Penalty for missing privacy policy (bonus applied later in FIX #3)
   if (!policyFound) {
     score -= 5;
-  } else {
-    const [firstPolicy] = policyEntries;
-    if (firstPolicy) explanations.push({ evidenceId: firstPolicy.id, points: 0, reason: 'Privacy policy found' });
+    explanations.push({ evidenceId: 'missing-policy', points: -5, reason: 'No privacy policy found' });
   }
 
   const tlsEntries = evidence.filter((entry) => entry.kind === 'tls');
@@ -129,15 +271,58 @@ export async function computeScore(prisma: PrismaClient, scanId: string): Promis
     if (penalty) explanations.push({ evidenceId: tlsRecord.id, points: -penalty, reason: `TLS grade ${tlsGrade}` });
   }
 
+  // ===== FINGERPRINTING PENALTIES =====
+  // FIX #5: Only penalize if 3+ signals detected (indicates actual fingerprinting, not feature detection)
+  // Use pre-deduplication count to properly detect multiple signals
   const fingerprintEntries = evidence.filter((entry) => entry.kind === 'fingerprint');
-  const fingerprintDetected = fingerprintEntries.length > 0;
+  const fingerprintDetected = fingerprintSignalsCount >= 3;
+
   if (fingerprintDetected) {
     score -= 5;
     const [firstFingerprint] = fingerprintEntries;
-    if (firstFingerprint) explanations.push({ evidenceId: firstFingerprint.id, points: -5, reason: 'Fingerprinting heuristics' });
+    if (firstFingerprint) {
+      explanations.push({
+        evidenceId: firstFingerprint.id,
+        points: -5,
+        reason: `Fingerprinting heuristics (${fingerprintSignalsCount} signals)`
+      });
+    }
   }
 
-  score = Math.max(0, score);
+  // ===== POSITIVE REWARDS (FIX #3) =====
+  // Reward sites with strong privacy and security practices
+
+  // TLS Grade bonuses
+  if (tlsGrade === 'A+') {
+    bonuses += 5;
+    if (tlsRecord) {
+      explanations.push({ evidenceId: tlsRecord.id, points: +5, reason: 'TLS Grade A+ (excellent)' });
+    }
+  } else if (tlsGrade === 'A') {
+    bonuses += 3;
+    if (tlsRecord) {
+      explanations.push({ evidenceId: tlsRecord.id, points: +3, reason: 'TLS Grade A (strong)' });
+    }
+  }
+
+  // Zero trackers bonus
+  if (uniqueTrackerDomains.size === 0) {
+    bonuses += 5;
+    explanations.push({ evidenceId: 'bonus-no-trackers', points: +5, reason: 'No tracking domains detected' });
+  }
+
+  // Privacy policy bonus
+  if (policyFound) {
+    bonuses += 3;
+    const [firstPolicy] = policyEntries;
+    if (firstPolicy) {
+      explanations.push({ evidenceId: firstPolicy.id, points: +3, reason: 'Privacy policy found' });
+    }
+  }
+
+  // Apply bonuses and clamp score to [0, 100]
+  score = score + bonuses;
+  score = Math.max(0, Math.min(100, score));
   const label = labelForScore(score);
 
   const issues: IssueInput[] = [];

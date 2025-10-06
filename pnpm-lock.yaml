@@ -140,7 +140,7 @@ importers:
         version: 5.9.2
       vite-tsconfig-paths:
         specifier: ^5.1.4
-        version: 5.1.4(typescript@5.9.2)(vite@5.4.20(@types/node@20.19.14))
+        version: 5.1.4(typescript@5.9.2)(vite@6.3.6(@types/node@20.19.14)(jiti@1.21.7)(tsx@4.20.5)(yaml@2.8.1))
       vitest:
         specifier: ^2.0.5
         version: 2.1.9(@types/node@20.19.14)
@@ -226,6 +226,9 @@ importers:
       pino:
         specifier: ^9.5.0
         version: 9.10.0
+      tldts:
+        specifier: ^7.0.16
+        version: 7.0.16
     devDependencies:
       '@types/node':
         specifier: ^20.14.11
@@ -238,7 +241,7 @@ importers:
         version: 5.9.2
       vite-tsconfig-paths:
         specifier: ^5.1.4
-        version: 5.1.4(typescript@5.9.2)(vite@6.3.6(@types/node@20.19.14)(jiti@1.21.7)(tsx@4.20.5)(yaml@2.8.1))
+        version: 5.1.4(typescript@5.9.2)(vite@5.4.20(@types/node@20.19.14))
       vitest:
         specifier: ^2.0.5
         version: 2.1.9(@types/node@20.19.14)
@@ -2940,6 +2943,13 @@ packages:
   tinyspy@3.0.2:
     resolution: {integrity: sha512-n1cw8k1k0x4pgA2+9XrOkFydTerNcJ1zWCO5Nn9scWHTD+5tp8dghT2x1uduQePZTZgd3Tupf+x9BxJjeJi77Q==}
     engines: {node: '>=14.0.0'}
+
+  tldts-core@7.0.16:
+    resolution: {integrity: sha512-XHhPmHxphLi+LGbH0G/O7dmUH9V65OY20R7vH8gETHsp5AZCjBk9l8sqmRKLaGOxnETU7XNSDUPtewAy/K6jbA==}
+
+  tldts@7.0.16:
+    resolution: {integrity: sha512-5bdPHSwbKTeHmXrgecID4Ljff8rQjv7g8zKQPkCozRo2HWWni+p310FSn5ImI+9kWw9kK4lzOB5q/a6iv0IJsw==}
+    hasBin: true
 
   to-regex-range@5.0.1:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
@@ -6097,6 +6107,12 @@ snapshots:
   tinyrainbow@1.2.0: {}
 
   tinyspy@3.0.2: {}
+
+  tldts-core@7.0.16: {}
+
+  tldts@7.0.16:
+    dependencies:
+      tldts-core: 7.0.16
 
   to-regex-range@5.0.1:
     dependencies:
