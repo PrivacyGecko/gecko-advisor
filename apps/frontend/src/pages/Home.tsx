@@ -40,8 +40,8 @@ export default function Home() {
   async function onScan() {
     try {
       setLoading(true);
-      const { scanId, reportSlug } = await startUrlScan(input);
-      navigate(`/scan/${scanId}?slug=${encodeURIComponent(reportSlug)}`);
+      const { scanId, slug } = await startUrlScan(input);
+      navigate(`/scan/${scanId}?slug=${encodeURIComponent(slug)}`);
     } finally {
       setLoading(false);
     }
@@ -97,6 +97,46 @@ export default function Home() {
         )}
         <p className="text-xs text-slate-500 mt-2">Example: example.com, app id, or Solana wallet address</p>
       </Card>
+
+      {/* Trust Indicators - Moved higher for better visibility */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+        <div className="flex items-start gap-3 p-4 rounded-lg bg-emerald-50 border border-emerald-200">
+          <div className="flex-shrink-0 mt-0.5">
+            <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <div className="font-medium text-emerald-900">Open source & transparent</div>
+            <p className="text-xs text-emerald-700 mt-1">All scoring logic is public and auditable</p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3 p-4 rounded-lg bg-blue-50 border border-blue-200">
+          <div className="flex-shrink-0 mt-0.5">
+            <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <div className="font-medium text-blue-900">No personal data collected</div>
+            <p className="text-xs text-blue-700 mt-1">We don't track you while scanning others</p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-50 border border-amber-200">
+          <div className="flex-shrink-0 mt-0.5">
+            <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <div className="font-medium text-amber-900">Results in seconds</div>
+            <p className="text-xs text-amber-700 mt-1">Fast scanning with instant privacy scores</p>
+          </div>
+        </div>
+      </div>
+
       <Card>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -134,20 +174,6 @@ export default function Home() {
           </div>
         </div>
       </Card>
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6 text-sm text-slate-700">
-        <span className="inline-flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-green-600 inline-block" aria-hidden="true" />
-          No trackers added by us
-        </span>
-        <span className="inline-flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-blue-600 inline-block" aria-hidden="true" />
-          Transparent scoring
-        </span>
-        <span className="inline-flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-amber-600 inline-block" aria-hidden="true" />
-          Plain-language results
-        </span>
-      </div>
       <Card>
         <h2 className="font-semibold mb-2">What do we check?</h2>
         <ul className="list-disc pl-6 text-slate-700 text-sm">

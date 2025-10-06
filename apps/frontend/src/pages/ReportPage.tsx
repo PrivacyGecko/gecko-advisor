@@ -10,16 +10,16 @@ import ScoreDial from '../components/ScoreDial';
 import Card from '../components/Card';
 import CopyButton from '../components/CopyButton';
 import InfoPopover from '../components/InfoPopover';
-import SeverityBadge, { SeverityIndicator } from '../components/SeverityBadge';
+import { SeverityIndicator } from '../components/SeverityBadge';
 import VirtualizedEvidenceList from '../components/VirtualizedEvidenceList';
 import { ScoreDialSkeleton, CardSkeleton, EvidenceCardSkeleton } from '../components/Skeleton';
 import { ErrorState } from '../components/ErrorBoundary';
 import Footer from '../components/Footer';
-import type { ReportResponse } from '@privacy-advisor/shared';
+import type { LegacyReportResponse } from '@privacy-advisor/shared';
 import { computeDataSharingLevel, type DataSharingLevel } from '../lib/dataSharing';
 
-type EvidenceItem = ReportResponse['evidence'][number];
-type EvidenceType = EvidenceItem['kind'];
+type EvidenceItem = LegacyReportResponse['evidence'][number];
+type EvidenceType = EvidenceItem['type'];
 type SeverityFilter = 'all' | 'high' | 'medium' | 'low';
 
 type Tip = { text: string; url?: string };
@@ -356,12 +356,19 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
   }, [searchParams, setSearchParams, sevFilter]);
 
   const [open, setOpen] = React.useState<Record<EvidenceType, boolean>>({} as Record<EvidenceType, boolean>);
+
   React.useEffect(() => {
     setOpen((previous) => {
       const next: Record<EvidenceType, boolean> = { ...previous };
-      groupEntries.forEach(([type]) => {
-        if (next[type] === undefined) next[type] = true;
+
+      groupEntries.forEach(([type, items]) => {
+        if (next[type] === undefined) {
+          // Smart default: Only expand sections with high-severity items (severity >= 4)
+          const hasHighSeverity = items.some(item => item.severity >= 4);
+          next[type] = hasHighSeverity;
+        }
       });
+
       return next;
     });
   }, [groupEntries]);
@@ -426,17 +433,51 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
   const topTrackers = trackerDomains.slice(0, 2);
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-1 text-sm font-medium text-security-blue hover:text-security-blue-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-security-blue focus-visible:ring-offset-2 rounded"
-          aria-label="Back to home"
-        >
-          <span aria-hidden="true">&larr;</span>
-          Home
-        </Link>
+    <>
+      {/* Mobile sticky header */}
+      <div className="sticky top-0 z-10 bg-white border-b shadow-sm md:hidden">
+        <div className="flex items-center justify-between p-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <Link
+              to="/"
+              className="text-security-blue hover:text-security-blue-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-security-blue rounded p-1"
+              aria-label="Back to home"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </Link>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium truncate">{scan.input}</div>
+              <div className="text-xs text-gray-500">
+                {scan.label} ({scan.score}%)
+              </div>
+            </div>
+          </div>
+          <div className="flex-shrink-0">
+            <div className={`
+              w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold
+              ${(scan.score ?? 0) >= 70 ? 'bg-green-100 text-green-700' :
+                (scan.score ?? 0) >= 40 ? 'bg-amber-100 text-amber-700' :
+                'bg-red-100 text-red-700'}
+            `}>
+              {scan.score ?? 0}
+            </div>
+          </div>
+        </div>
       </div>
+
+      <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1 text-sm font-medium text-security-blue hover:text-security-blue-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-security-blue focus-visible:ring-offset-2 rounded"
+            aria-label="Back to home"
+          >
+            <span aria-hidden="true">&larr;</span>
+            Home
+          </Link>
+        </div>
       <header className="flex flex-col md:flex-row items-start md:items-center gap-4">
         <div className="flex-shrink-0 mx-auto md:mx-0">
           <ScoreDial score={scan.score ?? 0} size="md" />
@@ -557,76 +598,219 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
         })}
       </div>
 
-      {groupEntries.map(([type, list]) => (
-        <Card key={type}>
+      {/* Evidence section controls */}
+      <div className="flex items-center justify-between py-3 px-4 bg-slate-50 rounded-lg border border-slate-200">
+        <div className="text-sm text-slate-600">
+          <span className="font-medium text-slate-900">
+            {groupEntries.filter(([type]) => open[type]).length}
+          </span>
+          {' of '}
+          <span className="font-medium text-slate-900">
+            {groupEntries.length}
+          </span>
+          {' categories visible'}
+        </div>
+
+        <div className="flex items-center gap-2">
           <button
-            className="w-full flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-security-blue rounded"
-            aria-expanded={open[type] ? 'true' : 'false'}
-            aria-controls={sectionId(type)}
-            onClick={() => toggle(type)}
+            onClick={() => {
+              const allOpen: Record<EvidenceType, boolean> = {} as Record<EvidenceType, boolean>;
+              groupEntries.forEach(([type]) => { allOpen[type] = true; });
+              setOpen(allOpen);
+            }}
+            className="px-3 py-1.5 min-h-[36px] text-xs font-medium text-security-blue hover:text-security-blue-dark hover:underline focus:outline-none focus:ring-2 focus:ring-security-blue rounded-md transition-colors duration-150"
+            aria-label="Expand all evidence categories"
           >
-            <h2 className="font-semibold capitalize">{type || 'Evidence'}</h2>
-            <span className="text-xs text-slate-600">{list.length} items {open[type] ? '-' : '+'}</span>
+            Expand all
           </button>
-          {open[type] && (
-            <>
-              {/* Use virtualized list for large evidence collections (>20 items) */}
-              {list.length > 20 ? (
-                <div className="mt-2">
-                  <VirtualizedEvidenceList
-                    items={list}
-                    matchesFilter={matchesFilter}
-                    sanitizeDetails={sanitizeDetails}
-                    containerHeight={300}
-                    itemHeight={80}
-                    className="border rounded"
-                  />
-                </div>
-              ) : (
-                <ul id={sectionId(type)} className="text-sm text-slate-700 space-y-1 mt-2">
-                  {list.filter((item) => matchesFilter(item.severity)).map((item) => (
-                    <li key={item.id} className="flex items-start gap-3">
-                      <SeverityIndicator severity={item.severity} />
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-900">{item.title}</div>
-                        <details className="mt-1 group">
-                          <summary className="cursor-pointer text-xs text-slate-500 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-security-blue focus:ring-offset-1 rounded py-3 min-h-[44px] inline-flex items-center">
-                            <span className="group-open:hidden">Show details</span>
-                            <span className="hidden group-open:inline">Hide details</span>
-                          </summary>
-                          <div className="mt-2 p-2 bg-slate-50 rounded text-xs text-slate-600 border">
-                            <div className="font-mono text-2xs break-all">
-                              {safeStringify(sanitizeDetails(item.details))}
-                            </div>
-                          </div>
-                        </details>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {TIPS[type] && (
-                <div className="mt-3 text-sm">
-                  <div className="font-semibold">How to fix</div>
-                  <ul className="list-disc pl-5 text-slate-700">
-                    {TIPS[type].map((tip, index) => (
-                      <li key={index}>
-                        {tip.url ? (
-                          <a className="text-security-blue underline" href={tip.url} target="_blank" rel="noreferrer">
-                            {tip.text}
-                          </a>
-                        ) : (
-                          tip.text
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </>
-          )}
+
+          <span className="text-slate-300" aria-hidden="true">|</span>
+
+          <button
+            onClick={() => {
+              const allClosed: Record<EvidenceType, boolean> = {} as Record<EvidenceType, boolean>;
+              groupEntries.forEach(([type]) => { allClosed[type] = false; });
+              setOpen(allClosed);
+            }}
+            className="px-3 py-1.5 min-h-[36px] text-xs font-medium text-slate-600 hover:text-slate-800 hover:underline focus:outline-none focus:ring-2 focus:ring-security-blue rounded-md transition-colors duration-150"
+            aria-label="Collapse all evidence categories"
+          >
+            Collapse all
+          </button>
+        </div>
+      </div>
+
+      {groupEntries.length === 0 ? (
+        <Card>
+          <div className="text-center py-12">
+            <div className="text-4xl mb-4">✅</div>
+            <p className="text-gray-900 font-semibold mb-2">
+              No privacy issues found
+            </p>
+            <p className="text-sm text-gray-600">
+              This site appears to have excellent privacy practices.
+            </p>
+          </div>
         </Card>
-      ))}
+      ) : (
+        groupEntries.map(([type, list]) => {
+          const filteredItems = list.filter((item) => matchesFilter(item.severity));
+          const hasFilteredItems = filteredItems.length > 0;
+
+          return (
+            <Card key={type}>
+              <button
+                className="w-full flex items-center justify-between py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-security-blue rounded transition-colors duration-150 hover:bg-slate-50"
+                aria-expanded={open[type] ? 'true' : 'false'}
+                aria-controls={sectionId(type)}
+                onClick={() => toggle(type)}
+              >
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <h2 className="font-semibold capitalize text-lg text-slate-900">
+                    {type || 'Evidence'}
+                  </h2>
+
+                  {!open[type] && (
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
+                      {list.length} item{list.length !== 1 ? 's' : ''} collapsed
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {/* Severity distribution (visible when collapsed or always on desktop) */}
+                  <div className={`${open[type] ? 'hidden sm:flex' : 'flex'} items-center gap-2`}>
+                    {(() => {
+                      const highCount = list.filter(item => item.severity >= 4).length;
+                      const mediumCount = list.filter(item => item.severity === 3).length;
+                      const lowCount = list.filter(item => item.severity <= 2).length;
+
+                      return (
+                        <>
+                          {highCount > 0 && (
+                            <span
+                              className="inline-flex items-center px-2 py-0.5 rounded-full bg-privacy-danger-100 text-privacy-danger-800 text-xs font-medium border border-privacy-danger-300"
+                              title={`${highCount} high severity issue${highCount !== 1 ? 's' : ''}`}
+                            >
+                              <span aria-hidden="true">⚠️</span>
+                              <span className="ml-1">{highCount}</span>
+                            </span>
+                          )}
+                          {mediumCount > 0 && (
+                            <span
+                              className="inline-flex items-center px-2 py-0.5 rounded-full bg-privacy-caution-100 text-privacy-caution-800 text-xs font-medium border border-privacy-caution-300"
+                              title={`${mediumCount} medium severity issue${mediumCount !== 1 ? 's' : ''}`}
+                            >
+                              <span aria-hidden="true">⚡</span>
+                              <span className="ml-1">{mediumCount}</span>
+                            </span>
+                          )}
+                          {lowCount > 0 && !open[type] && (
+                            <span
+                              className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-medium border border-slate-300"
+                              title={`${lowCount} low severity issue${lowCount !== 1 ? 's' : ''}`}
+                            >
+                              <span aria-hidden="true">ℹ️</span>
+                              <span className="ml-1">{lowCount}</span>
+                            </span>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Expand/Collapse icon with rotation animation */}
+                  <svg
+                    className={`w-5 h-5 text-slate-500 transition-transform duration-200 ${open[type] ? 'rotate-180' : 'rotate-0'}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </button>
+              {open[type] && (
+                <>
+                  {!hasFilteredItems ? (
+                    <div className="text-center py-8 mt-2 border-t">
+                      <div className="text-3xl mb-3">✅</div>
+                      <p className="text-gray-600 mb-2">
+                        No {sevFilter !== 'all' ? sevFilter + ' severity' : ''} issues found in this category.
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {sevFilter !== 'all' ? 'Try viewing other severity levels or select "All".' : 'This is a good sign!'}
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Use virtualized list for large evidence collections (>20 items) */}
+                      {list.length > 20 ? (
+                        <div className="mt-2">
+                          <VirtualizedEvidenceList
+                            items={list}
+                            matchesFilter={matchesFilter}
+                            sanitizeDetails={sanitizeDetails}
+                            containerHeight={300}
+                            itemHeight={80}
+                            className="border rounded"
+                          />
+                        </div>
+                      ) : (
+                        <ul id={sectionId(type)} className="text-sm text-slate-700 space-y-1 mt-2">
+                          {filteredItems.map((item) => (
+                            <li key={item.id} className="flex items-start gap-3">
+                              <SeverityIndicator severity={item.severity} />
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-gray-900">{item.title}</div>
+                                <details className="mt-1 group">
+                                  <summary className="cursor-pointer text-xs text-slate-500 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-security-blue focus:ring-offset-1 rounded py-3 min-h-[44px] inline-flex items-center">
+                                    <span className="group-open:hidden">Show details</span>
+                                    <span className="hidden group-open:inline">Hide details</span>
+                                  </summary>
+                                  <div className="mt-2 p-2 bg-slate-50 rounded text-xs text-slate-600 border">
+                                    <div className="font-mono text-2xs break-all">
+                                      {safeStringify(sanitizeDetails(item.details))}
+                                    </div>
+                                  </div>
+                                </details>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </>
+                  )}
+                  {TIPS[type] && hasFilteredItems && (
+                    <div className="mt-3 text-sm">
+                      <div className="font-semibold">How to fix</div>
+                      <ul className="list-disc pl-5 text-slate-700">
+                        {TIPS[type].map((tip, index) => (
+                          <li key={index}>
+                            {tip.url ? (
+                              <a className="text-security-blue underline" href={tip.url} target="_blank" rel="noreferrer">
+                                {tip.text}
+                              </a>
+                            ) : (
+                              tip.text
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
+              )}
+            </Card>
+          );
+        })
+      )}
 
       <footer className="text-xs text-slate-500 space-y-1">
         <div>Sources: EasyPrivacy (server-side; attribution), WhoTracks.me (CC BY 4.0), Public Suffix List</div>
@@ -639,7 +823,8 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
         </div>
       </footer>
       <Footer />
-    </div>
+      </div>
+    </>
   );
 }
 
