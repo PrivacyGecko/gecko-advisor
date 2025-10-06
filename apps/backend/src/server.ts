@@ -1,14 +1,14 @@
 ﻿import express, { type NextFunction, type Request, type Response } from "express";
 import helmet from "helmet";
 import cors from "cors";
-import rateLimit from "express-rate-limit";
-import type { Options as RateLimitOptions } from "express-rate-limit";
 import pinoHttp from "pino-http";
 import type { HttpLogger, Options as PinoHttpOptions } from "pino-http";
 import { config } from "./config.js";
 import { logger } from "./logger.js";
 import { requestId } from "./middleware/request-id.js";
 import { withCsp } from "./middleware/csp.js";
+import { scanRateLimit, reportRateLimit, generalRateLimit } from "./middleware/intelligent-rate-limit.js";
+import { performanceMonitor, addPerformanceHeaders } from "./middleware/performance-monitor.js";
 import { apiV1Router, apiV2Router } from "./routes/index.js";
 import { adminRouter } from "./routes/admin.js";
 import { docsRouter } from "./routes/docs.js";
@@ -19,11 +19,6 @@ import { problem } from "./problem.js";
 const allowedOrigins = config.allowedOrigins;
 const createHttpLogger = pinoHttp as unknown as (options?: PinoHttpOptions) => HttpLogger;
 
-const rateLimitHandler: NonNullable<RateLimitOptions['handler']> = (_req, res, _next, options) => {
-  const windowMs = typeof options?.windowMs === 'number' ? options.windowMs : 60_000;
-  res.setHeader('Retry-After', Math.ceil(windowMs / 1000).toString());
-  res.status(429).json({ error: 'rate_limited', retryAfterMs: windowMs });
-};
 
 export function createServer() {
   const app = express();
@@ -33,6 +28,10 @@ export function createServer() {
   const sentryEnabled = initSentry();
 
   app.use(requestId);
+
+  // Add performance monitoring and headers
+  app.use(addPerformanceHeaders);
+  app.use(performanceMonitor);
 
   app.use(
     createHttpLogger({
@@ -75,36 +74,22 @@ export function createServer() {
     })
   );
 
-  const scanLimiter = rateLimit({
-    windowMs: 60_000,
-    limit: config.rateLimitScanPerMinute,
-    standardHeaders: 'draft-7',
-    legacyHeaders: false,
-    keyGenerator: (req) => req.ip ?? req.headers['x-forwarded-for']?.toString() ?? 'anonymous',
-    handler: rateLimitHandler,
-  });
-
-  const reportLimiter = rateLimit({
-    windowMs: 60_000,
-    limit: config.rateLimitReportPerMinute,
-    standardHeaders: 'draft-7',
-    legacyHeaders: false,
-    keyGenerator: (req) => req.ip ?? req.headers['x-forwarded-for']?.toString() ?? 'anonymous',
-    handler: rateLimitHandler,
-  });
-
   app.use('/api', healthRouter);
 
-  app.use('/api/v1/scan', scanLimiter);
-  app.use('/api/v2/scan', scanLimiter);
-  app.use('/api/scan', scanLimiter);
+  // Apply intelligent rate limiting to different endpoint groups
+  app.use('/api/v1/scan', scanRateLimit);
+  app.use('/api/v2/scan', scanRateLimit);
+  app.use('/api/scan', scanRateLimit);
 
-  app.use('/api/v1/report', reportLimiter);
-  app.use('/api/v1/reports', reportLimiter);
-  app.use('/api/v2/report', reportLimiter);
-  app.use('/api/v2/reports', reportLimiter);
-  app.use('/api/report', reportLimiter);
-  app.use('/api/reports', reportLimiter);
+  app.use('/api/v1/report', reportRateLimit);
+  app.use('/api/v1/reports', reportRateLimit);
+  app.use('/api/v2/report', reportRateLimit);
+  app.use('/api/v2/reports', reportRateLimit);
+  app.use('/api/report', reportRateLimit);
+  app.use('/api/reports', reportRateLimit);
+
+  // General rate limiting for other endpoints
+  app.use('/api', generalRateLimit);
 
   app.use('/api/v1', apiV1Router);
   app.use('/api/v2', apiV2Router);
@@ -117,8 +102,35 @@ export function createServer() {
     Sentry.setupExpressErrorHandler(app);
   }
 
-  app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
-    logger.error({ err }, 'Unhandled error');
+  app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+    // Log the full error details securely (only in logs, not in response)
+    logger.error({
+      err,
+      requestId: res.locals.requestId,
+      method: req.method,
+      url: req.url,
+      ip: req.ip
+    }, 'Unhandled error');
+
+    // Never expose internal error details in response
+    // The problem() function will handle sanitization based on environment
+    if (err instanceof Error) {
+      // Handle specific error types with appropriate status codes
+      if (err.name === 'ValidationError') {
+        return problem(res, 400, 'Bad Request', 'Invalid input data');
+      }
+      if (err.name === 'UnauthorizedError') {
+        return problem(res, 401, 'Unauthorized');
+      }
+      if (err.name === 'ForbiddenError') {
+        return problem(res, 403, 'Forbidden');
+      }
+      if (err.name === 'NotFoundError') {
+        return problem(res, 404, 'Not Found');
+      }
+    }
+
+    // Default to 500 for all other errors
     return problem(res, 500, 'Internal Server Error');
   });
 

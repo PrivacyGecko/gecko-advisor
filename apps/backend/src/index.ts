@@ -3,17 +3,26 @@ import { createServer } from "./server.js";
 import { config } from "./config.js";
 import { logger } from "./logger.js";
 import { closeQueueConnections } from "./queue.js";
-import { prisma } from "./prisma.js";
+import { connectDatabase, disconnectDatabase } from "./prisma.js";
+import { disconnectCache } from "./cache.js";
 
 export const app = createServer();
 
 if (!process.env.VITEST_WORKER_ID) {
   let server: Server | undefined;
 
-  const start = () => {
-    server = app.listen(config.port, () => {
-      logger.info({ port: config.port }, 'Backend listening');
-    });
+  const start = async () => {
+    try {
+      // Initialize database connection
+      await connectDatabase();
+
+      server = app.listen(config.port, () => {
+        logger.info({ port: config.port }, 'Backend listening');
+      });
+    } catch (error) {
+      logger.error({ error }, 'Failed to start backend');
+      process.exit(1);
+    }
   };
 
   const shutdown = async (signal: NodeJS.Signals) => {
@@ -23,7 +32,8 @@ if (!process.env.VITEST_WORKER_ID) {
     }
     await Promise.allSettled([
       closeQueueConnections(),
-      prisma.$disconnect(),
+      disconnectDatabase(),
+      disconnectCache(),
     ]);
     process.exit(0);
   };
@@ -35,6 +45,6 @@ if (!process.env.VITEST_WORKER_ID) {
     void shutdown('SIGTERM');
   });
 
-  start();
+  void start();
 }
 

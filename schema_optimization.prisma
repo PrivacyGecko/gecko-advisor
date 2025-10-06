@@ -1,0 +1,143 @@
+// Optimized Prisma Schema for Privacy Advisor
+// Focus: Sub-3-second response times with high-volume scanning
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/.prisma/client"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+  // Performance optimization: Generate smaller client bundle
+  previewFeatures = ["omitApi", "relationJoins"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // Connection pooling optimization
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+enum IssueSeverity {
+  info
+  low
+  medium
+  high
+  critical
+}
+
+// OPTIMIZATION: Add scan status enum for better type safety and indexing
+enum ScanStatus {
+  queued
+  processing
+  done
+  failed
+  timeout
+}
+
+model Scan {
+  id               String     @id @default(cuid())
+  targetType       String
+  input            String
+  normalizedInput  String?
+  status           ScanStatus // CHANGED: Use enum instead of string
+  score            Int?
+  label            String?
+  summary          String?
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  slug             String     @unique
+  source           String     @default("manual")
+  dedupeOfId       String?
+  shareMessage     String?
+  meta             Json?
+
+  // Relations
+  evidence         Evidence[]
+  issues           Issue[]
+
+  // Self-referential for deduplication
+  dedupeOf         Scan?      @relation("ScanDedupe", fields: [dedupeOfId], references: [id])
+  dedupedScans     Scan[]     @relation("ScanDedupe")
+
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @default(now()) @updatedAt
+
+  // CRITICAL INDEXES for sub-3s performance
+  @@index([slug, status], name: "scan_slug_status_idx")
+  @@index([normalizedInput, status, finishedAt(sort: Desc)],
+          where: "status = 'done' AND finishedAt IS NOT NULL",
+          name: "scan_dedupe_lookup_idx")
+  @@index([status, createdAt(sort: Desc)],
+          where: "status = 'done'",
+          name: "scan_recent_done_idx")
+  @@index([status, startedAt, createdAt],
+          where: "status IN ('queued', 'processing')",
+          name: "scan_active_status_idx")
+  @@index([targetType, status, createdAt(sort: Desc)], name: "scan_type_status_idx")
+}
+
+model Evidence {
+  id        String   @id @default(cuid())
+  scanId    String
+  kind      String   // tracker, cookie, thirdparty, etc.
+  severity  Int
+  title     String
+  details   Json
+  createdAt DateTime @default(now())
+
+  scan      Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  // PERFORMANCE: Covering index for common queries
+  @@index([scanId, kind, severity, createdAt], name: "evidence_scan_covering_idx")
+}
+
+model Issue {
+  id             String        @id @default(cuid())
+  scanId         String
+  key            String?       // Optional unique key for deduplication
+  severity       IssueSeverity
+  category       String
+  title          String
+  summary        String?
+  howToFix       String?
+  whyItMatters   String?
+  references     Json?
+  sortWeight     Int?          @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now()) @updatedAt
+
+  scan           Scan          @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  // PERFORMANCE: Covering index for common sorting queries
+  @@index([scanId, severity, sortWeight, createdAt], name: "issue_scan_covering_idx")
+  @@index([severity, sortWeight], name: "issue_severity_weight_idx")
+}
+
+// OPTIMIZATION: Better indexing for privacy list caching
+model CachedList {
+  id        String   @id @default(cuid())
+  source    String   // blocklist, tracker-db, etc.
+  version   String   // version identifier
+  fetchedAt DateTime @default(now())
+  data      Json     // CONSIDER: Move to separate table for large datasets
+
+  // PERFORMANCE: Compound unique index for fast lookups
+  @@unique([source, version], name: "cached_list_source_version_key")
+  @@index([fetchedAt(sort: Desc)], name: "cached_list_fetch_time_idx")
+}
+
+// OPTIMIZATION: Add scan metrics for monitoring
+model ScanMetrics {
+  id              String   @id @default(cuid())
+  scanId          String   @unique
+  processingTime  Int?     // milliseconds
+  evidenceCount   Int      @default(0)
+  issueCount      Int      @default(0)
+  trackerCount    Int      @default(0)
+  cookieCount     Int      @default(0)
+  thirdPartyCount Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  scan            Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  @@index([processingTime], name: "scan_metrics_performance_idx")
+}

@@ -3,6 +3,89 @@ import { load as loadHtml } from 'cheerio';
 import { normalizeUrl, etldPlusOne } from '@privacy-advisor/shared';
 import { getLists } from './lists.js';
 
+/**
+ * Sanitizes HTML content to prevent XSS attacks by removing dangerous elements and attributes.
+ */
+function sanitizeHtml(html: string): string {
+  if (!html || typeof html !== 'string') {
+    return '';
+  }
+
+  // Limit HTML size to prevent DoS attacks
+  if (html.length > 1_000_000) { // 1MB limit
+    html = html.substring(0, 1_000_000);
+  }
+
+  // Remove dangerous script tags and their content
+  html = html.replace(/<script[\s\S]*?<\/script>/gi, '');
+  html = html.replace(/<script[^>]*>/gi, '');
+
+  // Remove dangerous attributes that can execute JavaScript
+  html = html.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, ''); // onclick, onload, etc.
+  html = html.replace(/\s+javascript\s*:/gi, '');
+  html = html.replace(/\s+data\s*:/gi, '');
+  html = html.replace(/\s+vbscript\s*:/gi, '');
+
+  // Remove potentially dangerous tags
+  html = html.replace(/<(iframe|embed|object|applet|meta|base)[^>]*>/gi, '');
+  html = html.replace(/<\/(iframe|embed|object|applet|meta|base)>/gi, '');
+
+  return html;
+}
+
+/**
+ * Validates and sanitizes URLs to prevent SSRF and other URL-based attacks.
+ */
+function sanitizeUrl(url: string, baseUrl?: string): string | null {
+  if (!url || typeof url !== 'string') {
+    return null;
+  }
+
+  // Trim and limit length
+  url = url.trim();
+  if (url.length === 0 || url.length > 2048) {
+    return null;
+  }
+
+  try {
+    let resolvedUrl: URL;
+
+    // Try to resolve relative URLs
+    if (baseUrl) {
+      resolvedUrl = new URL(url, baseUrl);
+    } else {
+      resolvedUrl = new URL(url);
+    }
+
+    // Only allow http and https protocols
+    if (!['http:', 'https:'].includes(resolvedUrl.protocol)) {
+      return null;
+    }
+
+    // Prevent access to private networks
+    const hostname = resolvedUrl.hostname.toLowerCase();
+    if (hostname === 'localhost' ||
+        hostname === '127.0.0.1' ||
+        hostname === '0.0.0.0' ||
+        hostname.startsWith('192.168.') ||
+        hostname.startsWith('10.') ||
+        hostname.startsWith('172.16.') ||
+        hostname.startsWith('172.17.') ||
+        hostname.startsWith('172.18.') ||
+        hostname.startsWith('172.19.') ||
+        hostname.startsWith('172.2') ||
+        hostname.startsWith('172.30.') ||
+        hostname.startsWith('172.31.') ||
+        hostname.startsWith('169.254.')) {
+      return null;
+    }
+
+    return resolvedUrl.href;
+  } catch {
+    return null;
+  }
+}
+
 const SECURITY_HEADERS = [
   'content-security-policy',
   'referrer-policy',
@@ -189,8 +272,9 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
       });
     }
 
-    const html = await response.text();
-    const $ = loadHtml(html);
+    const rawHtml = await response.text();
+    const sanitizedHtml = sanitizeHtml(rawHtml);
+    const $ = loadHtml(sanitizedHtml);
 
     const policyAnchor = $('a[href]').toArray().find((anchor) => {
       const text = $(anchor).text();
@@ -214,8 +298,13 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
     $('script[src],img[src],link[href]').each((_i, element) => {
       const src = $(element).attr('src') ?? $(element).attr('href') ?? '';
       if (!src) return;
+
+      // Sanitize and validate the URL before processing
+      const sanitizedSrc = sanitizeUrl(src, curr);
+      if (!sanitizedSrc) return;
+
       try {
-        const resolved = new URL(src, curr);
+        const resolved = new URL(sanitizedSrc);
         resourceDomains.add(resolved.hostname);
         const root = etldPlusOne(resolved.hostname);
         const evidence: ThirdPartyEvidence = {
@@ -232,7 +321,7 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
       }
     });
 
-    if (/navigator\.plugins|canvas|getImageData|AudioContext|OfflineAudioContext/i.test(html)) {
+    if (/navigator\.plugins|canvas|getImageData|AudioContext|OfflineAudioContext/i.test(sanitizedHtml)) {
       await prisma.evidence.create({
         data: {
           scanId,
@@ -244,7 +333,7 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
       });
     }
 
-    if (u.protocol === 'https:' && /http:\/\//i.test(html)) {
+    if (u.protocol === 'https:' && /http:\/\//i.test(sanitizedHtml)) {
       await prisma.evidence.create({
         data: {
           scanId,
@@ -259,8 +348,13 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
     $('a[href]').each((_i, anchor) => {
       const href = (anchor as { attribs?: { href?: string } }).attribs?.href;
       if (!href) return;
+
+      // Sanitize and validate the URL before processing
+      const sanitizedHref = sanitizeUrl(href, curr);
+      if (!sanitizedHref) return;
+
       try {
-        const resolved = new URL(href, curr);
+        const resolved = new URL(sanitizedHref);
         if (resolved.origin === origin) queue.push(resolved.href);
       } catch {
         // ignore invalid URLs

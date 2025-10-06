@@ -1,0 +1,419 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: privacy_advisor_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+        test-suite:
+          - core-scanning-journey
+          - performance-validation
+          - accessibility-mobile
+          - security-error-handling
+          - license-compliance
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Setup test environment
+        run: |
+          cp .env.example .env.test
+          echo "NODE_ENV=test" >> .env.test
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/privacy_advisor_test" >> .env.test
+          echo "REDIS_URL=redis://localhost:6379" >> .env.test
+          echo "E2E_BASE_URL=http://localhost:8080" >> .env.test
+
+      - name: Generate Prisma client
+        run: pnpm prisma:generate
+
+      - name: Run database migrations
+        run: |
+          pnpm exec prisma migrate deploy --schema=infra/prisma/schema.prisma
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/privacy_advisor_test
+
+      - name: Seed test database
+        run: pnpm seed
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/privacy_advisor_test
+
+      - name: Build application
+        run: pnpm build
+
+      - name: Start application in background
+        run: |
+          nohup pnpm dev > app.log 2>&1 &
+          echo $! > app.pid
+
+      - name: Wait for application to be ready
+        run: |
+          timeout 120 bash -c 'until curl -f http://localhost:8080/health || curl -f http://localhost:8080; do sleep 2; done'
+
+      - name: Run E2E tests
+        run: |
+          pnpm exec playwright test \
+            --project=${{ matrix.browser }} \
+            --grep="${{ matrix.test-suite }}" \
+            --reporter=html,json,junit \
+            --output-dir=test-results/${{ matrix.browser }}-${{ matrix.test-suite }}
+        env:
+          CI: true
+          E2E_BASE_URL: http://localhost:8080
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results-${{ matrix.browser }}-${{ matrix.test-suite }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
+      - name: Upload application logs
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: app-logs-${{ matrix.browser }}-${{ matrix.test-suite }}
+          path: app.log
+          retention-days: 3
+
+      - name: Stop application
+        if: always()
+        run: |
+          if [ -f app.pid ]; then
+            kill $(cat app.pid) || true
+            rm app.pid
+          fi
+
+  performance-benchmarks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [e2e-tests]
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: privacy_advisor_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium
+
+      - name: Setup test environment
+        run: |
+          cp .env.example .env.test
+          echo "NODE_ENV=test" >> .env.test
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/privacy_advisor_test" >> .env.test
+          echo "REDIS_URL=redis://localhost:6379" >> .env.test
+          echo "E2E_BASE_URL=http://localhost:8080" >> .env.test
+
+      - name: Generate Prisma client and migrate
+        run: |
+          pnpm prisma:generate
+          pnpm exec prisma migrate deploy --schema=infra/prisma/schema.prisma
+          pnpm seed
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/privacy_advisor_test
+
+      - name: Build and start application
+        run: |
+          pnpm build
+          nohup pnpm dev > app.log 2>&1 &
+          echo $! > app.pid
+          timeout 120 bash -c 'until curl -f http://localhost:8080; do sleep 2; done'
+
+      - name: Run performance benchmarks
+        run: |
+          pnpm exec playwright test \
+            --project=chromium \
+            --grep="performance-validation" \
+            --reporter=json \
+            --output-dir=benchmark-results
+        env:
+          CI: true
+          E2E_BASE_URL: http://localhost:8080
+
+      - name: Generate performance report
+        run: |
+          node tests/e2e/scripts/generate-performance-report.js
+
+      - name: Comment PR with performance results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            if (fs.existsSync('performance-summary.md')) {
+              const summary = fs.readFileSync('performance-summary.md', 'utf8');
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: summary
+              });
+            }
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-benchmarks
+          path: |
+            benchmark-results/
+            performance-summary.md
+          retention-days: 30
+
+  accessibility-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: privacy_advisor_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium
+
+      - name: Setup and start application
+        run: |
+          cp .env.example .env.test
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/privacy_advisor_test" >> .env.test
+          echo "REDIS_URL=redis://localhost:6379" >> .env.test
+          pnpm prisma:generate
+          pnpm exec prisma migrate deploy --schema=infra/prisma/schema.prisma
+          pnpm seed
+          pnpm build
+          nohup pnpm dev > app.log 2>&1 &
+          timeout 120 bash -c 'until curl -f http://localhost:8080; do sleep 2; done'
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/privacy_advisor_test
+
+      - name: Run accessibility tests
+        run: |
+          pnpm exec playwright test \
+            --project=chromium \
+            --grep="accessibility" \
+            --reporter=html,json \
+            --output-dir=accessibility-results
+
+      - name: Generate accessibility report
+        run: |
+          node tests/e2e/scripts/generate-accessibility-report.js
+
+      - name: Upload accessibility results
+        uses: actions/upload-artifact@v3
+        with:
+          name: accessibility-audit
+          path: |
+            accessibility-results/
+            accessibility-summary.md
+          retention-days: 30
+
+  test-summary:
+    runs-on: ubuntu-latest
+    needs: [e2e-tests, performance-benchmarks, accessibility-audit]
+    if: always()
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Generate test summary
+        run: |
+          echo "# E2E Test Summary" > test-summary.md
+          echo "" >> test-summary.md
+
+          # Count test results
+          total_tests=0
+          passed_tests=0
+          failed_tests=0
+
+          for result_dir in test-results-*/; do
+            if [ -d "$result_dir" ]; then
+              echo "Processing $result_dir"
+              # This would parse actual test results
+              # Implementation depends on Playwright JSON output format
+            fi
+          done
+
+          echo "## Results Overview" >> test-summary.md
+          echo "- Total Tests: $total_tests" >> test-summary.md
+          echo "- Passed: $passed_tests" >> test-summary.md
+          echo "- Failed: $failed_tests" >> test-summary.md
+          echo "" >> test-summary.md
+
+          if [ -f performance-benchmarks/performance-summary.md ]; then
+            echo "## Performance Results" >> test-summary.md
+            cat performance-benchmarks/performance-summary.md >> test-summary.md
+          fi
+
+          if [ -f accessibility-audit/accessibility-summary.md ]; then
+            echo "## Accessibility Results" >> test-summary.md
+            cat accessibility-audit/accessibility-summary.md >> test-summary.md
+          fi
+
+      - name: Comment PR with test summary
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            if (fs.existsSync('test-summary.md')) {
+              const summary = fs.readFileSync('test-summary.md', 'utf8');
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: summary
+              });
+            }
+
+      - name: Upload test summary
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-summary
+          path: test-summary.md
+          retention-days: 30

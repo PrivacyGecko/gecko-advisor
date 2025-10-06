@@ -48,40 +48,44 @@ export default function Home() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6">
+    <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
       <nav className="flex items-center justify-end text-sm text-slate-600">
         <a className="underline text-security-blue" href="/docs">Docs</a>
       </nav>
       <header className="space-y-2 max-w-2xl">
-        <h1 className="text-5xl font-extrabold text-slate-900 leading-tight">Check how safe your site, app, or wallet is</h1>
-        <p className="text-slate-600 text-lg">Instant privacy scan with clear scores and plain-language guidance.</p>
+        <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 leading-tight">
+          Check how safe your site, app, or wallet is
+        </h1>
+        <p className="text-slate-600 text-base md:text-lg">
+          Instant privacy scan with clear scores and plain-language guidance.
+        </p>
       </header>
       <Card>
-        <div className="flex gap-2 mb-3" role="tablist" aria-label="Input type">
+        <div className="flex flex-wrap gap-2 mb-3" role="tablist" aria-label="Input type">
           {INPUT_MODES.map((modeKey) => (
             <button
               key={modeKey}
               role="tab"
               aria-selected={mode === modeKey}
-              className={`px-3 py-1 rounded-full border ${mode === modeKey ? 'bg-security-blue text-white' : 'bg-white'}`}
+              className={`px-3 py-1 rounded-full border text-sm ${mode === modeKey ? 'bg-security-blue text-white' : 'bg-white'}`}
               onClick={() => setMode(modeKey)}
             >
               {modeKey.toUpperCase()}
             </button>
           ))}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-security-blue"
+            className="flex-1 border rounded-lg px-3 py-3 sm:py-2 text-base focus:outline-none focus:ring-2 focus:ring-security-blue"
             placeholder={mode === 'url' ? 'https://example.com' : mode === 'app' ? 'app id' : '0x... or address'}
             aria-label="Scan input"
           />
           <button
             onClick={onScan}
             disabled={loading || mode !== 'url'}
-            className="px-4 py-2 rounded-lg bg-pricko-green text-white disabled:opacity-50"
+            className="px-4 py-3 sm:py-2 rounded-lg bg-pricko-green text-white disabled:opacity-50 font-medium"
           >
             {loading ? 'Scanning...' : 'Scan Now'}
           </button>
@@ -125,10 +129,19 @@ export default function Home() {
           </div>
         </div>
       </Card>
-      <div className="flex items-center gap-6 text-sm text-slate-700">
-        <span className="inline-flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-600 inline-block" /> No trackers added by us</span>
-        <span className="inline-flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-600 inline-block" /> Transparent scoring</span>
-        <span className="inline-flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-amber-600 inline-block" /> Plain-language results</span>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6 text-sm text-slate-700">
+        <span className="inline-flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-green-600 inline-block" aria-hidden="true" />
+          No trackers added by us
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-blue-600 inline-block" aria-hidden="true" />
+          Transparent scoring
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-amber-600 inline-block" aria-hidden="true" />
+          Plain-language results
+        </span>
       </div>
       <Card>
         <h2 className="font-semibold mb-2">What do we check?</h2>
@@ -157,14 +170,14 @@ function RecentReports() {
       <h2 className="font-semibold mb-2">Recent Reports</h2>
       <ul className="divide-y">
         {items.map((report) => (
-          <li key={report.slug} className="py-2 flex items-center justify-between">
-            <div>
-              <div className="font-medium">{report.domain}</div>
+          <li key={report.slug} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="font-medium truncate">{report.domain}</div>
               <div className="text-xs text-slate-500">{formatCreatedAt(report.createdAt)}</div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-shrink-0">
               <span
-                className={`px-2 py-0.5 rounded-full text-xs ${
+                className={`px-2 py-0.5 rounded-full text-xs whitespace-nowrap ${
                   report.label === 'Safe'
                     ? 'bg-green-100 text-green-700'
                     : report.label === 'High Risk'
@@ -175,8 +188,12 @@ function RecentReports() {
               >
                 {report.label}
               </span>
-              <span className="text-xs text-slate-600" title="Evidence count">{report.evidenceCount} items</span>
-              <a href={`/r/${report.slug}`} className="text-security-blue underline">View</a>
+              <span className="text-xs text-slate-600 hidden sm:inline" title="Evidence count">
+                {report.evidenceCount} items
+              </span>
+              <a href={`/r/${report.slug}`} className="text-security-blue underline text-sm">
+                View
+              </a>
             </div>
           </li>
         ))}

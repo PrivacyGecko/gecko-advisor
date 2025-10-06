@@ -5,11 +5,15 @@ SPDX-License-Identifier: MIT
 import React from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getReport } from '../lib/api';
+import { reportQueryOptions } from '../lib/api';
 import ScoreDial from '../components/ScoreDial';
 import Card from '../components/Card';
 import CopyButton from '../components/CopyButton';
 import InfoPopover from '../components/InfoPopover';
+import SeverityBadge, { SeverityIndicator } from '../components/SeverityBadge';
+import VirtualizedEvidenceList from '../components/VirtualizedEvidenceList';
+import { ScoreDialSkeleton, CardSkeleton, EvidenceCardSkeleton } from '../components/Skeleton';
+import { ErrorState } from '../components/ErrorBoundary';
 import Footer from '../components/Footer';
 import type { ReportResponse } from '@privacy-advisor/shared';
 import { computeDataSharingLevel, type DataSharingLevel } from '../lib/dataSharing';
@@ -111,6 +115,60 @@ const safeStringify = (value: unknown): string => {
   }
 };
 
+/**
+ * Sanitizes evidence data before client exposure
+ * Removes internal fields and sensitive information
+ */
+const sanitizeEvidence = (evidence: EvidenceItem[]): EvidenceItem[] => {
+  return evidence.map(item => {
+    // Create a safe copy with only public fields
+    const sanitized: EvidenceItem = {
+      id: item.id,
+      type: item.type,
+      title: item.title,
+      severity: item.severity,
+      details: sanitizeDetails(item.details)
+    };
+
+    return sanitized;
+  });
+};
+
+/**
+ * Sanitizes details object to remove sensitive internal data
+ */
+const sanitizeDetails = (details: unknown): unknown => {
+  if (typeof details !== 'object' || details === null) {
+    return details;
+  }
+
+  const sanitized = { ...details as Record<string, unknown> };
+
+  // Remove internal/sensitive fields
+  const internalFields = [
+    '_internal',
+    'rawData',
+    'scannerMeta',
+    'debugInfo',
+    'internalId',
+    'systemInfo',
+    'processInfo'
+  ];
+
+  internalFields.forEach(field => {
+    delete sanitized[field];
+  });
+
+  // Sanitize nested objects
+  Object.keys(sanitized).forEach(key => {
+    if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
+      sanitized[key] = sanitizeDetails(sanitized[key]);
+    }
+  });
+
+  return sanitized;
+};
+
 const shareCurrentUrl = async () => {
   const url = typeof window !== 'undefined' ? window.location.href : '';
   if (!url) return;
@@ -133,17 +191,89 @@ const copyCurrentUrl = async () => {
 
 export default function ReportPage() {
   const { slug = '' } = useParams();
-  const { data, isLoading, isError } = useQuery<ReportResponse>({ queryKey: ['report', slug], queryFn: () => getReport(slug) });
-  if (isLoading) return <div className="p-6">Loading...</div>;
+  const { data, isLoading, isError, error, refetch } = useQuery(reportQueryOptions(slug));
+
+  if (isLoading) {
+    return <ReportSkeleton />;
+  }
+
   if (isError || !data) {
     return (
-      <div className="p-6">
-        <div className="text-red-600 font-semibold">Report not found or failed to load.</div>
-        <a className="text-security-blue underline" href="/">Go back</a>
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1 text-sm font-medium text-security-blue hover:text-security-blue-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-security-blue focus-visible:ring-offset-2 rounded"
+            aria-label="Back to home"
+          >
+            <span aria-hidden="true">&larr;</span>
+            Home
+          </Link>
+        </div>
+
+        <ErrorState
+          error={error || new Error('Report not found')}
+          title="Report Not Found"
+          description={`The report with ID "${slug}" could not be found or failed to load. It may have been removed or the link might be incorrect.`}
+          onRetry={() => refetch()}
+          onGoHome={() => window.location.href = '/'}
+          showDetails={process.env.NODE_ENV === 'development'}
+        />
       </div>
     );
   }
+
   return <ReportBody slug={slug} data={data} />;
+}
+
+/**
+ * Loading skeleton for the report page
+ */
+function ReportSkeleton() {
+  return (
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      {/* Header skeleton */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <CardSkeleton className="w-20 h-8" />
+      </div>
+
+      {/* Title and score skeleton */}
+      <header className="flex items-center gap-4">
+        <ScoreDialSkeleton size="md" />
+        <div className="space-y-2 flex-1">
+          <CardSkeleton className="h-8 w-80" />
+          <CardSkeleton className="h-5 w-64" />
+          <CardSkeleton className="h-4 w-96" />
+        </div>
+        <div className="space-x-2">
+          <CardSkeleton className="w-20 h-8 inline-block" />
+          <CardSkeleton className="w-24 h-8 inline-block" />
+          <CardSkeleton className="w-12 h-8 inline-block" />
+        </div>
+      </header>
+
+      {/* Summary cards skeleton */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {Array.from({ length: 4 }, (_, i) => (
+          <CardSkeleton key={i} />
+        ))}
+      </div>
+
+      {/* Filter tabs skeleton */}
+      <div className="flex items-center gap-2">
+        {Array.from({ length: 4 }, (_, i) => (
+          <CardSkeleton key={i} className="w-16 h-8" />
+        ))}
+      </div>
+
+      {/* Evidence sections skeleton */}
+      <div className="space-y-4">
+        {Array.from({ length: 3 }, (_, i) => (
+          <EvidenceCardSkeleton key={i} showExpandedContent={i === 0} />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function ReportBody({ slug, data }: { slug: string; data: ReportResponse }) {
@@ -230,12 +360,28 @@ function ReportBody({ slug, data }: { slug: string; data: ReportResponse }) {
 
   const exportJson = React.useCallback(() => {
     const filtered = evidence.filter((item) => matchesFilter(item.severity));
+
+    // Sanitize evidence before export to prevent data leakage
+    const sanitizedEvidence = sanitizeEvidence(filtered);
+
     const payload = {
-      scan: { id: scan.id, input: scan.input, score: scan.score, label: scan.label, slug },
+      scan: {
+        id: scan.id,
+        input: scan.input,
+        score: scan.score,
+        label: scan.label,
+        slug
+      },
       filter: sevFilter,
       exportedAt: new Date().toISOString(),
-      evidence: filtered,
+      evidence: sanitizedEvidence,
+      metadata: {
+        version: '1.0',
+        format: 'privacy-advisor-report',
+        sanitized: true
+      }
     };
+
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
@@ -256,7 +402,7 @@ function ReportBody({ slug, data }: { slug: string; data: ReportResponse }) {
   const topTrackers = trackerDomains.slice(0, 2);
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Link
           to="/"
@@ -267,20 +413,28 @@ function ReportBody({ slug, data }: { slug: string; data: ReportResponse }) {
           Home
         </Link>
       </div>
-      <header className="flex items-center gap-4">
-        <ScoreDial score={scan.score ?? 0} />
-        <div>
-          <h1 className="text-3xl font-bold">{scan.label} ({scan.score ?? 'n/a'})</h1>
-          <p className="text-slate-600">{scan.input}</p>
+      <header className="flex flex-col md:flex-row items-start md:items-center gap-4">
+        <div className="flex-shrink-0 mx-auto md:mx-0">
+          <ScoreDial score={scan.score ?? 0} size="md" />
+        </div>
+        <div className="flex-1 text-center md:text-left">
+          <h1 className="text-2xl md:text-3xl font-bold">
+            {scan.label} ({scan.score ?? 'n/a'})
+          </h1>
+          <p className="text-slate-600 break-all">{scan.input}</p>
           <div className="mt-1 text-xs text-slate-600">
-            Score legend: <span className="text-green-700 font-medium">Safe &gt;= 70</span> ? <span className="text-amber-700 font-medium">Caution 40-69</span> ? <span className="text-red-700 font-medium">High Risk &lt; 40</span>{' '}
+            Score legend: <span className="text-green-700 font-medium">Safe &gt;= 70</span> • <span className="text-amber-700 font-medium">Caution 40-69</span> • <span className="text-red-700 font-medium">High Risk &lt; 40</span>{' '}
             <a href="/docs#scoring" className="underline text-security-blue">Learn more</a>
           </div>
         </div>
-        <div className="ml-auto">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto justify-center md:justify-end">
           <CopyButton text={typeof window !== 'undefined' ? window.location.href : ''} />
-          <button onClick={exportJson} className="ml-2 px-3 py-1 rounded border text-sm">Export JSON</button>
-          <a href="/docs" className="ml-2 text-sm underline text-security-blue">Docs</a>
+          <button onClick={exportJson} className="px-3 py-1 rounded border text-sm">
+            Export JSON
+          </button>
+          <a href="/docs" className="text-sm underline text-security-blue self-center">
+            Docs
+          </a>
         </div>
       </header>
 
@@ -295,7 +449,12 @@ function ReportBody({ slug, data }: { slug: string; data: ReportResponse }) {
           <div className="text-xs text-slate-500">Data sharing level</div>
           <div className="mt-2 text-2xl font-semibold">{dataSharingLevel}</div>
           <div className="text-xs text-slate-600">
-            Trackers {trackerDomains.length} ? Third-party {thirdpartyDomains.length} ? Cookies {cookieIssues}
+            <span className="sr-only">Breakdown: </span>
+            Trackers: {trackerDomains.length}
+            <span className="mx-1 text-slate-400" aria-hidden="true">•</span>
+            Third-party: {thirdpartyDomains.length}
+            <span className="mx-1 text-slate-400" aria-hidden="true">•</span>
+            Cookies: {cookieIssues}
           </div>
         </Card>
         <Card>
@@ -311,19 +470,22 @@ function ReportBody({ slug, data }: { slug: string; data: ReportResponse }) {
         </Card>
       </div>
 
-      <div className="flex items-center gap-2 text-sm" role="tablist" aria-label="Severity filter (1 All, 2 High, 3 Med, 4 Low)">
+      <div className="flex flex-wrap items-center gap-2 text-sm" role="tablist" aria-label="Severity filter (1 All, 2 High, 3 Med, 4 Low)">
         {severityOptions.map((option) => (
           <button
             key={option.key}
             role="tab"
             aria-selected={sevFilter === option.key}
-            className={`px-2 py-1 rounded-full border ${sevFilter === option.key ? 'bg-security-blue text-white' : 'bg-white'}`}
+            className={`px-3 py-1 rounded-full border ${sevFilter === option.key ? 'bg-security-blue text-white' : 'bg-white'}`}
             onClick={() => setSevFilter(option.key)}
           >
             {option.label}
           </button>
         ))}
-        <span className="text-xs text-slate-500">Keys: 1=All, 2=High, 3=Med, 4=Low</span>
+        <span className="text-xs text-slate-500 hidden sm:inline">
+          <span className="sr-only">Keyboard shortcuts: </span>
+          Keys: 1=All, 2=High, 3=Med, 4=Low
+        </span>
       </div>
 
       <div className="flex flex-wrap gap-2 text-xs text-slate-700">
@@ -341,9 +503,30 @@ function ReportBody({ slug, data }: { slug: string; data: ReportResponse }) {
               <span className="capitalize">{type}</span>
               <span className="ml-1 font-semibold">{list.length}</span>
               <span className="ml-2 inline-flex items-center gap-1">
-                <span className="px-1 rounded bg-red-100 text-red-700" title="High">{high}</span>
-                <span className="px-1 rounded bg-yellow-100 text-yellow-700" title="Medium">{medium}</span>
-                <span className="px-1 rounded bg-slate-200 text-slate-700" title="Low">{low}</span>
+                <span
+                  className="px-1 rounded-full text-2xs font-medium bg-privacy-danger-100 text-privacy-danger-800 border border-privacy-danger-300"
+                  title="High severity issues"
+                  role="status"
+                  aria-label={`${high} high severity issues`}
+                >
+                  <span aria-hidden="true">⚠️</span> {high}
+                </span>
+                <span
+                  className="px-1 rounded-full text-2xs font-medium bg-privacy-caution-100 text-privacy-caution-800 border border-privacy-caution-300"
+                  title="Medium severity issues"
+                  role="status"
+                  aria-label={`${medium} medium severity issues`}
+                >
+                  <span aria-hidden="true">⚡</span> {medium}
+                </span>
+                <span
+                  className="px-1 rounded-full text-2xs font-medium bg-slate-100 text-slate-700 border border-slate-300"
+                  title="Low severity issues"
+                  role="status"
+                  aria-label={`${low} low severity issues`}
+                >
+                  <span aria-hidden="true">ℹ️</span> {low}
+                </span>
               </span>
             </a>
           );
@@ -363,20 +546,41 @@ function ReportBody({ slug, data }: { slug: string; data: ReportResponse }) {
           </button>
           {open[type] && (
             <>
-              <ul id={sectionId(type)} className="text-sm text-slate-700 space-y-1 mt-2">
-                {list.filter((item) => matchesFilter(item.severity)).map((item) => (
-                  <li key={item.id} className="flex items-start gap-2">
-                    <span className={`px-2 py-0.5 rounded-full text-[11px] ${item.severity >= 4 ? 'bg-red-100 text-red-700' : item.severity === 3 ? 'bg-yellow-100 text-yellow-700' : 'bg-slate-100 text-slate-700'}`}>
-                      Sev {item.severity}
-                    </span>
-                    <div>
-                      <span className="font-medium">{item.title}</span>
-                      {' - '}
-                      <code className="text-slate-500 break-all">{safeStringify(item.details)}</code>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              {/* Use virtualized list for large evidence collections (>20 items) */}
+              {list.length > 20 ? (
+                <div className="mt-2">
+                  <VirtualizedEvidenceList
+                    items={list}
+                    matchesFilter={matchesFilter}
+                    sanitizeDetails={sanitizeDetails}
+                    containerHeight={300}
+                    itemHeight={80}
+                    className="border rounded"
+                  />
+                </div>
+              ) : (
+                <ul id={sectionId(type)} className="text-sm text-slate-700 space-y-1 mt-2">
+                  {list.filter((item) => matchesFilter(item.severity)).map((item) => (
+                    <li key={item.id} className="flex items-start gap-3">
+                      <SeverityIndicator severity={item.severity} />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-gray-900">{item.title}</div>
+                        <details className="mt-1 group">
+                          <summary className="cursor-pointer text-xs text-slate-500 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-security-blue focus:ring-offset-1 rounded">
+                            <span className="group-open:hidden">Show details</span>
+                            <span className="hidden group-open:inline">Hide details</span>
+                          </summary>
+                          <div className="mt-2 p-2 bg-slate-50 rounded text-xs text-slate-600 border">
+                            <div className="font-mono text-2xs break-all">
+                              {safeStringify(sanitizeDetails(item.details))}
+                            </div>
+                          </div>
+                        </details>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
               {TIPS[type] && (
                 <div className="mt-3 text-sm">
                   <div className="font-semibold">How to fix</div>

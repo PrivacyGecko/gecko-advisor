@@ -5,34 +5,185 @@ import { logger } from './logger.js';
 
 const RedisConstructor = Redis as unknown as typeof import('ioredis').default;
 
+/**
+ * Optimized Redis connections for BullMQ with better performance settings
+ */
 const baseConnection = new RedisConstructor(config.redisUrl, {
   maxRetriesPerRequest: null,
+  // Connection pool optimization
+  connectTimeout: 10000,
+  lazyConnect: true,
+  keepAlive: 30000,
+  // Performance optimization
+  enableReadyCheck: true,
+  // Pipeline commands for better throughput
+  enableAutoPipelining: true,
 });
+
 const eventsConnection = baseConnection.duplicate();
 
+/**
+ * Enhanced scan queue with optimized configuration for production throughput
+ */
 export const scanQueue = new Queue('scan.site', {
   connection: baseConnection,
   defaultJobOptions: {
     removeOnComplete: {
-      count: 100,
+      count: config.nodeEnv === 'production' ? 50 : 10,
+      age: 24 * 3600, // 24 hours
     },
     removeOnFail: {
-      count: 200,
+      count: config.nodeEnv === 'production' ? 100 : 20,
+      age: 48 * 3600, // 48 hours
     },
+    // Enhanced retry strategy for better reliability
+    attempts: config.workerAttempts,
+    backoff: {
+      type: 'exponential',
+      delay: config.workerBackoffMs,
+    },
+    // Priority and delay configurations
+    priority: 0, // Default priority
+    delay: 0,
   },
+  // Remove invalid settings that don't exist in the Queue options
 });
 
 export const scanEvents = new QueueEvents('scan.site', {
   connection: eventsConnection,
 });
 
-scanEvents.on('failed', ({ jobId, failedReason }) => {
-  logger.warn({ jobId, failedReason }, 'Queue job failed');
+/**
+ * Enhanced queue event monitoring with performance metrics
+ */
+scanEvents.on('failed', ({ jobId, failedReason, prev }) => {
+  logger.warn({
+    jobId,
+    failedReason,
+    attemptsMade: prev === 'failed' ? 1 : 'unknown',
+  }, 'Queue job failed');
 });
 
-scanEvents.on('completed', ({ jobId }) => {
-  logger.debug({ jobId }, 'Queue job completed');
+scanEvents.on('completed', ({ jobId, returnvalue, prev }) => {
+  logger.debug({
+    jobId,
+    previousState: prev,
+    duration: typeof returnvalue === 'object' && returnvalue && 'duration' in returnvalue ? (returnvalue as any).duration : undefined,
+  }, 'Queue job completed');
 });
+
+scanEvents.on('waiting', ({ jobId }) => {
+  logger.debug({ jobId }, 'Job waiting in queue');
+});
+
+scanEvents.on('active', ({ jobId, prev }) => {
+  logger.debug({
+    jobId,
+    previousState: prev,
+  }, 'Job started processing');
+});
+
+scanEvents.on('stalled', ({ jobId }) => {
+  logger.warn({ jobId }, 'Job stalled and will be retried');
+});
+
+scanEvents.on('progress', ({ jobId, data }) => {
+  logger.debug({
+    jobId,
+    progress: data,
+  }, 'Job progress update');
+});
+
+/**
+ * Queue priority levels for different scan types
+ */
+export const SCAN_PRIORITY = {
+  URGENT: 10,    // High-priority scans (paid users, retries)
+  NORMAL: 0,     // Standard scan requests
+  LOW: -10,      // Background/bulk processing
+} as const;
+
+/**
+ * Add a scan job with priority and complexity-based configuration
+ */
+export async function addScanJob(
+  jobType: string,
+  data: any,
+  options: {
+    priority?: number;
+    scanComplexity?: 'simple' | 'complex';
+    isRetry?: boolean;
+    requestId?: string;
+  } = {}
+) {
+  const {
+    priority = SCAN_PRIORITY.NORMAL,
+    scanComplexity = 'simple',
+    isRetry = false,
+    requestId,
+  } = options;
+
+  // Adjust timeouts and retry strategies based on complexity
+  const complexityConfig = scanComplexity === 'complex' ? {
+    attempts: config.workerAttempts + 2, // More retries for complex scans
+    backoff: {
+      type: 'exponential' as const,
+      delay: config.workerBackoffMs * 1.5, // Longer backoff
+    },
+  } : {
+    attempts: config.workerAttempts,
+    backoff: {
+      type: 'exponential' as const,
+      delay: config.workerBackoffMs,
+    },
+  };
+
+  const jobOptions = {
+    jobId: data.scanId,
+    priority,
+    ...complexityConfig,
+    removeOnComplete: config.nodeEnv === 'development' ? false : 50,
+    removeOnFail: config.nodeEnv === 'development' ? false : 100,
+  };
+
+  logger.info({
+    jobType,
+    scanId: data.scanId,
+    priority,
+    scanComplexity,
+    isRetry,
+    requestId,
+  }, 'Adding scan job to queue');
+
+  return scanQueue.add(jobType, data, jobOptions);
+}
+
+/**
+ * Get queue metrics for monitoring
+ */
+export async function getQueueMetrics() {
+  try {
+    const [waiting, active, completed, failed, delayed] = await Promise.all([
+      scanQueue.getWaiting(),
+      scanQueue.getActive(),
+      scanQueue.getCompleted(),
+      scanQueue.getFailed(),
+      scanQueue.getDelayed(),
+    ]);
+
+    return {
+      waiting: waiting.length,
+      active: active.length,
+      completed: completed.length,
+      failed: failed.length,
+      delayed: delayed.length,
+      totalPending: waiting.length + active.length + delayed.length,
+    };
+  } catch (error) {
+    logger.error({ error }, 'Failed to get queue metrics');
+    return null;
+  }
+}
 
 export async function closeQueueConnections() {
   await scanEvents.close();

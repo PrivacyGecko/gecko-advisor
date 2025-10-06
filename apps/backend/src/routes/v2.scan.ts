@@ -9,11 +9,12 @@ import {
 } from "@privacy-advisor/shared";
 import { prisma } from "../prisma.js";
 import { problem } from "../problem.js";
-import { scanQueue } from "../queue.js";
+import { addScanJob, SCAN_PRIORITY } from "../queue.js";
 import { createScanWithSlug } from "../services/slug.js";
 import { findReusableScan } from "../services/dedupe.js";
 import { logger } from "../logger.js";
 import { config } from "../config.js";
+import { CacheService, CACHE_KEYS, CACHE_TTL } from "../cache.js";
 
 const UrlScanBodySchema = UrlScanRequestSchema.extend({
   force: z.boolean().optional(),
@@ -64,7 +65,7 @@ scanV2Router.post(['/', '/url'], async (req, res) => {
       source: force ? 'manual-force' : 'manual',
     });
 
-    await scanQueue.add(
+    await addScanJob(
       'scan-url',
       {
         scanId: scan.id,
@@ -73,14 +74,10 @@ scanV2Router.post(['/', '/url'], async (req, res) => {
         requestId: res.locals.requestId,
       },
       {
-        jobId: scan.id,
-        attempts: config.workerAttempts,
-        backoff: {
-          type: 'exponential',
-          delay: config.workerBackoffMs,
-        },
-        removeOnComplete: config.nodeEnv === 'development' ? false : 100,
-        removeOnFail: config.nodeEnv === 'development' ? false : 200,
+        priority: force ? SCAN_PRIORITY.URGENT : SCAN_PRIORITY.NORMAL,
+        scanComplexity: 'simple', // Could be determined based on URL complexity
+        isRetry: false,
+        requestId: res.locals.requestId,
       }
     );
 
@@ -97,17 +94,39 @@ scanV2Router.post(['/', '/url'], async (req, res) => {
 });
 
 scanV2Router.get('/:id/status', async (req, res) => {
-  const scan = await prisma.scan.findUnique({ where: { id: req.params.id } });
-  if (!scan) {
+  const scanId = req.params.id;
+
+  // Use shorter cache TTL for active scans, longer for completed ones
+  const scanData = await CacheService.getOrSet(
+    CACHE_KEYS.SCAN_STATUS(scanId),
+    async () => {
+      const scan = await prisma.scan.findUnique({
+        where: { id: scanId },
+        select: {
+          id: true,
+          status: true,
+          score: true,
+          label: true,
+          slug: true,
+          updatedAt: true,
+        },
+      });
+
+      return scan;
+    },
+    CACHE_TTL.SCAN_STATUS
+  );
+
+  if (!scanData) {
     return problem(res, 404, 'Scan not found');
   }
 
   res.json({
-    status: scan.status,
-    score: scan.score ?? undefined,
-    label: scan.label ?? undefined,
-    slug: scan.slug,
-    updatedAt: scan.updatedAt,
+    status: scanData.status,
+    score: scanData.score ?? undefined,
+    label: scanData.label ?? undefined,
+    slug: scanData.slug,
+    updatedAt: scanData.updatedAt,
   });
 });
 
