@@ -6,6 +6,9 @@
 -- 2. Add covering indexes for evidence queries
 -- 3. Fix N+1 query prevention in reports
 -- 4. Add composite indexes for status queries
+--
+-- NOTE: This version is compatible with PostgreSQL 9.6+
+-- INCLUDE clause removed for compatibility (requires PG 11+)
 
 -- ==================================================
 -- PHASE 1: CRITICAL DEDUPE OPTIMIZATION
@@ -25,11 +28,11 @@ WHERE "normalizedInput" IS NOT NULL AND "status" = 'done';
 -- PHASE 2: EVIDENCE QUERY OPTIMIZATION
 -- ==================================================
 
--- Covering index for evidence queries in buildReportPayload
+-- Index for evidence queries in buildReportPayload
 -- This covers: SELECT * FROM Evidence WHERE scanId = ? ORDER BY createdAt ASC
+-- Note: Without INCLUDE, the index still helps but may need to access the table for other columns
 CREATE INDEX CONCURRENTLY IF NOT EXISTS "Evidence_scan_covering_idx"
-ON "Evidence" ("scanId", "createdAt" ASC)
-INCLUDE ("id", "kind", "severity", "title", "details");
+ON "Evidence" ("scanId", "createdAt" ASC);
 
 -- Optimize evidence counting for recent reports
 -- This covers: SELECT COUNT(*) FROM Evidence WHERE scanId = ?
@@ -41,21 +44,21 @@ ON "Evidence" ("scanId");
 -- PHASE 3: ISSUE QUERY OPTIMIZATION
 -- ==================================================
 
--- Covering index for issue queries in buildReportPayload
+-- Index for issue queries in buildReportPayload
 -- This covers: SELECT * FROM Issue WHERE scanId = ? ORDER BY sortWeight ASC, createdAt ASC
+-- Note: Without INCLUDE, the index still helps but may need to access the table for other columns
 CREATE INDEX CONCURRENTLY IF NOT EXISTS "Issue_scan_covering_idx"
-ON "Issue" ("scanId", "sortWeight" ASC, "createdAt" ASC)
-INCLUDE ("id", "key", "severity", "category", "title", "summary", "howToFix", "whyItMatters", "references");
+ON "Issue" ("scanId", "sortWeight" ASC, "createdAt" ASC);
 
 -- ==================================================
 -- PHASE 4: SCAN STATUS OPTIMIZATION
 -- ==================================================
 
 -- Optimize recent reports query: WHERE status = 'done' ORDER BY createdAt DESC LIMIT 10
+-- Note: Without INCLUDE, the index still helps but may need to access the table for other columns
 CREATE INDEX CONCURRENTLY IF NOT EXISTS "Scan_recent_reports_idx"
 ON "Scan" ("status", "createdAt" DESC)
-WHERE "status" = 'done'
-INCLUDE ("id", "slug", "input", "score", "label");
+WHERE "status" = 'done';
 
 -- ==================================================
 -- PHASE 5: CLEANUP OLD INDEXES
