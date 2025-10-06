@@ -137,7 +137,7 @@ const VirtualizedEvidenceList = React.memo(function VirtualizedEvidenceList({
                       <SeverityBadge severity={item.severity} />
 
                       <button
-                        className="mt-2 text-xs text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded px-1"
+                        className="mt-2 text-xs text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded px-3 py-3 min-h-[44px]"
                         onClick={() => toggleExpanded(item.id)}
                         aria-expanded={isExpanded}
                         aria-controls={`details-${item.id}`}

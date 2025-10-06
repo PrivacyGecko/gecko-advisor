@@ -453,10 +453,10 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto justify-center md:justify-end">
           <CopyButton text={typeof window !== 'undefined' ? window.location.href : ''} />
-          <button onClick={exportJson} className="px-3 py-1 rounded border text-sm">
+          <button onClick={exportJson} className="px-3 py-3 min-h-[44px] rounded border text-sm">
             Export JSON
           </button>
-          <a href="/docs" className="text-sm underline text-security-blue self-center">
+          <a href="/docs" className="text-sm underline text-security-blue min-h-[44px] flex items-center">
             Docs
           </a>
         </div>
@@ -500,7 +500,7 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
             key={option.key}
             role="tab"
             aria-selected={sevFilter === option.key}
-            className={`px-3 py-1 rounded-full border ${sevFilter === option.key ? 'bg-security-blue text-white' : 'bg-white'}`}
+            className={`px-3 py-3 min-h-[44px] rounded-full border ${sevFilter === option.key ? 'bg-security-blue text-white' : 'bg-white'}`}
             onClick={() => setSevFilter(option.key)}
           >
             {option.label}
@@ -522,9 +522,9 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
               key={type}
               href={`#${sectionId(type)}`}
               className="px-2 py-1 rounded-full bg-slate-100 text-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-security-blue"
-              aria-label={`${type} ${list.length} items: ${high} high, ${medium} medium, ${low} low`}
+              aria-label={`${type || 'Evidence'} ${list.length} items: ${high} high, ${medium} medium, ${low} low`}
             >
-              <span className="capitalize">{type}</span>
+              <span className="capitalize">{type || 'Evidence'}</span>
               <span className="ml-1 font-semibold">{list.length}</span>
               <span className="ml-2 inline-flex items-center gap-1">
                 <span
@@ -565,7 +565,7 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
             aria-controls={sectionId(type)}
             onClick={() => toggle(type)}
           >
-            <h2 className="font-semibold capitalize">{type}</h2>
+            <h2 className="font-semibold capitalize">{type || 'Evidence'}</h2>
             <span className="text-xs text-slate-600">{list.length} items {open[type] ? '-' : '+'}</span>
           </button>
           {open[type] && (
@@ -590,7 +590,7 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-gray-900">{item.title}</div>
                         <details className="mt-1 group">
-                          <summary className="cursor-pointer text-xs text-slate-500 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-security-blue focus:ring-offset-1 rounded">
+                          <summary className="cursor-pointer text-xs text-slate-500 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-security-blue focus:ring-offset-1 rounded py-3 min-h-[44px] inline-flex items-center">
                             <span className="group-open:hidden">Show details</span>
                             <span className="hidden group-open:inline">Hide details</span>
                           </summary>

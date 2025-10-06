@@ -12,7 +12,7 @@ export default function CopyButton({ text }: { text: string }) {
     }
   }
   return (
-    <button onClick={copy} className="px-3 py-1 rounded border text-sm">
+    <button onClick={copy} className="px-3 py-3 min-h-[44px] rounded border text-sm">
       {copied ? 'Copied!' : 'Copy link'}
     </button>
   );

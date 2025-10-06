@@ -67,7 +67,7 @@ export default function Home() {
               key={modeKey}
               role="tab"
               aria-selected={mode === modeKey}
-              className={`px-3 py-1 rounded-full border text-sm ${mode === modeKey ? 'bg-security-blue text-white' : 'bg-white'}`}
+              className={`px-3 py-3 min-h-[44px] rounded-full border text-sm ${mode === modeKey ? 'bg-security-blue text-white' : 'bg-white'}`}
               onClick={() => setMode(modeKey)}
             >
               {modeKey.toUpperCase()}
@@ -90,6 +90,11 @@ export default function Home() {
             {loading ? 'Scanning...' : 'Scan Now'}
           </button>
         </div>
+        {mode !== 'url' && (
+          <div className="mt-2 p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm" role="status">
+            <span className="font-semibold">Coming Soon:</span> {mode === 'app' ? 'App' : 'Address'} privacy scanning is currently in development. Only URL scanning is available at this time.
+          </div>
+        )}
         <p className="text-xs text-slate-500 mt-2">Example: example.com, app id, or Solana wallet address</p>
       </Card>
       <Card>
