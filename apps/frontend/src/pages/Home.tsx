@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { startUrlScan, getRecentReports } from '../lib/api';
 import Card from '../components/Card';
 import Footer from '../components/Footer';
+import EnhancedTrustIndicator from '../components/EnhancedTrustIndicator';
 import type { RecentReportsResponse } from '@privacy-advisor/shared';
 
 const INPUT_MODES = ['url', 'app', 'address'] as const;
@@ -53,10 +54,10 @@ export default function Home() {
         <a className="underline text-security-blue" href="/docs">Docs</a>
       </nav>
       <header className="space-y-2 max-w-2xl">
-        <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 leading-tight">
+        <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
           Check how safe your site, app, or wallet is
         </h1>
-        <p className="text-slate-600 text-base md:text-lg">
+        <p className="text-slate-700 text-lg md:text-xl leading-relaxed">
           Instant privacy scan with clear scores and plain-language guidance.
         </p>
       </header>
@@ -85,9 +86,26 @@ export default function Home() {
           <button
             onClick={onScan}
             disabled={loading || mode !== 'url'}
-            className="px-4 py-3 sm:py-2 rounded-lg bg-pricko-green text-white disabled:opacity-50 font-medium"
+            className="px-6 py-3 min-h-[48px] rounded-lg bg-security-blue hover:bg-blue-700 active:bg-blue-800 text-white disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
           >
-            {loading ? 'Scanning...' : 'Scan Now'}
+            <span className="inline-flex items-center justify-center gap-2">
+              {loading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                  </svg>
+                  Scanning...
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  Scan Now
+                </>
+              )}
+            </span>
           </button>
         </div>
         {mode !== 'url' && (
@@ -98,43 +116,40 @@ export default function Home() {
         <p className="text-xs text-slate-500 mt-2">Example: example.com, app id, or Solana wallet address</p>
       </Card>
 
-      {/* Trust Indicators - Moved higher for better visibility */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-        <div className="flex items-start gap-3 p-4 rounded-lg bg-emerald-50 border border-emerald-200">
-          <div className="flex-shrink-0 mt-0.5">
-            <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      {/* Trust Indicators - Premium enhanced version */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <EnhancedTrustIndicator
+          variant="emerald"
+          icon={
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-          </div>
-          <div className="flex-1">
-            <div className="font-medium text-emerald-900">Open source & transparent</div>
-            <p className="text-xs text-emerald-700 mt-1">All scoring logic is public and auditable</p>
-          </div>
-        </div>
+          }
+          title="Open source & transparent"
+          description="All scoring logic is public and auditable"
+        />
 
-        <div className="flex items-start gap-3 p-4 rounded-lg bg-blue-50 border border-blue-200">
-          <div className="flex-shrink-0 mt-0.5">
-            <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        <EnhancedTrustIndicator
+          variant="blue"
+          icon={
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
-          </div>
-          <div className="flex-1">
-            <div className="font-medium text-blue-900">No personal data collected</div>
-            <p className="text-xs text-blue-700 mt-1">We don't track you while scanning others</p>
-          </div>
-        </div>
+          }
+          title="No personal data collected"
+          description="We don't track you while scanning others"
+        />
 
-        <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-50 border border-amber-200">
-          <div className="flex-shrink-0 mt-0.5">
-            <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        <EnhancedTrustIndicator
+          variant="amber"
+          icon={
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-          </div>
-          <div className="flex-1">
-            <div className="font-medium text-amber-900">Results in seconds</div>
-            <p className="text-xs text-amber-700 mt-1">Fast scanning with instant privacy scores</p>
-          </div>
-        </div>
+          }
+          title="Results in seconds"
+          description="Fast scanning with instant privacy scores"
+        />
       </div>
 
       <Card>

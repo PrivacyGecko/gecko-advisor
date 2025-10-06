@@ -1,0 +1,198 @@
+/*
+SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-License-Identifier: MIT
+
+Premium Animations for Privacy Advisor
+
+This file contains keyframe animations and utility classes for premium visual effects.
+All animations respect prefers-reduced-motion for accessibility.
+*/
+
+/* Score Dial Ring Drawing Animation */
+@keyframes drawCircle {
+  from {
+    stroke-dashoffset: 251.2; /* Full circumference (2 * PI * 40) */
+  }
+  to {
+    stroke-dashoffset: var(--stroke-dashoffset, 0);
+  }
+}
+
+.animate-draw-circle {
+  animation: drawCircle 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* CTA Button Shine Effect */
+@keyframes shine {
+  from {
+    transform: translateX(-100%) skewX(-12deg);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateX(200%) skewX(-12deg);
+    opacity: 0;
+  }
+}
+
+.shine-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine-effect::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transform: translateX(-100%) skewX(-12deg);
+  transition: transform 0.6s;
+}
+
+.shine-effect:hover::before {
+  animation: shine 0.8s ease-out;
+}
+
+/* Smooth Height Transitions for Expand/Collapse */
+@keyframes expandHeight {
+  from {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+    overflow: visible;
+  }
+}
+
+.animate-expand {
+  animation: expandHeight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Pulse Animation for Loading States */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Slide Up Animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+/* Scale In Animation for Badges */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out forwards;
+}
+
+/* Glow Pulse Effect */
+@keyframes glowPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(14, 111, 255, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(14, 111, 255, 0.5));
+  }
+}
+
+.animate-glow-pulse {
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-draw-circle,
+  .shine-effect::before,
+  .animate-expand,
+  .animate-pulse-slow,
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-scale-in,
+  .animate-glow-pulse {
+    animation: none !important;
+  }
+}
+
+/* Utility: Smooth transitions */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-quick {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Utility: Interactive hover lift */
+.hover-lift {
+  transition: transform 0.2s ease-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+/* Utility: Button press effect */
+.active-press:active {
+  transform: scale(0.98);
+}

@@ -5,8 +5,9 @@ SPDX-License-Identifier: MIT
 import React from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import { reportQueryOptions } from '../lib/api';
-import ScoreDial from '../components/ScoreDial';
+import EnhancedScoreDial from '../components/EnhancedScoreDial';
 import Card from '../components/Card';
 import CopyButton from '../components/CopyButton';
 import InfoPopover from '../components/InfoPopover';
@@ -21,6 +22,27 @@ import { computeDataSharingLevel, type DataSharingLevel } from '../lib/dataShari
 type EvidenceItem = LegacyReportResponse['evidence'][number];
 type EvidenceType = EvidenceItem['type'];
 type SeverityFilter = 'all' | 'high' | 'medium' | 'low';
+
+/**
+ * Maps evidence type to human-readable category label
+ */
+const getCategoryLabel = (type: string | undefined): string => {
+  if (!type) return 'Security & Privacy';
+
+  const labels: Record<string, string> = {
+    'tracker': 'Tracking & Analytics',
+    'thirdparty': 'Third-Party Connections',
+    'cookie': 'Cookies & Storage',
+    'header': 'Security Headers',
+    'insecure': 'Security Issues',
+    'fingerprint': 'Fingerprinting',
+    'policy': 'Privacy Policy',
+    'tls': 'Encryption & TLS',
+    'mixed-content': 'Mixed Content',
+  };
+
+  return labels[type] || type.charAt(0).toUpperCase() + type.slice(1);
+};
 
 type Tip = { text: string; url?: string };
 const TIPS: Record<EvidenceType, Tip[]> = {
@@ -183,18 +205,29 @@ const shareCurrentUrl = async () => {
   if (navigator.share) {
     try {
       await navigator.share({ url });
+      toast.success('Link shared successfully!');
       return;
     } catch {
       /* ignore to fall back */
     }
   }
-  await navigator.clipboard?.writeText(url);
+  try {
+    await navigator.clipboard?.writeText(url);
+    toast.success('Link copied to clipboard!');
+  } catch {
+    toast.error('Failed to copy link');
+  }
 };
 
 const copyCurrentUrl = async () => {
   const url = typeof window !== 'undefined' ? window.location.href : '';
   if (!url) return;
-  await navigator.clipboard?.writeText(url);
+  try {
+    await navigator.clipboard?.writeText(url);
+    toast.success('Link copied to clipboard!');
+  } catch {
+    toast.error('Failed to copy link');
+  }
 };
 
 export default function ReportPage() {
@@ -480,7 +513,7 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
         </div>
       <header className="flex flex-col md:flex-row items-start md:items-center gap-4">
         <div className="flex-shrink-0 mx-auto md:mx-0">
-          <ScoreDial score={scan.score ?? 0} size="md" />
+          <EnhancedScoreDial score={scan.score ?? 0} size="lg" label={scan.label ?? undefined} />
         </div>
         <div className="flex-1 text-center md:text-left">
           <h1 className="text-2xl md:text-3xl font-bold">
@@ -563,9 +596,9 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
               key={type}
               href={`#${sectionId(type)}`}
               className="px-2 py-1 rounded-full bg-slate-100 text-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-security-blue"
-              aria-label={`${type || 'Evidence'} ${list.length} items: ${high} high, ${medium} medium, ${low} low`}
+              aria-label={`${getCategoryLabel(type)} ${list.length} items: ${high} high, ${medium} medium, ${low} low`}
             >
-              <span className="capitalize">{type || 'Evidence'}</span>
+              <span>{getCategoryLabel(type)}</span>
               <span className="ml-1 font-semibold">{list.length}</span>
               <span className="ml-2 inline-flex items-center gap-1">
                 <span
@@ -618,13 +651,13 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
               groupEntries.forEach(([type]) => { allOpen[type] = true; });
               setOpen(allOpen);
             }}
-            className="px-3 py-1.5 min-h-[36px] text-xs font-medium text-security-blue hover:text-security-blue-dark hover:underline focus:outline-none focus:ring-2 focus:ring-security-blue rounded-md transition-colors duration-150"
+            className="px-3 py-1.5 rounded-lg text-sm font-medium text-security-blue hover:bg-blue-50 border border-transparent hover:border-blue-200 transition-colors"
             aria-label="Expand all evidence categories"
           >
             Expand all
           </button>
 
-          <span className="text-slate-300" aria-hidden="true">|</span>
+          <div className="w-px h-4 bg-slate-300" />
 
           <button
             onClick={() => {
@@ -632,7 +665,7 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
               groupEntries.forEach(([type]) => { allClosed[type] = false; });
               setOpen(allClosed);
             }}
-            className="px-3 py-1.5 min-h-[36px] text-xs font-medium text-slate-600 hover:text-slate-800 hover:underline focus:outline-none focus:ring-2 focus:ring-security-blue rounded-md transition-colors duration-150"
+            className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 border border-transparent hover:border-slate-300 transition-colors"
             aria-label="Collapse all evidence categories"
           >
             Collapse all
@@ -666,8 +699,8 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
                 onClick={() => toggle(type)}
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <h2 className="font-semibold capitalize text-lg text-slate-900">
-                    {type || 'Evidence'}
+                  <h2 className="font-semibold text-lg text-slate-900">
+                    {getCategoryLabel(type)}
                   </h2>
 
                   {!open[type] && (
@@ -689,29 +722,29 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
                         <>
                           {highCount > 0 && (
                             <span
-                              className="inline-flex items-center px-2 py-0.5 rounded-full bg-privacy-danger-100 text-privacy-danger-800 text-xs font-medium border border-privacy-danger-300"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-100 border border-red-200 text-xs font-bold"
                               title={`${highCount} high severity issue${highCount !== 1 ? 's' : ''}`}
                             >
-                              <span aria-hidden="true">⚠️</span>
-                              <span className="ml-1">{highCount}</span>
+                              <span className="text-base">⚠️</span>
+                              <span className="text-red-700">{highCount}</span>
                             </span>
                           )}
                           {mediumCount > 0 && (
                             <span
-                              className="inline-flex items-center px-2 py-0.5 rounded-full bg-privacy-caution-100 text-privacy-caution-800 text-xs font-medium border border-privacy-caution-300"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-100 border border-amber-200 text-xs font-bold"
                               title={`${mediumCount} medium severity issue${mediumCount !== 1 ? 's' : ''}`}
                             >
-                              <span aria-hidden="true">⚡</span>
-                              <span className="ml-1">{mediumCount}</span>
+                              <span className="text-base">⚡</span>
+                              <span className="text-amber-700">{mediumCount}</span>
                             </span>
                           )}
                           {lowCount > 0 && !open[type] && (
                             <span
-                              className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-medium border border-slate-300"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-xs font-bold"
                               title={`${lowCount} low severity issue${lowCount !== 1 ? 's' : ''}`}
                             >
-                              <span aria-hidden="true">ℹ️</span>
-                              <span className="ml-1">{lowCount}</span>
+                              <span className="text-base">ℹ️</span>
+                              <span className="text-slate-700">{lowCount}</span>
                             </span>
                           )}
                         </>
