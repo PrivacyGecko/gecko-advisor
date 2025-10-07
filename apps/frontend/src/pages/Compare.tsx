@@ -4,6 +4,10 @@ SPDX-License-Identifier: MIT
 */
 import React from 'react';
 import Card from '../components/Card';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import LoginModal from '../components/LoginModal';
+import SignupModal from '../components/SignupModal';
 import { useSearchParams } from 'react-router-dom';
 
 export default function Compare() {
@@ -11,6 +15,8 @@ export default function Compare() {
   const left = sp.get('left') || '';
   const right = sp.get('right') || '';
   const [input, setInput] = React.useState(right);
+  const [showLogin, setShowLogin] = React.useState(false);
+  const [showSignup, setShowSignup] = React.useState(false);
 
   function addRight() {
     const s = new URLSearchParams(sp);
@@ -19,8 +25,10 @@ export default function Compare() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Compare Reports (beta)</h1>
+    <>
+      <Header onLoginClick={() => setShowLogin(true)} onSignupClick={() => setShowSignup(true)} />
+      <div className="max-w-5xl mx-auto p-6 space-y-4">
+        <h1 className="text-2xl font-bold">Compare Reports (beta)</h1>
       <div className="flex gap-4">
         <Card>
           <div className="font-semibold mb-2">Left</div>
@@ -48,6 +56,10 @@ export default function Compare() {
           <iframe title="right" src={`/r/${right}`} className="w-full h-[70vh] border rounded" />
         </div>
       )}
-    </div>
+      </div>
+      <Footer />
+      <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
+      <SignupModal isOpen={showSignup} onClose={() => setShowSignup(false)} />
+    </>
   );
 }
