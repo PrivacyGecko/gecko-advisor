@@ -10,7 +10,7 @@ services:
       NODE_ENV: development
       APP_ENV: development
     ports:
-      - "5000:5000"
+      - "5001:5000"
   worker:
     environment:
       NODE_ENV: development

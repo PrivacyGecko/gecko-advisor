@@ -1,4 +1,4 @@
-﻿-- Phase 1 schema updates: scan slug, normalization, issues
+-- Phase 1 schema updates: scan slug, normalization, issues
 ALTER TABLE "Scan" RENAME COLUMN "reportSlug" TO "slug";
 ALTER INDEX "Scan_reportSlug_key" RENAME TO "Scan_slug_key";
 
@@ -11,10 +11,17 @@ ALTER TABLE "Scan" ADD COLUMN IF NOT EXISTS "meta" JSONB;
 CREATE INDEX IF NOT EXISTS "Scan_normalizedInput_idx" ON "Scan"("normalizedInput");
 CREATE INDEX IF NOT EXISTS "Scan_status_finishedAt_idx" ON "Scan"("status", "finishedAt");
 
-ALTER TABLE "Scan"
-  ADD CONSTRAINT IF NOT EXISTS "Scan_dedupeOfId_fkey"
-  FOREIGN KEY ("dedupeOfId")
-  REFERENCES "Scan"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'Scan_dedupeOfId_fkey'
+  ) THEN
+    ALTER TABLE "Scan"
+      ADD CONSTRAINT "Scan_dedupeOfId_fkey"
+      FOREIGN KEY ("dedupeOfId")
+      REFERENCES "Scan"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+  END IF;
+END $$;
 
 ALTER TABLE "Evidence" RENAME COLUMN "type" TO "kind";
 

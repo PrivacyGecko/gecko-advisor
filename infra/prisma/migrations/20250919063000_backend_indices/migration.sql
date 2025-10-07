@@ -1,4 +1,4 @@
-﻿-- Phase 1 indices and column backfill
+-- Phase 1 indices and column backfill
 ALTER TABLE "Scan" ADD COLUMN IF NOT EXISTS "normalizedInput" TEXT;
 
 -- Ensure normalized input lookups favor most recent scans
