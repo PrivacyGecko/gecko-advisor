@@ -8,6 +8,7 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { AuthProvider } from './contexts/AuthContext';
 import './lib/performance'; // Initialize performance monitoring
 import './styles.css';
 
@@ -18,6 +19,7 @@ const Report = React.lazy(() => import('./pages/ReportPage'));
 const Compare = React.lazy(() => import('./pages/Compare'));
 const Docs = React.lazy(() => import('./pages/Docs'));
 const About = React.lazy(() => import('./pages/About'));
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 
 // Loading component for Suspense fallback
@@ -77,6 +79,40 @@ const router = createBrowserRouter([
     )
   },
   {
+    path: '/dashboard',
+    element: (
+      <React.Suspense fallback={<PageLoader />}>
+        <Dashboard />
+      </React.Suspense>
+    )
+  },
+  {
+    path: '/pricing',
+    element: (
+      <React.Suspense fallback={<PageLoader />}>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Pricing Coming Soon</h1>
+            <p className="text-gray-600">We're working on our pricing page. Check back soon!</p>
+          </div>
+        </div>
+      </React.Suspense>
+    )
+  },
+  {
+    path: '/settings',
+    element: (
+      <React.Suspense fallback={<PageLoader />}>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Settings Coming Soon</h1>
+            <p className="text-gray-600">Account settings page is under development.</p>
+          </div>
+        </div>
+      </React.Suspense>
+    )
+  },
+  {
     path: '*',
     element: (
       <React.Suspense fallback={<PageLoader />}>
@@ -112,21 +148,23 @@ createRoot(document.getElementById('root')!).render(
       }}
     >
       <QueryClientProvider client={qc}>
-        <Toaster
-          position="top-center"
-          toastOptions={{
-            duration: 3000,
-            style: {
-              background: '#1e293b',
-              color: '#fff',
-              fontSize: '14px',
-              fontWeight: 500,
-              padding: '12px 16px',
-              borderRadius: '8px',
-            },
-          }}
-        />
-        <RouterProvider router={router} />
+        <AuthProvider>
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: '#1e293b',
+                color: '#fff',
+                fontSize: '14px',
+                fontWeight: 500,
+                padding: '12px 16px',
+                borderRadius: '8px',
+              },
+            }}
+          />
+          <RouterProvider router={router} />
+        </AuthProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   </React.StrictMode>

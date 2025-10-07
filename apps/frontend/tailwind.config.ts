@@ -15,7 +15,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Brand colors
+        // PrivacyGecko Brand Colors
+        'gecko': {
+          50: '#f0fdf4',
+          100: '#dcfce7',
+          200: '#bbf7d0',
+          300: '#86efac',
+          400: '#4ade80',
+          500: '#2ecc71',  // Primary gecko green
+          600: '#27ae60',  // Darker green
+          700: '#22c55e',
+          800: '#16a34a',
+          900: '#15803d',
+        },
+
+        // Brand colors (legacy support)
         'privacy-advisor': {
           50: '#f0f9ff',
           100: '#e0f2fe',
@@ -89,6 +103,11 @@ export default {
             border: '#f87171', // red-400
           },
         },
+
+        // PrivacyGecko color aliases
+        'gecko-green': '#2ecc71',
+        'gecko-green-dark': '#27ae60',
+        'gecko-blue': '#3498db',
 
         // Legacy color aliases for backwards compatibility
         'pricko-green': '#19c37d',

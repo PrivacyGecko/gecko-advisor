@@ -175,8 +175,8 @@ pnpm test                   # Run vitest tests
 
 ### Environments
 - **Development**: Local with dev overrides, full debugging
-- **Stage**: Uses stage configuration, maps to `stage.privamule.com` domains
-- **Production**: Production configuration, maps to `privamule.com` domains
+- **Stage**: Uses stage configuration, maps to `stage.geckoadvisor.com` domains
+- **Production**: Production configuration, maps to `geckoadvisor.com` domains
 
 ### Docker Compose
 - Base: `infra/docker/docker-compose.yml`

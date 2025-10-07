@@ -331,7 +331,7 @@ git push origin stage
 docker exec privacy-advisor-backend-stage npm exec --yes prisma migrate deploy -- --schema=/app/infra/prisma/schema.prisma
 
 # Test application functionality
-curl https://stage.privamule.com/api/health
+curl https://stage.geckoadvisor.com/api/health
 
 # If successful, deploy to production
 git push origin main
@@ -358,13 +358,13 @@ docker exec privacy-advisor-backend-1 npm exec --yes prisma migrate deploy -- --
 
 ```bash
 # Check backend health
-curl https://stage.privamule.com/api/health
+curl https://stage.geckoadvisor.com/api/health
 
 # Check recent reports (tests database connectivity)
-curl https://stage.privamule.com/api/reports/recent
+curl https://stage.geckoadvisor.com/api/reports/recent
 
 # Check scan functionality
-curl -X POST https://stage.privamule.com/api/scan/url \
+curl -X POST https://stage.geckoadvisor.com/api/scan/url \
   -H "Content-Type: application/json" \
   -d '{"url": "https://example.com"}'
 ```
@@ -476,13 +476,13 @@ chmod +x migrate-on-coolify.sh
 - Database can be reset freely
 - Use `pnpm prisma:migrate` or `make migrate`
 
-### Stage Environment (stage.privamule.com)
+### Stage Environment (stage.geckoadvisor.com)
 - Manual migration required after Coolify deployment
 - Test migrations here before production
 - Database backed up regularly
 - Use `./migrate-on-coolify.sh stage`
 
-### Production Environment (privamule.com)
+### Production Environment (geckoadvisor.com)
 - **CRITICAL:** Always backup before migration
 - Run during maintenance window if possible
 - Monitor closely after migration
@@ -568,7 +568,7 @@ docker exec <backend-container> npx prisma migrate status --schema=/app/infra/pr
 docker logs -f <backend-container>
 
 # Health check
-curl https://stage.privamule.com/api/health
+curl https://stage.geckoadvisor.com/api/health
 ```
 
 ---

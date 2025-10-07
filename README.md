@@ -23,8 +23,8 @@ Frontend is reachable at `http://localhost:8080` when the dev stack is running (
 ### Environments
 
 - **Development (local):** Base compose + `docker-compose.dev.yml` override. Exposes Postgres, Redis, API, and frontend on localhost for rapid iteration.
-- **Stage:** Use the base file together with `infra/docker/docker-compose.stage.yml`. Load `infra/docker/env/stage.env` for domain defaults (`https://stage.privamule.com`, `https://stageapi.privamule.com`, `https://sworker.privamule.com`) and keep secrets in Coolify.
-- **Production:** Use the base file together with `infra/docker/docker-compose.prod.yml`. Load `infra/docker/env/production.env` (maps to `https://privamule.com`, `https://api.privamule.com`, `https://worker.privamule.com`) and manage secrets via Coolify or your secret store.
+- **Stage:** Use the base file together with `infra/docker/docker-compose.stage.yml`. Load `infra/docker/env/stage.env` for domain defaults (`https://stage.geckoadvisor.com`, `https://stageapi.geckoadvisor.com`, `https://sworker.geckoadvisor.com`) and keep secrets in Coolify.
+- **Production:** Use the base file together with `infra/docker/docker-compose.prod.yml`. Load `infra/docker/env/production.env` (maps to `https://geckoadvisor.com`, `https://api.geckoadvisor.com`, `https://worker.geckoadvisor.com`) and manage secrets via Coolify or your secret store.
 
 ### Monorepo Layout
 

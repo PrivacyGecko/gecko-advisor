@@ -13,6 +13,11 @@ import { performanceMonitor, addPerformanceHeaders } from "./middleware/performa
 import { apiV1Router, apiV2Router } from "./routes/index.js";
 import { adminRouter } from "./routes/admin.js";
 import { docsRouter } from "./routes/docs.js";
+import { authRouter } from "./routes/auth.js";
+// TEMPORARILY DISABLED FOR STAGE DEPLOYMENT - Uncomment when Stripe is configured
+// import { stripeRouter } from "./routes/stripe.js";
+// import { batchRouter } from "./routes/batch.js";
+// import { apiRouter } from "./routes/api.js";
 import { healthRouter } from "./health.js";
 import { initSentry, Sentry } from "./sentry.js";
 import { problem } from "./problem.js";
@@ -64,6 +69,15 @@ export function createServer() {
     }) as unknown as express.RequestHandler
   );
 
+  // Stripe webhook needs raw body for signature verification
+  // Apply raw body parser BEFORE JSON parser for webhook endpoint
+  // TEMPORARILY DISABLED FOR STAGE DEPLOYMENT - Enable when Stripe is configured
+  // app.use('/api/stripe/webhook', express.raw({ type: 'application/json', limit: '1mb' }), (req, _res, next) => {
+  //   // Store raw body for signature verification
+  //   (req as any).rawBody = req.body;
+  //   next();
+  // });
+
   app.use(express.json({ limit: '200kb' }));
 
   app.use(
@@ -84,8 +98,8 @@ export function createServer() {
   app.use(
     cors({
       origin: allowedOrigins,
-      methods: ['GET', 'POST', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'X-Admin-Key', 'X-Request-ID'],
+      methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'X-Admin-Key', 'X-Request-ID', 'Authorization', 'X-API-Key', 'Stripe-Signature'],
       maxAge: 600,
       credentials: false,
       preflightContinue: false,
@@ -122,7 +136,16 @@ export function createServer() {
   app.use('/api/v2', apiV2Router);
   app.use('/api', apiV2Router);
 
+  // Pro tier feature routes
+  // TEMPORARILY DISABLED FOR STAGE DEPLOYMENT - Enable when Stripe is configured
+  // These routes work but require Stripe environment variables to function properly
+  // app.use('/api/stripe', stripeRouter);
+  // app.use('/api/scan/batch', batchRouter);
+  // app.use('/api/api-keys', apiRouter);
+
+  // Other routes
   app.use('/api', adminRouter);
+  app.use('/api/auth', authRouter);
   app.use('/docs', docsRouter);
 
   if (sentryEnabled) {

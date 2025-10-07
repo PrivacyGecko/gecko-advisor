@@ -5,9 +5,16 @@ SPDX-License-Identifier: MIT
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { startUrlScan, getRecentReports } from '../lib/api';
+import toast from 'react-hot-toast';
+import { getRecentReports } from '../lib/api';
+import { useAuth } from '../contexts/AuthContext';
+import { BRAND } from '../config/branding';
 import Card from '../components/Card';
 import Footer from '../components/Footer';
+import Header from '../components/Header';
+import LoginModal from '../components/LoginModal';
+import SignupModal from '../components/SignupModal';
+import RateLimitBanner, { type RateLimitInfo } from '../components/RateLimitBanner';
 import EnhancedTrustIndicator from '../components/EnhancedTrustIndicator';
 import type { RecentReportsResponse } from '@privacy-advisor/shared';
 
@@ -16,6 +23,14 @@ type InputMode = (typeof INPUT_MODES)[number];
 
 type RecentItem = RecentReportsResponse['items'][number] & { evidenceCount: number };
 type RecentQueryResult = { items: RecentItem[] };
+
+interface ScanResponse {
+  scanId: string;
+  slug: string;
+  statusUrl: string;
+  resultsUrl: string;
+  rateLimit?: RateLimitInfo | null;
+}
 
 const formatCreatedAt = (value: RecentItem['createdAt']): string => {
   const date = typeof value === 'string' ? new Date(value) : value;
@@ -36,31 +51,133 @@ export default function Home() {
   const [input, setInput] = useState('https://example.com');
   const [mode, setMode] = useState<InputMode>('url');
   const [loading, setLoading] = useState(false);
+  const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showSignupModal, setShowSignupModal] = useState(false);
   const navigate = useNavigate();
+  const { user, token } = useAuth();
+
+  const isPro = user?.subscription === 'PRO' || user?.subscription === 'TEAM';
 
   async function onScan() {
     try {
       setLoading(true);
-      const { scanId, slug } = await startUrlScan(input);
-      navigate(`/scan/${scanId}?slug=${encodeURIComponent(slug)}`);
+
+      // Call the new v2 API endpoint
+      const response = await fetch('/api/v2/scan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+        body: JSON.stringify({ url: input }),
+      });
+
+      if (!response.ok) {
+        // Handle rate limit error
+        if (response.status === 429) {
+          const error = await response.json();
+          toast.error('Daily scan limit reached. Please try again tomorrow or upgrade to Pro.');
+
+          // Update rate limit info from error response
+          if (error.rateLimit) {
+            setRateLimit(error.rateLimit);
+          }
+          return;
+        }
+
+        // Handle other errors
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to start scan');
+      }
+
+      const data: ScanResponse = await response.json();
+
+      // Update rate limit info from successful response
+      if (data.rateLimit) {
+        setRateLimit(data.rateLimit);
+      }
+
+      toast.success('Scan started successfully!');
+      navigate(`/scan/${data.scanId}?slug=${encodeURIComponent(data.slug)}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to start scan';
+      toast.error(message);
+      console.error('[Home] Scan failed:', error);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
-      <nav className="flex items-center justify-end text-sm text-slate-600">
-        <a className="underline text-security-blue" href="/docs">Docs</a>
-      </nav>
-      <header className="space-y-2 max-w-2xl">
-        <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
-          Check how safe your site, app, or wallet is
+    <>
+      <Header
+        onShowLogin={() => setShowLoginModal(true)}
+        onShowSignup={() => setShowSignupModal(true)}
+      />
+      <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
+      {/* Hero Section - PrivacyGecko Branding */}
+      <header className="text-center space-y-4 py-8 md:py-12">
+        {/* Logo and Brand */}
+        <div className="flex items-center justify-center gap-4 mb-6 animate-fade-in">
+          <span
+            className="text-6xl md:text-7xl leading-none"
+            role="img"
+            aria-label={BRAND.logo.alt}
+          >
+            {BRAND.logo.emoji}
+          </span>
+        </div>
+
+        {/* Product Name */}
+        <h1 className="text-5xl md:text-6xl font-extrabold text-slate-900 leading-tight tracking-tight animate-slide-up">
+          {BRAND.productName}
         </h1>
-        <p className="text-slate-700 text-lg md:text-xl leading-relaxed">
-          Instant privacy scan with clear scores and plain-language guidance.
+
+        {/* Company & Tagline */}
+        <div className="space-y-2">
+          <p className="text-xl md:text-2xl text-gray-600 font-medium">
+            by {BRAND.companyName}
+          </p>
+          <p className="text-2xl md:text-3xl text-emerald-600 font-bold">
+            {BRAND.tagline}
+          </p>
+        </div>
+
+        {/* Value Proposition */}
+        <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed mt-6">
+          Scan and monitor privacy policies instantly. Get actionable privacy scores,
+          track changes over time, and protect your data with our AI-powered scanner.
         </p>
+
+        {/* Trust Badge */}
+        <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-sm text-gray-600">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+            </svg>
+            <span className="font-medium">10,000+ Scans Completed</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span className="font-medium">Results in Seconds</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span className="font-medium">Privacy First</span>
+          </div>
+        </div>
       </header>
+
+      {/* Rate limit banner */}
+      {(rateLimit || isPro) && (
+        <RateLimitBanner rateLimit={rateLimit} isPro={isPro} />
+      )}
+
       <Card>
         <div className="flex flex-wrap gap-2 mb-3" role="tablist" aria-label="Input type">
           {INPUT_MODES.map((modeKey) => (
@@ -85,8 +202,9 @@ export default function Home() {
           />
           <button
             onClick={onScan}
-            disabled={loading || mode !== 'url'}
-            className="px-6 py-3 min-h-[48px] rounded-lg bg-security-blue hover:bg-blue-700 active:bg-blue-800 text-white disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+            disabled={loading || mode !== 'url' || (rateLimit?.scansRemaining === 0 && !isPro)}
+            className="px-6 py-3 min-h-[48px] rounded-lg bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+            aria-label="Start privacy scan"
           >
             <span className="inline-flex items-center justify-center gap-2">
               {loading ? (
@@ -200,6 +318,25 @@ export default function Home() {
       <Footer />
       <RecentReports />
     </div>
+
+    {/* Auth modals */}
+    <LoginModal
+      isOpen={showLoginModal}
+      onClose={() => setShowLoginModal(false)}
+      onSwitchToSignup={() => {
+        setShowLoginModal(false);
+        setShowSignupModal(true);
+      }}
+    />
+    <SignupModal
+      isOpen={showSignupModal}
+      onClose={() => setShowSignupModal(false)}
+      onSwitchToLogin={() => {
+        setShowSignupModal(false);
+        setShowLoginModal(true);
+      }}
+    />
+    </>
   );
 }
 
