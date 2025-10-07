@@ -74,8 +74,8 @@ export default function EnhancedComponentsDemo() {
                 <EnhancedScoreDial score={72} size="lg" />
               </div>
             </div>
-            <ul className="text-sm text-emerald-600 space-y-1">
-              <li>✓ Gradient ring (emerald 500→600)</li>
+            <ul className="text-sm text-gecko-600 space-y-1">
+              <li>✓ Gradient ring (gecko 500→600)</li>
               <li>✓ 1.5s smooth animation on mount</li>
               <li>✓ Multi-layer glow effects</li>
               <li>✓ Color-blind patterns (diagonal/dots)</li>
@@ -120,15 +120,15 @@ export default function EnhancedComponentsDemo() {
               Basic (Current)
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="flex items-start gap-3 p-4 rounded-lg bg-emerald-50 border border-emerald-200">
+              <div className="flex items-start gap-3 p-4 rounded-lg bg-gecko-50 border border-gecko-200">
                 <div className="flex-shrink-0 mt-0.5">
-                  <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-5 h-5 text-gecko-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <div className="font-medium text-emerald-900">Open source</div>
-                  <p className="text-xs text-emerald-700 mt-1">Public scoring logic</p>
+                  <div className="font-medium text-gecko-900">Open source</div>
+                  <p className="text-xs text-gecko-700 mt-1">Public scoring logic</p>
                 </div>
               </div>
 
@@ -165,7 +165,7 @@ export default function EnhancedComponentsDemo() {
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <EnhancedTrustIndicator
-                variant="emerald"
+                variant="gecko"
                 icon={
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -199,7 +199,7 @@ export default function EnhancedComponentsDemo() {
             </div>
           </div>
 
-          <ul className="text-sm text-emerald-600 space-y-1 pl-4">
+          <ul className="text-sm text-gecko-600 space-y-1 pl-4">
             <li>✓ Gradient backgrounds create visual depth</li>
             <li>✓ Icon containers with gradient fills and shadows</li>
             <li>✓ Hover states (shadow elevation + border color)</li>
@@ -259,7 +259,7 @@ export default function EnhancedComponentsDemo() {
                 <EnhancedSeverityBadge severity="low" count={2} />
               </div>
             </div>
-            <ul className="text-sm text-emerald-600 space-y-1">
+            <ul className="text-sm text-gecko-600 space-y-1">
               <li>✓ 150% larger (px-3 py-1.5)</li>
               <li>✓ Emoji text-base (16px)</li>
               <li>✓ Bold font weight for counts</li>
@@ -316,7 +316,7 @@ export default function EnhancedComponentsDemo() {
             />
           </div>
 
-          <ul className="text-sm text-emerald-600 space-y-1 pl-4">
+          <ul className="text-sm text-gecko-600 space-y-1 pl-4">
             <li>✓ Larger text (text-sm vs text-xs)</li>
             <li>✓ Button backgrounds for affordance</li>
             <li>✓ Proper vertical divider (not "|")</li>
@@ -348,9 +348,9 @@ export default function EnhancedComponentsDemo() {
           {/* Hover Lift */}
           <div className="bg-white border rounded-lg p-6 space-y-3">
             <h3 className="font-semibold text-slate-900">Hover Lift</h3>
-            <div className="bg-gradient-to-br from-emerald-50 to-white border-2 border-emerald-200 rounded-lg p-4 hover-lift cursor-pointer">
-              <p className="text-emerald-900 font-medium">Hover me!</p>
-              <p className="text-sm text-emerald-600">I lift -2px on hover</p>
+            <div className="bg-gradient-to-br from-gecko-50 to-white border-2 border-gecko-200 rounded-lg p-4 hover-lift cursor-pointer">
+              <p className="text-gecko-900 font-medium">Hover me!</p>
+              <p className="text-sm text-gecko-600">I lift -2px on hover</p>
             </div>
             <p className="text-sm text-slate-600">Smooth translateY(-2px) on hover</p>
           </div>

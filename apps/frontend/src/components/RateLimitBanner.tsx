@@ -65,7 +65,7 @@ function formatResetTime(resetAt: string): string {
  * Displays rate limit status based on user subscription and current usage
  *
  * Display logic:
- * - Pro users: Show unlimited scans badge (emerald)
+ * - Pro users: Show unlimited scans badge (gecko green)
  * - Free users with scans remaining: Show remaining count (blue)
  * - Free users at limit: Show upgrade CTA (red)
  *
@@ -83,12 +83,12 @@ export default function RateLimitBanner({ rateLimit, isPro = false }: RateLimitB
   // Pro users: Show unlimited badge
   if (isPro) {
     return (
-      <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg px-4 py-3">
+      <div className="bg-gradient-to-r from-gecko-50 to-green-50 border border-gecko-200 rounded-lg px-4 py-3">
         <div className="flex items-center gap-2 text-sm">
-          <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg className="w-5 h-5 text-gecko-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
-          <span className="font-semibold text-emerald-700">Pro: Unlimited Scans</span>
+          <span className="font-semibold text-gecko-800">Pro: Unlimited Scans</span>
         </div>
       </div>
     );
@@ -113,12 +113,12 @@ export default function RateLimitBanner({ rateLimit, isPro = false }: RateLimitB
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span className="text-gray-700">
-              <span className="font-semibold text-blue-600">{scansRemaining}</span> free scan{scansRemaining !== 1 ? 's' : ''} remaining today
+              <span className="font-semibold text-blue-700">{scansRemaining}</span> free scan{scansRemaining !== 1 ? 's' : ''} remaining today
             </span>
           </div>
           <Link
             to="/pricing"
-            className="text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap transition-colors"
+            className="text-blue-700 hover:text-blue-800 font-medium whitespace-nowrap transition-colors"
           >
             Upgrade →
           </Link>

@@ -42,7 +42,7 @@ export function ShareBar({ url, message }: ShareBarProps) {
       <div className="flex flex-col">
         <span className="text-sm font-semibold text-slate-800">Share this report</span>
         <span className="break-all text-xs text-slate-500">{url}</span>
-        {status && <span className="mt-1 text-xs text-emerald-600">{status}</span>}
+        {status && <span className="mt-1 text-xs text-gecko-600">{status}</span>}
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <button

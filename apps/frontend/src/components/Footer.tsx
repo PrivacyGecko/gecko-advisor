@@ -51,7 +51,7 @@ export default function Footer() {
                 {BRAND.companyName}
               </span>
             </Link>
-            <p className="text-sm text-emerald-600 font-semibold mb-2">
+            <p className="text-sm text-gecko-600 font-semibold mb-2">
               {BRAND.tagline}
             </p>
             <p className="text-sm text-gray-600 leading-relaxed">
@@ -64,7 +64,7 @@ export default function Footer() {
                 href={getSocialUrl('twitter')}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-500 hover:text-emerald-600 transition-colors"
+                className="text-gray-500 hover:text-gecko-600 transition-colors"
                 aria-label="Follow us on Twitter"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -75,7 +75,7 @@ export default function Footer() {
                 href={getSocialUrl('github')}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-500 hover:text-emerald-600 transition-colors"
+                className="text-gray-500 hover:text-gecko-600 transition-colors"
                 aria-label="View our code on GitHub"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -86,7 +86,7 @@ export default function Footer() {
                 href={getSocialUrl('linkedin')}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-500 hover:text-emerald-600 transition-colors"
+                className="text-gray-500 hover:text-gecko-600 transition-colors"
                 aria-label="Connect with us on LinkedIn"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -105,7 +105,7 @@ export default function Footer() {
               <li>
                 <Link
                   to="/"
-                  className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
+                  className="text-sm text-gray-600 hover:text-gecko-600 transition-colors"
                 >
                   Features
                 </Link>
@@ -113,7 +113,7 @@ export default function Footer() {
               <li>
                 <Link
                   to="/pricing"
-                  className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
+                  className="text-sm text-gray-600 hover:text-gecko-600 transition-colors"
                 >
                   Pricing
                 </Link>
@@ -121,7 +121,7 @@ export default function Footer() {
               <li>
                 <Link
                   to="/docs"
-                  className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
+                  className="text-sm text-gray-600 hover:text-gecko-600 transition-colors"
                 >
                   API Docs
                 </Link>
@@ -129,7 +129,7 @@ export default function Footer() {
               <li>
                 <Link
                   to="/compare"
-                  className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
+                  className="text-sm text-gray-600 hover:text-gecko-600 transition-colors"
                 >
                   Compare Sites
                 </Link>
@@ -146,7 +146,7 @@ export default function Footer() {
               <li>
                 <Link
                   to="/about"
-                  className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
+                  className="text-sm text-gray-600 hover:text-gecko-600 transition-colors"
                 >
                   About
                 </Link>
@@ -154,7 +154,7 @@ export default function Footer() {
               <li>
                 <a
                   href={getEmailLink('hello')}
-                  className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
+                  className="text-sm text-gray-600 hover:text-gecko-600 transition-colors"
                 >
                   Contact
                 </a>
@@ -162,7 +162,7 @@ export default function Footer() {
               <li>
                 <a
                   href={getEmailLink('hello')}
-                  className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
+                  className="text-sm text-gray-600 hover:text-gecko-600 transition-colors"
                 >
                   {BRAND.emails.hello}
                 </a>
@@ -170,7 +170,7 @@ export default function Footer() {
               <li>
                 <a
                   href={getEmailLink('support')}
-                  className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
+                  className="text-sm text-gray-600 hover:text-gecko-600 transition-colors"
                 >
                   Support
                 </a>
@@ -187,7 +187,7 @@ export default function Footer() {
               <li>
                 <a
                   href="/privacy.html"
-                  className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
+                  className="text-sm text-gray-600 hover:text-gecko-600 transition-colors"
                 >
                   Privacy Policy
                 </a>
@@ -195,7 +195,7 @@ export default function Footer() {
               <li>
                 <a
                   href="/terms.html"
-                  className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
+                  className="text-sm text-gray-600 hover:text-gecko-600 transition-colors"
                 >
                   Terms of Service
                 </a>
@@ -203,7 +203,7 @@ export default function Footer() {
               <li>
                 <a
                   href="/NOTICE.md"
-                  className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
+                  className="text-sm text-gray-600 hover:text-gecko-600 transition-colors"
                 >
                   Notice
                 </a>
@@ -211,7 +211,7 @@ export default function Footer() {
               <li>
                 <a
                   href="/LICENSE-THIRD-PARTY.md"
-                  className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
+                  className="text-sm text-gray-600 hover:text-gecko-600 transition-colors"
                 >
                   Licenses
                 </a>
@@ -231,7 +231,7 @@ export default function Footer() {
             {/* Additional Links */}
             <div className="flex items-center gap-6 text-sm text-gray-500">
               <span className="flex items-center gap-1">
-                <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-4 h-4 text-gecko-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                 </svg>
                 Open Source

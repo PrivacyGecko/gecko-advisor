@@ -125,8 +125,8 @@ export default function HomeRoute() {
             <div className="rounded-xl border border-slate-200 p-3">
               <div className="text-xs uppercase tracking-wide text-slate-500">Privacy Score</div>
               <div className="mt-2 inline-flex items-center gap-3">
-                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-xl font-bold text-emerald-700">84</span>
-                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">SAFE</span>
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gecko-100 text-xl font-bold text-gecko-700">84</span>
+                <span className="rounded-full bg-gecko-100 px-2 py-0.5 text-xs font-semibold text-gecko-700">SAFE</span>
               </div>
             </div>
             <div className="rounded-xl border border-slate-200 p-3">
@@ -139,7 +139,7 @@ export default function HomeRoute() {
             </div>
             <div className="rounded-xl border border-slate-200 p-3">
               <div className="text-xs uppercase tracking-wide text-slate-500">TLS / HTTPS</div>
-              <p className="mt-2 text-sm font-semibold text-emerald-700">Valid</p>
+              <p className="mt-2 text-sm font-semibold text-gecko-700">Valid</p>
             </div>
           </div>
         </Card>
@@ -208,7 +208,7 @@ function formatDate(value: RecentReportsResponse['items'][number]['createdAt']):
 }
 
 function badgeClass(label: string | undefined): string {
-  if (label === 'Safe') return 'rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700';
+  if (label === 'Safe') return 'rounded-full bg-gecko-100 px-2 py-1 text-xs font-semibold text-gecko-700';
   if (label === 'High Risk') return 'rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-700';
   return 'rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700';
 }

@@ -145,7 +145,7 @@ export default function ScanRoute() {
             </div>
             <div>
               <dt className="text-xs uppercase tracking-wide text-slate-400">TLS grade</dt>
-              <dd className="font-semibold text-slate-800">{reportView.stats.tlsGrade ?? '—'}</dd>
+              <dd className="font-semibold text-slate-800">{reportView.stats.tlsGrade ?? 'ï¿½'}</dd>
             </div>
             <div>
               <dt className="text-xs uppercase tracking-wide text-slate-400">Trackers</dt>
@@ -208,13 +208,13 @@ function ScanningState({ status, progress, slug }: { status: string; progress: n
   return (
     <div className="mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col items-center justify-center gap-6 p-6 text-center">
       <ProgressDial percent={Math.min(100, Math.max(5, progress))} />
-      <div className="text-2xl font-semibold text-slate-900">{status === 'running' ? 'Scanning in progress…' : 'Queued…'}</div>
-      <p className="max-w-md text-sm text-slate-600">We’re collecting evidence, checking trackers, and grading TLS. This usually takes under 10 seconds.</p>
+      <div className="text-2xl font-semibold text-slate-900">{status === 'running' ? 'Scanning in progressï¿½' : 'Queuedï¿½'}</div>
+      <p className="max-w-md text-sm text-slate-600">Weï¿½re collecting evidence, checking trackers, and grading TLS. This usually takes under 10 seconds.</p>
       {slug && (
         <p className="text-xs text-slate-400">Shareable link will be available soon at <span className="break-all">/r/{slug}</span></p>
       )}
       <div className="flex flex-wrap justify-center gap-3 text-xs text-slate-500">
-        <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Secure connection</span>
+        <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-gecko-500" /> Secure connection</span>
         <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-sky-500" /> Transparent scan</span>
         <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-amber-500" /> No data stored</span>
       </div>
@@ -226,7 +226,7 @@ function LoadingReport() {
   return (
     <div className="mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col items-center justify-center gap-3 p-6 text-center text-slate-600">
       <div className="h-16 w-16 animate-spin rounded-full border-4 border-slate-200 border-t-security-blue" aria-hidden="true" />
-      <div className="text-lg font-semibold">Preparing report…</div>
+      <div className="text-lg font-semibold">Preparing reportï¿½</div>
     </div>
   );
 }

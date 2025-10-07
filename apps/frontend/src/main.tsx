@@ -19,6 +19,7 @@ const Report = React.lazy(() => import('./pages/ReportPage'));
 const Compare = React.lazy(() => import('./pages/Compare'));
 const Docs = React.lazy(() => import('./pages/Docs'));
 const About = React.lazy(() => import('./pages/About'));
+const Pricing = React.lazy(() => import('./pages/Pricing'));
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 
@@ -90,12 +91,7 @@ const router = createBrowserRouter([
     path: '/pricing',
     element: (
       <React.Suspense fallback={<PageLoader />}>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Pricing Coming Soon</h1>
-            <p className="text-gray-600">We're working on our pricing page. Check back soon!</p>
-          </div>
-        </div>
+        <Pricing />
       </React.Suspense>
     )
   },

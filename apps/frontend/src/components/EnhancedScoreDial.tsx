@@ -97,11 +97,11 @@ const EnhancedScoreDial = React.memo(function EnhancedScoreDial({
       return {
         level: 'safe',
         gradientId: 'gradient-safe',
-        gradientColors: { start: '#10b981', stop: '#059669' }, // emerald-500 to emerald-600
-        glowColor: 'rgba(16, 185, 129, 0.3)', // emerald-500 with opacity
-        bgGlow: 'bg-emerald-100',
-        labelBg: 'bg-emerald-100',
-        labelText: 'text-emerald-800',
+        gradientColors: { start: '#2ecc71', stop: '#27ae60' }, // gecko-500 to gecko-600
+        glowColor: 'rgba(46, 204, 113, 0.3)', // gecko-500 with opacity
+        bgGlow: 'bg-gecko-100',
+        labelBg: 'bg-gecko-100',
+        labelText: 'text-gecko-800',
         label: label || 'SAFE',
         patternId: 'pattern-safe',
         patternType: 'none'

@@ -12,7 +12,7 @@ export interface EnhancedTrustIndicatorProps {
   /** Description text */
   description: string;
   /** Color variant */
-  variant: 'emerald' | 'blue' | 'amber';
+  variant: 'gecko' | 'blue' | 'amber';
   /** Additional CSS classes */
   className?: string;
 }
@@ -47,14 +47,14 @@ const EnhancedTrustIndicator = React.memo(function EnhancedTrustIndicator({
   className = ''
 }: EnhancedTrustIndicatorProps) {
   const variantConfig = {
-    emerald: {
-      gradient: 'bg-gradient-to-br from-emerald-50 via-emerald-50/50 to-white',
-      border: 'border-emerald-200 hover:border-emerald-300',
-      iconGradient: 'from-emerald-500 to-emerald-600',
-      iconShadow: 'shadow-lg shadow-emerald-500/30',
-      titleColor: 'text-emerald-900',
-      descColor: 'text-emerald-700',
-      decorationBg: 'bg-emerald-200/30'
+    gecko: {
+      gradient: 'bg-gradient-to-br from-gecko-50 via-gecko-50/50 to-white',
+      border: 'border-gecko-200 hover:border-gecko-300',
+      iconGradient: 'from-gecko-500 to-gecko-600',
+      iconShadow: 'shadow-lg shadow-gecko-500/30',
+      titleColor: 'text-gecko-900',
+      descColor: 'text-gecko-700',
+      decorationBg: 'bg-gecko-200/30'
     },
     blue: {
       gradient: 'bg-gradient-to-br from-blue-50 via-blue-50/50 to-white',

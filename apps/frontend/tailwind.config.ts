@@ -29,6 +29,20 @@ export default {
           900: '#15803d',
         },
 
+        // Trust Blue (secondary brand color)
+        'trust': {
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#3498db',  // Trust blue from branding.ts
+          600: '#2980b9',  // Darker blue
+          700: '#1d4ed8',
+          800: '#1e40af',
+          900: '#1e3a8a',
+        },
+
         // Brand colors (legacy support)
         'privacy-advisor': {
           50: '#f0f9ff',

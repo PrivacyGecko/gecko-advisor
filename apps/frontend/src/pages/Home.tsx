@@ -139,7 +139,7 @@ export default function Home() {
           <p className="text-xl md:text-2xl text-gray-600 font-medium">
             by {BRAND.companyName}
           </p>
-          <p className="text-2xl md:text-3xl text-emerald-600 font-bold">
+          <p className="text-2xl md:text-3xl text-gecko-600 font-bold">
             {BRAND.tagline}
           </p>
         </div>
@@ -153,19 +153,19 @@ export default function Home() {
         {/* Trust Badge */}
         <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-sm text-gray-600">
           <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-5 h-5 text-gecko-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
             </svg>
             <span className="font-medium">10,000+ Scans Completed</span>
           </div>
           <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-5 h-5 text-gecko-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
             <span className="font-medium">Results in Seconds</span>
           </div>
           <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-5 h-5 text-gecko-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
             <span className="font-medium">Privacy First</span>
@@ -203,7 +203,7 @@ export default function Home() {
           <button
             onClick={onScan}
             disabled={loading || mode !== 'url' || (rateLimit?.scansRemaining === 0 && !isPro)}
-            className="px-6 py-3 min-h-[48px] rounded-lg bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+            className="px-6 py-3 min-h-[48px] rounded-lg bg-gecko-600 hover:bg-gecko-700 active:bg-gecko-800 text-white disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
             aria-label="Start privacy scan"
           >
             <span className="inline-flex items-center justify-center gap-2">
@@ -237,7 +237,7 @@ export default function Home() {
       {/* Trust Indicators - Premium enhanced version */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <EnhancedTrustIndicator
-          variant="emerald"
+          variant="gecko"
           icon={
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
