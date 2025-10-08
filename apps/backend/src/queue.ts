@@ -200,3 +200,26 @@ export async function closeQueueConnections() {
 export async function checkRedisConnection() {
   await baseConnection.ping();
 }
+
+/**
+ * Initialize Redis connections for queue operations
+ * Must be called during application startup
+ */
+export async function initQueueConnections(): Promise<void> {
+  try {
+    logger.info('Initializing Redis connections for queue...');
+
+    // Connect both Redis clients
+    await baseConnection.connect();
+    await eventsConnection.connect();
+
+    // Verify connections
+    await baseConnection.ping();
+    await eventsConnection.ping();
+
+    logger.info('Queue Redis connections initialized successfully');
+  } catch (error) {
+    logger.error({ error }, 'Failed to initialize queue Redis connections');
+    throw new Error('Failed to connect to Redis for queue operations');
+  }
+}

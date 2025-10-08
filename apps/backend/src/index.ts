@@ -2,9 +2,9 @@ import type { Server } from "node:http";
 import { createServer } from "./server.js";
 import { config } from "./config.js";
 import { logger } from "./logger.js";
-import { closeQueueConnections } from "./queue.js";
+import { closeQueueConnections, initQueueConnections } from "./queue.js";
 import { connectDatabase, disconnectDatabase } from "./prisma.js";
-import { disconnectCache } from "./cache.js";
+import { connectCache, disconnectCache } from "./cache.js";
 
 export const app = createServer();
 
@@ -13,8 +13,17 @@ if (!process.env.VITEST_WORKER_ID) {
 
   const start = async () => {
     try {
-      // Initialize database connection
+      // Initialize all connections before starting the server
+      logger.info('Starting backend initialization...');
+
+      // 1. Initialize database connection
       await connectDatabase();
+
+      // 2. Initialize Redis connections (cache and queue)
+      await connectCache();
+      await initQueueConnections();
+
+      logger.info('All connections initialized successfully');
 
       server = app.listen(config.port, () => {
         logger.info({ port: config.port }, 'Backend listening');

@@ -177,6 +177,27 @@ export class CacheService {
 }
 
 /**
+ * Initialize Redis cache connection
+ * Must be called during application startup
+ */
+export async function connectCache(): Promise<void> {
+  try {
+    logger.info('Initializing Redis cache connection...');
+
+    // Connect to Redis
+    await redis.connect();
+
+    // Verify connection
+    await redis.ping();
+
+    logger.info('Redis cache connection initialized successfully');
+  } catch (error) {
+    logger.error({ error }, 'Failed to initialize Redis cache connection');
+    throw new Error('Failed to connect to Redis for caching');
+  }
+}
+
+/**
  * Graceful Redis disconnection
  */
 export async function disconnectCache(): Promise<void> {
