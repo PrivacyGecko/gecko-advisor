@@ -202,20 +202,49 @@ export async function checkRedisConnection() {
 }
 
 /**
- * Initialize Redis connections for queue operations
+ * Initialize Redis connections for queue operations with timeout and state checking
  * Must be called during application startup
  */
 export async function initQueueConnections(): Promise<void> {
   try {
     logger.info('Initializing Redis connections for queue...');
 
-    // Connect both Redis clients
-    await baseConnection.connect();
-    await eventsConnection.connect();
+    // Check if already connected or connecting
+    const baseReady = baseConnection.status === 'ready' || baseConnection.status === 'connecting';
+    const eventsReady = eventsConnection.status === 'ready' || eventsConnection.status === 'connecting';
 
-    // Verify connections
-    await baseConnection.ping();
-    await eventsConnection.ping();
+    if (baseReady && eventsReady) {
+      logger.info('Queue Redis connections already connected or connecting, skipping...');
+      return;
+    }
+
+    // Set a timeout for connection to prevent hanging
+    const connectionTimeout = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Queue Redis connection timeout after 15s')), 15000);
+    });
+
+    // Race between connection and timeout
+    await Promise.race([
+      (async () => {
+        // Connect base connection first
+        if (baseConnection.status !== 'ready') {
+          logger.debug('Connecting base Redis connection...');
+          await baseConnection.connect();
+          await baseConnection.ping();
+          logger.debug('Base Redis connection established');
+        }
+
+        // Events connection is a duplicate, so it should share the same underlying connection
+        // We only need to verify it's working
+        if (eventsConnection.status !== 'ready') {
+          logger.debug('Connecting events Redis connection...');
+          await eventsConnection.connect();
+          await eventsConnection.ping();
+          logger.debug('Events Redis connection established');
+        }
+      })(),
+      connectionTimeout,
+    ]);
 
     logger.info('Queue Redis connections initialized successfully');
   } catch (error) {
