@@ -1,8 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { RateLimitService, type RateLimitInfo } from '../services/rateLimitService.js';
+import { prisma } from '../prisma.js';
 
-const prisma = new PrismaClient();
 const rateLimitService = new RateLimitService(prisma);
 
 /**
