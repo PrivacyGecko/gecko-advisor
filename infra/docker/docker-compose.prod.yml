@@ -4,6 +4,7 @@ services:
     extends:
       file: ./docker-compose.yml
       service: backend
+    depends_on: {}
     environment:
       APP_ENV: production
       BASE_URL: ${BASE_URL:-https://geckoadvisor.com}
@@ -14,6 +15,7 @@ services:
     extends:
       file: ./docker-compose.yml
       service: worker
+    depends_on: {}
     environment:
       APP_ENV: production
       WORKER_PUBLIC_URL: ${WORKER_PUBLIC_URL:-https://worker.geckoadvisor.com}
