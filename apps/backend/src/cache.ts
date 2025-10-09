@@ -177,18 +177,36 @@ export class CacheService {
 }
 
 /**
- * Initialize Redis cache connection
+ * Initialize Redis cache connection with timeout and state checking
  * Must be called during application startup
  */
 export async function connectCache(): Promise<void> {
   try {
     logger.info('Initializing Redis cache connection...');
 
-    // Connect to Redis
-    await redis.connect();
+    // Check if already connected or connecting
+    if (redis.status === 'ready' || redis.status === 'connect') {
+      logger.info('Redis cache already connected or connecting, skipping...');
+      return;
+    }
 
-    // Verify connection
-    await redis.ping();
+    // Set a timeout for connection to prevent hanging
+    const connectionTimeout = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Redis cache connection timeout after 15s')), 15000);
+    });
+
+    // Race between connection and timeout
+    await Promise.race([
+      (async () => {
+        // Only connect if not already connected
+        if (redis.status !== 'ready') {
+          await redis.connect();
+        }
+        // Verify connection
+        await redis.ping();
+      })(),
+      connectionTimeout,
+    ]);
 
     logger.info('Redis cache connection initialized successfully');
   } catch (error) {
