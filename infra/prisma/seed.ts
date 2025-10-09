@@ -1,44 +1,47 @@
-import { PrismaClient } from '@prisma/client';
+﻿import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // Seed demo targets by creating queued scans with fixed slugs
   const demos = [
-    { input: 'https://example.com', targetType: 'url', reportSlug: 'exmpl', summary: 'Mostly safe demo site' },
-    { input: 'https://demo-adtech.test', targetType: 'url', reportSlug: 'adtech', summary: 'Tracker-heavy demo' },
-    { input: 'https://mixed-content.test', targetType: 'url', reportSlug: 'mixed', summary: 'Dangerous mixed content' },
+    { input: "https://example.com", targetType: "url", slug: "exmpl", summary: "Mostly safe demo site" },
+    { input: "https://demo-adtech.test", targetType: "url", slug: "adtech", summary: "Tracker-heavy demo" },
+    { input: "https://mixed-content.test", targetType: "url", slug: "mixed", summary: "Dangerous mixed content" },
   ];
 
-  for (const d of demos) {
+  for (const demo of demos) {
     await prisma.scan.upsert({
-      where: { reportSlug: d.reportSlug },
-      update: {},
-      create: {
-        input: d.input,
-        targetType: d.targetType,
+      where: { slug: demo.slug },
+      update: {
+        input: demo.input,
+        summary: demo.summary,
         status: 'queued',
-        reportSlug: d.reportSlug,
-        summary: d.summary,
+      },
+      create: {
+        input: demo.input,
+        normalizedInput: `${demo.input}/`,
+        targetType: demo.targetType,
+        status: 'queued',
+        slug: demo.slug,
+        summary: demo.summary,
       },
     });
   }
 
-  // Seed cached lists from embedded fixtures (kept in packages/shared/data)
   const lists = [
-    { source: 'easyprivacy', version: 'demo-1', data: require('../../packages/shared/data/easyprivacy-demo.json') },
-    { source: 'whotracks', version: 'demo-1', data: require('../../packages/shared/data/whotracks-demo.json') },
-    { source: 'psl', version: 'public-1', data: require('../../packages/shared/data/psl-demo.json') },
+    { source: "easyprivacy", version: "demo-1", data: require("../../packages/shared/data/easyprivacy-demo.json") },
+    { source: "whotracks", version: "demo-1", data: require("../../packages/shared/data/whotracks-demo.json") },
+    { source: "psl", version: "public-1", data: require("../../packages/shared/data/psl-demo.json") },
   ];
 
-  for (const l of lists) {
-    await prisma.cachedList.create({ data: l });
+  for (const list of lists) {
+    await prisma.cachedList.create({ data: list });
   }
 
   console.log('Seed complete');
 }
 
-main().catch((e) => {
-  console.error(e);
+main().catch((error) => {
+  console.error(error);
   process.exit(1);
 });

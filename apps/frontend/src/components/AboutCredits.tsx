@@ -16,13 +16,28 @@ export default function AboutCredits() {
       <h2>Data Sources</h2>
       <ul>
         <li>
-          EasyPrivacy — attribution provided; used server-side. <a href="https://easylist.to/" target="_blank" rel="noreferrer">Site</a>
+          <strong>EasyPrivacy</strong> — Dual licensed (GPL v3 + Creative Commons BY-SA 3.0). Used server-side for tracker detection.
+          <br />
+          <a href="https://easylist.to/" target="_blank" rel="noreferrer">Official Site</a> ·
+          <a href="https://easylist.to/easylist/easyprivacy.txt" target="_blank" rel="noreferrer">License Info</a> ·
+          <a href="https://github.com/easylist/easylist" target="_blank" rel="noreferrer">GitHub</a>
+          <br />
+          <em>Attribution: EasyPrivacy filter list by EasyList contributors (easylist.to)</em>
         </li>
         <li>
-          WhoTracks.me — data under CC BY 4.0. <a href="https://whotracks.me/" target="_blank" rel="noreferrer">Site</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">License</a>
+          <strong>WhoTracks.me</strong> — Tracker database under Creative Commons Attribution 4.0 International License.
+          <br />
+          <a href="https://whotracks.me/" target="_blank" rel="noreferrer">Official Site</a> ·
+          <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0 License</a> ·
+          <a href="https://github.com/ghostery/whotracks.me" target="_blank" rel="noreferrer">GitHub</a>
+          <br />
+          <em>Attribution: WhoTracks.me data by Ghostery GmbH, used under CC BY 4.0</em>
         </li>
         <li>
-          Public Suffix List — maintained by Mozilla contributors. <a href="https://publicsuffix.org/" target="_blank" rel="noreferrer">Site</a>
+          <strong>Public Suffix List</strong> — Maintained by Mozilla contributors under Mozilla Public License.
+          <br />
+          <a href="https://publicsuffix.org/" target="_blank" rel="noreferrer">Official Site</a> ·
+          <a href="https://github.com/publicsuffix/list" target="_blank" rel="noreferrer">GitHub</a>
         </li>
       </ul>
 

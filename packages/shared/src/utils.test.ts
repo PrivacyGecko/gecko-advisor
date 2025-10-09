@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeUrl, labelForScore } from './utils';
+import { normalizeUrl, labelForScore } from './utils.js';
 
 describe('normalizeUrl', () => {
   it('adds http scheme if missing', () => {

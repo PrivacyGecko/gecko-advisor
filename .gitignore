@@ -15,3 +15,8 @@ test-results/
 **/.cache
 packages/**/tsconfig.tsbuildinfo
 apps/**/tsconfig.tsbuildinfo
+.claude/
+.playwright-mcp/
+assets/dlogs/
+assets/ss/
+assets/prompts/

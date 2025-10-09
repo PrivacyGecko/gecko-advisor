@@ -1,11 +1,11 @@
 openapi: 3.0.3
 info:
   title: Privacy Advisor API
-  version: 0.1.0
+  version: 2.0.0
 servers:
   - url: /
 paths:
-  /api/scan/url:
+  /api/v2/scan/url:
     post:
       summary: Queue a URL scan
       requestBody:
@@ -13,108 +13,398 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                url:
-                  type: string
-                  format: uri
-              required: [url]
+              $ref: "#/components/schemas/UrlScanRequest"
       responses:
-        '200':
-          description: Queued
+        "202":
+          description: Scan queued
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  scanId: { type: string }
-                  reportSlug: { type: string }
-                required: [scanId, reportSlug]
-  /api/scan/{id}/status:
+                $ref: "#/components/schemas/ScanQueuedResponse"
+        "400": &a1
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404": &a2
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "429": &a3
+          description: Rate Limited
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimitedResponse"
+        "500": &a4
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v2/scan/{id}/status:
     get:
-      summary: Scan status
+      summary: Retrieve scan status
       parameters:
-        - in: path
-          name: id
+        - name: id
+          in: path
           required: true
-          schema: { type: string }
+          schema:
+            type: string
+          description: Scan identifier
       responses:
-        '200':
+        "200":
           description: Status
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    enum: [queued, running, done, error]
-                  progress:
-                    type: number
-                  score:
-                    type: number
-                  label:
-                    type: string
-        '404': { description: Not Found }
-  /api/report/{slug}:
-    get:
-      summary: Public report
-      parameters:
-        - in: path
-          name: slug
-          required: true
-          schema: { type: string }
+                $ref: "#/components/schemas/ScanStatus"
+        "400": *a1
+        "404": *a2
+        "429": *a3
+        "500": *a4
+  /api/v2/scan/app:
+    post:
+      summary: Queue an app scan (stub)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppScanRequest"
       responses:
-        '200':
+        "202":
+          description: Scan queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanQueuedResponse"
+        "400": *a1
+        "404": *a2
+        "429": *a3
+        "500": *a4
+  /api/v2/scan/address:
+    post:
+      summary: Queue an address scan (stub)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddressScanRequest"
+      responses:
+        "202":
+          description: Scan queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanQueuedResponse"
+        "400": *a1
+        "404": *a2
+        "429": *a3
+        "500": *a4
+  /api/v2/report/{slug}:
+    get:
+      summary: Fetch report by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
           description: Report
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  scan: { type: object }
-                  evidence: { type: array, items: { type: object } }
-  /api/scan/app:
-    post:
-      summary: Queue app scan (stub)
-      responses:
-        '200': { description: Queued }
-  /api/scan/address:
-    post:
-      summary: Queue address scan (stub)
-      responses:
-        '200': { description: Queued }
-  /api/admin/refresh-lists:
-    post:
-      summary: Admin refresh lists from fixtures
-      security:
-        - AdminKey: []
-      responses:
-        '200': { description: OK }
-components:
-  securitySchemes:
-    AdminKey:
-      type: apiKey
-      in: header
-      name: X-Admin-Key
-  /api/reports/recent:
+                $ref: "#/components/schemas/ReportResponse"
+        "400": *a1
+        "404": *a2
+        "429": *a3
+        "500": *a4
+  /api/v2/reports/recent:
     get:
-      summary: Recent reports (anonymized)
+      summary: Recent public reports
       responses:
-        '200':
-          description: Recent
+        "200":
+          description: Recent reports
           content:
             application/json:
               schema:
+                $ref: "#/components/schemas/RecentReportsResponse"
+        "400": *a1
+        "404": *a2
+        "429": *a3
+        "500": *a4
+components:
+  schemas:
+    UrlScanRequest:
+      $ref: "#/definitions/UrlScanRequest"
+      definitions:
+        UrlScanRequest:
+          type: object
+          properties:
+            url:
+              type: string
+              format: uri
+              maxLength: 2048
+          required:
+            - url
+          additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    AppScanRequest:
+      $ref: "#/definitions/AppScanRequest"
+      definitions:
+        AppScanRequest:
+          type: object
+          properties:
+            appId:
+              type: string
+              minLength: 2
+              maxLength: 200
+          required:
+            - appId
+          additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    AddressScanRequest:
+      $ref: "#/definitions/AddressScanRequest"
+      definitions:
+        AddressScanRequest:
+          type: object
+          properties:
+            address:
+              type: string
+              minLength: 4
+              maxLength: 200
+            chain:
+              type: string
+              enum:
+                - evm
+                - solana
+              default: evm
+          required:
+            - address
+          additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    ScanQueuedResponse:
+      $ref: "#/definitions/ScanQueuedResponse"
+      definitions:
+        ScanQueuedResponse:
+          type: object
+          properties:
+            scanId:
+              type: string
+            reportSlug:
+              type: string
+          required:
+            - scanId
+            - reportSlug
+          additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    ScanStatus:
+      $ref: "#/definitions/ScanStatus"
+      definitions:
+        ScanStatus:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - queued
+                - running
+                - done
+                - error
+            progress:
+              type: number
+              minimum: 0
+              maximum: 100
+            score:
+              type: number
+              minimum: 0
+              maximum: 100
+            label:
+              type: string
+              enum:
+                - Safe
+                - Caution
+                - High Risk
+          required:
+            - status
+          additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    ReportResponse:
+      $ref: "#/definitions/ReportResponse"
+      definitions:
+        ReportResponse:
+          type: object
+          properties:
+            scan:
+              type: object
+              properties:
+                id:
+                  type: string
+                targetType:
+                  type: string
+                input:
+                  type: string
+                status:
+                  type: string
+                score:
+                  type:
+                    - number
+                    - "null"
+                label:
+                  type:
+                    - string
+                    - "null"
+                summary:
+                  type:
+                    - string
+                    - "null"
+                reportSlug:
+                  type: string
+              required:
+                - id
+                - targetType
+                - input
+                - status
+                - reportSlug
+              additionalProperties: false
+            evidence:
+              type: array
+              items:
                 type: object
                 properties:
-                  items:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        slug: { type: string }
-                        score: { type: number }
-                        label: { type: string }
-                        domain: { type: string }
-                        createdAt: { type: string }
+                  id:
+                    type: string
+                  scanId:
+                    type: string
+                  type:
+                    type: string
+                    enum:
+                      - tracker
+                      - cookie
+                      - header
+                      - insecure
+                      - thirdparty
+                      - policy
+                      - tls
+                      - fingerprint
+                  severity:
+                    type: integer
+                    minimum: 1
+                    maximum: 5
+                  title:
+                    type: string
+                  details: {}
+                  createdAt:
+                    anyOf:
+                      - type: string
+                      - type: string
+                        format: date-time
+                required:
+                  - id
+                  - scanId
+                  - type
+                  - severity
+                  - title
+                  - createdAt
+                additionalProperties: false
+            meta:
+              type: object
+              properties:
+                dataSharing:
+                  type: string
+                  enum:
+                    - None
+                    - Low
+                    - Medium
+                    - High
+              additionalProperties: false
+          required:
+            - scan
+            - evidence
+          additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    RecentReportsResponse:
+      $ref: "#/definitions/RecentReportsResponse"
+      definitions:
+        RecentReportsResponse:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  slug:
+                    type: string
+                  score:
+                    type: number
+                  label:
+                    anyOf:
+                      - type: string
+                        enum:
+                          - Safe
+                          - Caution
+                          - High Risk
+                      - type: string
+                  domain:
+                    type: string
+                  createdAt:
+                    anyOf:
+                      - type: string
+                      - type: string
+                        format: date-time
+                  evidenceCount:
+                    type: number
+                    default: 0
+                required:
+                  - slug
+                  - score
+                  - label
+                  - domain
+                  - createdAt
+                additionalProperties: false
+          required:
+            - items
+          additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    ProblemDetails:
+      $ref: "#/definitions/ProblemDetails"
+      definitions:
+        ProblemDetails:
+          type: object
+          properties:
+            type:
+              type: string
+            title:
+              type: string
+            status:
+              type: number
+            detail: {}
+          required:
+            - title
+            - status
+          additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#
+    RateLimitedResponse:
+      $ref: "#/definitions/RateLimitedResponse"
+      definitions:
+        RateLimitedResponse:
+          type: object
+          properties:
+            error:
+              type: string
+              const: rate_limited
+            retryAfterMs:
+              type: number
+          required:
+            - error
+            - retryAfterMs
+          additionalProperties: false
+      $schema: http://json-schema.org/draft-07/schema#

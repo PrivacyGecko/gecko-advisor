@@ -4,7 +4,7 @@ ENV CI=true
 COPY . .
 RUN corepack enable && corepack prepare pnpm@9.7.1 --activate
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store pnpm install -r --frozen-lockfile
-RUN pnpm -w build
+RUN pnpm -w --filter @privacy-advisor/shared build && pnpm -w --filter @privacy-advisor/frontend build
 
 FROM nginx:1.27-alpine AS runner
 WORKDIR /usr/share/nginx/html

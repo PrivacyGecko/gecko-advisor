@@ -23,8 +23,8 @@ Frontend is reachable at `http://localhost:8080` when the dev stack is running (
 ### Environments
 
 - **Development (local):** Base compose + `docker-compose.dev.yml` override. Exposes Postgres, Redis, API, and frontend on localhost for rapid iteration.
-- **Stage:** Use the base file together with `infra/docker/docker-compose.stage.yml`. Set `APP_ENV=stage`, `BASE_URL=https://stage.privamule.com`, and provide a stage `ADMIN_API_KEY` in Coolify or your secrets manager.
-- **Production:** Use the base file together with `infra/docker/docker-compose.prod.yml`. Ensure `APP_ENV=production`, `BASE_URL=https://privamule.com`, a production `ADMIN_API_KEY`, and persistent volumes.
+- **Stage:** Use the base file together with `infra/docker/docker-compose.stage.yml`. Load `infra/docker/env/stage.env` for domain defaults (`https://stage.geckoadvisor.com`, `https://stageapi.geckoadvisor.com`, `https://sworker.geckoadvisor.com`) and keep secrets in Coolify.
+- **Production:** Use the base file together with `infra/docker/docker-compose.prod.yml`. Load `infra/docker/env/production.env` (maps to `https://geckoadvisor.com`, `https://api.geckoadvisor.com`, `https://worker.geckoadvisor.com`) and manage secrets via Coolify or your secret store.
 
 ### Monorepo Layout
 
@@ -62,7 +62,7 @@ Deterministic deductions from 100 with caps per category. See `apps/worker/src/s
 
 - Stage/production deployments use `infra/docker/docker-compose.yml` as the base file
 - Add `infra/docker/docker-compose.stage.yml` when creating a stage stack (Coolify > Docker Compose > Additional Compose files)
-- Provide environment variables (`APP_ENV`, `BASE_URL`, `DATABASE_URL`, `REDIS_URL`, `ADMIN_API_KEY`, `CSP`) via Coolify secrets
+- Provide environment variables (`APP_ENV`, `BASE_URL`, `BACKEND_PUBLIC_URL`, `FRONTEND_PUBLIC_URL`, `WORKER_PUBLIC_URL`, `DATABASE_URL`, `REDIS_URL`, `ADMIN_API_KEY`, `CSP`) via Coolify secrets
 - Persistent volumes are declared for Postgres and Redis (`privacy-postgres`, `privacy-redis`) and will be created automatically
 
 ## CI
@@ -90,4 +90,8 @@ GitHub Actions workflow `.github/workflows/ci.yml` runs lint, typecheck, test, b
 - Shallow crawl: 10 pages or 10s total.
 - Rate-limited background jobs.
 - For takedown/concerns, contact: contact@example.com.
+
+
+
+
 

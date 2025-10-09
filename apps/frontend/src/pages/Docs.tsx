@@ -4,14 +4,23 @@ SPDX-License-Identifier: MIT
 */
 import React from 'react';
 import Card from '../components/Card';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import LoginModal from '../components/LoginModal';
+import SignupModal from '../components/SignupModal';
 
 export default function Docs() {
+  const [showLogin, setShowLogin] = React.useState(false);
+  const [showSignup, setShowSignup] = React.useState(false);
+
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <header>
-        <h1 className="text-3xl font-bold">Privacy Advisor Docs</h1>
-        <p className="text-slate-600">How we compute scores and labels.</p>
-      </header>
+    <>
+      <Header onLoginClick={() => setShowLogin(true)} onSignupClick={() => setShowSignup(true)} />
+      <div className="max-w-3xl mx-auto p-6 space-y-6">
+        <header>
+          <h1 className="text-3xl font-bold">Privacy Advisor Docs</h1>
+          <p className="text-slate-600">How we compute scores and labels.</p>
+        </header>
       <Card>
         <h2 id="trackers" className="text-xl font-semibold">Trackers</h2>
         <p className="text-slate-700 mt-2">
@@ -57,6 +66,10 @@ export default function Docs() {
           this derivation to the backend for transparency and consistency.
         </p>
       </Card>
-    </div>
+      </div>
+      <Footer />
+      <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
+      <SignupModal isOpen={showSignup} onClose={() => setShowSignup(false)} />
+    </>
   );
 }

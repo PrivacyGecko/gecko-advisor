@@ -47,15 +47,15 @@ This file captures context, decisions, and runbooks for this repository. Its sco
   - `DATABASE_URL=postgresql://postgres:postgres@db:5432/privacy`
   - `REDIS_URL=redis://redis:6379`
   - `ADMIN_API_KEY=changeme`
-  - `BASE_URL=https://privamule.com`
+  - `BASE_URL=https://geckoadvisor.com`
   - `BACKEND_PORT=5000`
   - `USE_FIXTURES=1` (worker loads HTML fixtures for `.test` domains)
   - `NODE_ENV=development`
   - `APP_ENV=development`
   - `FRONTEND_PORT=5173`
   - `PORT=5000`
-- Staging: use `docker-compose.stage.yml`, set `APP_ENV=stage`, `BASE_URL=https://stage.privamule.com`, unique `ADMIN_API_KEY`
-- Production: use `docker-compose.prod.yml`, set `APP_ENV=production`, `BASE_URL=https://privamule.com`, hardened secrets
+- Staging: use `docker-compose.stage.yml`; load `infra/docker/env/stage.env` (sets `BASE_URL=https://stage.geckoadvisor.com`, `BACKEND_PUBLIC_URL=https://stageapi.geckoadvisor.com`, `WORKER_PUBLIC_URL=https://sworker.geckoadvisor.com`; secrets still come from your manager).
+- Production: use `docker-compose.prod.yml`; load `infra/docker/env/production.env` (maps to `https://geckoadvisor.com`, `https://api.geckoadvisor.com`, `https://worker.geckoadvisor.com`; keep real secrets out of git).
 
 ## Prisma & DB
 
@@ -161,3 +161,27 @@ This file captures context, decisions, and runbooks for this repository. Its sco
 - Recent reports: `GET http://localhost:5000/api/reports/recent`
 
 
+
+## 2025-09-19 Updates
+
+- Added SSRF guardrails to worker crawler: refuse loopback/RFC1918 hosts, block redirects to private IPs, and await tracker/third-party evidence writes so scoring/top-fix selection uses complete data (`apps/worker/src/scanner.ts`).
+- Rebuilt frontend routing/components for scan/report flows: top fixes, share bar, recent history widget, and shareable slug pages now powered by a schema-backed API adaptor (`apps/frontend/src/routes/*`, `src/lib/api.ts`, `src/lib/adapters/scan.ts`). OG/Twitter meta setters live in `src/lib/meta.ts`.
+- Hardened API client + backend legacy routes: frontend normalises v1 responses via shared Zod schemas; backend v1 report route now strips unused issue/top-fix fields while preserving legacy response shape (`apps/backend/src/routes/v1.reports.ts`).
+- Queue clients across backend/worker now use explicit constructors without `import()` typing hacks (`apps/backend/src/queue.ts`, `apps/worker/src/index.ts`).
+- Sentry initialisers simplified (no unused flags) for backend/worker.
+- New stage env knobs: frontend expects `VITE_USE_API_V2=true` and `VITE_API_ORIGIN=https://api.stage.geckoadvisor.com`; backend/worker still read `REDIS_URL`, `DATABASE_URL`, `CSP_REPORT_URI`, rate-limit values, etc.
+- Regression bundle 2025-09-19: `pnpm lint|typecheck|build` clean for all apps. `pnpm --filter @privacy-advisor/backend test` skips Redis/Postgres-dependent specs unless local services are running (start redis @ 127.0.0.1:6379 or set `RUN_DB_TESTS=0` to silence). Worker/frontend Vitest suites pass.
+- Stage deploy checklist: migrate DB (`pnpm prisma migrate deploy`), ensure new env values registered in Coolify, rebuild/push worker ? backend ? frontend, verify `/api/readyz`, run sample scan, confirm `/r/:slug` share page + top fixes, and inspect Bull Board for dead-letter jobs.
+## 2025-09-20 Stage Regression Notes
+
+- **Symptom**: Stage scans returned `status: "error"` and `/api/report/:slug` responded 502. Worker health endpoint stayed up but queue jobs failed immediately.
+- **Root cause**: Stage Postgres still had `Evidence.type`; migration `20250919050000_phase1_schema` (renames `type -> kind`) never actually altered the live table even though it was marked applied. Prisma threw `P2022` when `apps/worker/src/scanner.ts` called `prisma.evidence.create`.
+- **Detection**:
+  - Inspect `assets/logs/worker.log` (or Coolify worker logs) for `PrismaClientKnownRequestError` with `The column "kind" does not exist`.
+  - From the backend container run `npx prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel=infra/prisma/schema.prisma` to surface drift.
+- **Fix**:
+  1. In the backend container (`cd /app`) execute `npx prisma db execute --schema=infra/prisma/schema.prisma --script 'ALTER TABLE "Evidence" RENAME COLUMN "type" TO "kind";'`.
+  2. Rerun `npx prisma migrate deploy --schema=infra/prisma/schema.prisma` so Prisma records the state.
+  3. Restart the worker service (forces a clean Redis/DB reconnect and clears retry backoff).
+  4. Kick off a validation scan (`curl -X POST https://stageapi.geckoadvisor.com/api/scan/url -H "content-type: application/json" -d '{"url":"https://example.com"}'`) and confirm `/api/scan/:id/status` reaches `done`.
+- **Notes**: Stage images do not expose `pnpm` on `PATH`; use `npx prisma ...` for schema changes. If the diff lists additional drift (for example missing the new `Issue` table), apply the statements from `infra/prisma/migrations/20250919050000_phase1_schema/migration.sql` before restarting the worker.
