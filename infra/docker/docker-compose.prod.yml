@@ -4,18 +4,20 @@ services:
     extends:
       file: ./docker-compose.yml
       service: backend
-    depends_on: {}
+    env_file:
+      - ./env/production.env
     environment:
       APP_ENV: production
       BASE_URL: ${BASE_URL:-https://geckoadvisor.com}
       BACKEND_PUBLIC_URL: ${BACKEND_PUBLIC_URL:-https://api.geckoadvisor.com}
       FRONTEND_PUBLIC_URL: ${FRONTEND_PUBLIC_URL:-https://geckoadvisor.com}
-      ADMIN_API_KEY: ${ADMIN_API_KEY:-changeme}
+      ADMIN_API_KEY: ${ADMIN_API_KEY:?Set production ADMIN_API_KEY}
   worker:
     extends:
       file: ./docker-compose.yml
       service: worker
-    depends_on: {}
+    env_file:
+      - ./env/production.env
     environment:
       APP_ENV: production
       WORKER_PUBLIC_URL: ${WORKER_PUBLIC_URL:-https://worker.geckoadvisor.com}
@@ -23,6 +25,8 @@ services:
     extends:
       file: ./docker-compose.yml
       service: frontend
+    env_file:
+      - ./env/production.env
     environment:
       APP_ENV: production
       FRONTEND_PUBLIC_URL: ${FRONTEND_PUBLIC_URL:-https://geckoadvisor.com}
