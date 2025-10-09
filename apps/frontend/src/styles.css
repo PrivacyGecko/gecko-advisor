@@ -1,6 +1,9 @@
 /* Import brand variables */
 @import './styles/variables.css';
 
+/* Import self-hosted fonts */
+@import './styles/fonts.css';
+
 /* Import premium animations */
 @import './styles/animations.css';
 

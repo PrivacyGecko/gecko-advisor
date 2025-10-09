@@ -1,4 +1,4 @@
-# Privacy Advisor (MVP)
+# Gecko Advisor (MVP)
 
 Opinionated, fast, privacy-respecting site scanner that outputs a deterministic privacy score and explainable evidence. Built as a monorepo (React/Vite + Node/Express + Prisma + BullMQ) and Dockerized for Coolify v4.
 

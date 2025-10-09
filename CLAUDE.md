@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Privacy Advisor is an opinionated, fast, privacy-respecting site scanner that outputs a deterministic privacy score with explainable evidence. Built as a monorepo with React/Vite frontend, Node/Express backend, BullMQ worker, and Prisma ORM with PostgreSQL.
+Gecko Advisor is an opinionated, fast, privacy-respecting site scanner that outputs a deterministic privacy score with explainable evidence. Built as a monorepo with React/Vite frontend, Node/Express backend, BullMQ worker, and Prisma ORM with PostgreSQL.
 
 ## Development Commands
 
