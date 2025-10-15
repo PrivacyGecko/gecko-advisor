@@ -4,6 +4,7 @@ SPDX-License-Identifier: MIT
 */
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { CreditCard, Wallet } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { BRAND } from '../config/branding';
 import Header from '../components/Header';
@@ -100,7 +101,7 @@ export default function Pricing() {
       name: 'PRO',
       price: '$4.99',
       period: 'per month',
-      description: 'For privacy-conscious users and professionals',
+      description: 'For privacy-conscious users and professionals. Pay with card or $PRICKO tokens.',
       features: [
         { text: 'Unlimited scans', included: true, highlight: true },
         { text: '90-day scan history', included: true },
@@ -132,7 +133,7 @@ export default function Pricing() {
     {
       question: 'What payment methods do you accept?',
       answer:
-        'We accept all major credit cards (Visa, Mastercard, American Express, Discover) through our secure payment processor Stripe. We do not store your payment information.',
+        'We offer two ways to access PRO: (1) Monthly subscription via Stripe - we accept all major credit cards (Visa, Mastercard, American Express, Discover). (2) Token holdings - hold 10,000 or more $PRICKO tokens in your connected Solana wallet. Both methods provide full PRO access with the same features.',
     },
     {
       question: 'Is my payment information secure?',
@@ -158,6 +159,21 @@ export default function Pricing() {
       question: 'Can I use Gecko Advisor for commercial purposes?',
       answer:
         'Yes! Both FREE and PRO tiers can be used for commercial purposes. PRO tier is recommended for businesses that need to scan multiple sites regularly or require API access.',
+    },
+    {
+      question: 'How does wallet authentication work?',
+      answer:
+        'Connect your Solana wallet (Phantom or Solflare) to Gecko Advisor. If your wallet holds 10,000 or more $PRICKO tokens, you automatically get PRO access - no subscription needed. Your wallet address is hashed for privacy and never stored in plaintext. You can also link your wallet to your email account for maximum flexibility.',
+    },
+    {
+      question: 'What happens if my token balance drops below 10,000?',
+      answer:
+        'Your PRO access is checked daily. If your wallet balance drops below 10,000 $PRICKO tokens, you\'ll lose PRO access unless you have an active Stripe subscription. You can always top up your tokens or switch to monthly subscription to maintain PRO benefits.',
+    },
+    {
+      question: 'Can I use both payment methods?',
+      answer:
+        'Yes! You can have both a Stripe subscription and hold $PRICKO tokens. If you cancel your Stripe subscription but still hold 10,000+ tokens, your PRO access continues uninterrupted. This gives you maximum flexibility.',
     },
   ];
 
@@ -596,6 +612,127 @@ export default function Pricing() {
                   Not satisfied? Get a full refund within 30 days, no questions asked.
                 </p>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Payment Options Section */}
+        <section className="py-16 bg-gradient-to-b from-white to-gray-50">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Section Header */}
+            <div className="text-center mb-10">
+              <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                Flexible Payment Options
+              </h3>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Choose the payment method that works best for you. Both options provide full PRO access with identical features.
+              </p>
+            </div>
+
+            {/* Payment Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Stripe Option - PRIMARY */}
+              <article
+                className="relative overflow-hidden bg-white p-8 rounded-2xl border-2 border-slate-300 shadow-lg hover:shadow-xl hover:border-slate-400 transition-all duration-300"
+                aria-labelledby="payment-stripe-heading"
+              >
+                {/* Recommended Badge */}
+                <div className="absolute top-4 right-4">
+                  <span className="inline-block px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-full">
+                    Recommended
+                  </span>
+                </div>
+
+                {/* Icon */}
+                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 shadow-lg shadow-slate-500/30 flex items-center justify-center mx-auto mb-6">
+                  <CreditCard className="w-8 h-8 text-white" aria-hidden="true" />
+                </div>
+
+                {/* Content */}
+                <h4 id="payment-stripe-heading" className="text-xl font-bold text-gray-900 mb-3 text-center">
+                  Monthly Subscription
+                </h4>
+                <p className="text-4xl font-bold text-gray-900 mb-3 text-center tabular-nums">
+                  $4.99<span className="text-lg font-normal text-gray-500">/month</span>
+                </p>
+                <p className="text-base text-gray-700 text-center mb-6 leading-relaxed">
+                  Pay securely with any major credit or debit card. Cancel anytime with one click.
+                </p>
+
+                {/* Trust Badge */}
+                <div className="flex items-center justify-center gap-2 py-3 px-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                  </svg>
+                  <span className="text-sm font-medium text-slate-700">Secured by Stripe</span>
+                </div>
+
+                {/* Screen reader context */}
+                <span className="sr-only">
+                  Recommended payment method. Subscribe for $4.99 per month using credit or debit card through Stripe. Cancel anytime without penalty.
+                </span>
+              </article>
+
+              {/* Wallet Option - ALTERNATIVE */}
+              <article
+                className="relative overflow-hidden bg-gradient-to-br from-gecko-50 via-white to-white p-8 rounded-2xl border-2 border-gecko-300 shadow-lg hover:shadow-xl hover:border-gecko-400 transition-all duration-300"
+                aria-labelledby="payment-wallet-heading"
+              >
+                {/* Badge */}
+                <div className="absolute top-4 right-4">
+                  <span className="inline-block px-3 py-1.5 bg-gecko-100 text-gecko-700 text-xs font-bold rounded-full">
+                    For Crypto Users
+                  </span>
+                </div>
+
+                {/* Icon */}
+                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-gecko-500 to-gecko-600 shadow-lg shadow-gecko-500/30 flex items-center justify-center mx-auto mb-6">
+                  <Wallet className="w-8 h-8 text-white" aria-hidden="true" />
+                </div>
+
+                {/* Content */}
+                <h4 id="payment-wallet-heading" className="text-xl font-bold text-gray-900 mb-3 text-center">
+                  Token Holdings
+                </h4>
+                <p className="text-4xl font-bold text-gray-900 mb-1 text-center tabular-nums">
+                  10,000+
+                </p>
+                <p className="text-lg font-semibold text-gecko-600 mb-3 text-center">
+                  $PRICKO Tokens
+                </p>
+                <p className="text-base text-gray-700 text-center mb-6 leading-relaxed">
+                  Hold tokens in your Solana wallet. No recurring payments, retain full ownership.
+                </p>
+
+                {/* Trust Badge */}
+                <div className="flex items-center justify-center gap-2 py-3 px-4 bg-gecko-50 rounded-lg border border-gecko-200">
+                  <svg className="w-5 h-5 text-gecko-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  <span className="text-sm font-medium text-gecko-700">Zero-Knowledge Verification</span>
+                </div>
+
+                {/* Screen reader context */}
+                <span className="sr-only">
+                  Alternative payment method for cryptocurrency users. Hold 10,000 or more PRICKO tokens in your Solana wallet to get automatic PRO access without monthly payments.
+                </span>
+              </article>
+            </div>
+
+            {/* Help Text */}
+            <div className="mt-8 text-center">
+              <p className="text-sm text-gray-600 mb-3">
+                Both payment methods provide identical PRO features. Choose what's most convenient for you.
+              </p>
+              <a
+                href="#faq"
+                className="inline-flex items-center gap-1 text-sm font-medium text-gecko-600 hover:text-gecko-700 hover:underline"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Have questions? See our FAQ below
+              </a>
             </div>
           </div>
         </section>
