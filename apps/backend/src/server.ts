@@ -14,8 +14,7 @@ import { apiV1Router, apiV2Router } from "./routes/index.js";
 import { adminRouter } from "./routes/admin.js";
 import { docsRouter } from "./routes/docs.js";
 import { authRouter } from "./routes/auth.js";
-// TEMPORARILY DISABLED FOR STAGE DEPLOYMENT - Uncomment when Stripe is configured
-// import { stripeRouter } from "./routes/stripe.js";
+import { stripeRouter } from "./routes/stripe.js";
 // import { batchRouter } from "./routes/batch.js";
 // import { apiRouter } from "./routes/api.js";
 import { healthRouter } from "./health.js";
@@ -71,12 +70,11 @@ export function createServer() {
 
   // Stripe webhook needs raw body for signature verification
   // Apply raw body parser BEFORE JSON parser for webhook endpoint
-  // TEMPORARILY DISABLED FOR STAGE DEPLOYMENT - Enable when Stripe is configured
-  // app.use('/api/stripe/webhook', express.raw({ type: 'application/json', limit: '1mb' }), (req, _res, next) => {
-  //   // Store raw body for signature verification
-  //   (req as any).rawBody = req.body;
-  //   next();
-  // });
+  app.use('/api/stripe/webhook', express.raw({ type: 'application/json', limit: '1mb' }), (req, _res, next) => {
+    // Store raw body for signature verification
+    (req as any).rawBody = req.body;
+    next();
+  });
 
   app.use(express.json({ limit: '200kb' }));
 
@@ -137,9 +135,8 @@ export function createServer() {
   app.use('/api', apiV2Router);
 
   // Pro tier feature routes
-  // TEMPORARILY DISABLED FOR STAGE DEPLOYMENT - Enable when Stripe is configured
-  // These routes work but require Stripe environment variables to function properly
-  // app.use('/api/stripe', stripeRouter);
+  // Stripe payment routes (requires STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_ID)
+  app.use('/api/stripe', stripeRouter);
   // app.use('/api/scan/batch', batchRouter);
   // app.use('/api/api-keys', apiRouter);
 
