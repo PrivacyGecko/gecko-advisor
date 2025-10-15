@@ -9,7 +9,7 @@ export default function AboutCredits() {
     <div className="prose max-w-none p-6">
       <h1>About & Credits</h1>
       <p>
-        Privacy Advisor provides explainable privacy checks for user-submitted URLs.
+        Gecko Advisor provides explainable privacy checks for user-submitted URLs.
         It uses bundled, offline lists for deterministic scans in tests and production.
       </p>
 
