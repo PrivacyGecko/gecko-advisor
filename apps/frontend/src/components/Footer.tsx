@@ -37,19 +37,14 @@ export default function Footer() {
           <div className="col-span-1 sm:col-span-2 lg:col-span-1">
             <Link
               to="/"
-              className="flex items-center gap-2 mb-3 group hover:opacity-80 transition-opacity"
+              className="inline-block mb-3 group hover:opacity-80 transition-opacity"
               aria-label="Gecko Advisor Home"
             >
-              <span
-                className="text-3xl leading-none"
-                role="img"
-                aria-label={BRAND.logo.alt}
-              >
-                {BRAND.logo.emoji}
-              </span>
-              <span className="font-bold text-lg text-gray-900">
-                {BRAND.companyName}
-              </span>
+              <img
+                src={BRAND.logo.src}
+                alt={BRAND.logo.alt}
+                className="h-10 w-auto object-contain"
+              />
             </Link>
             <p className="text-sm text-gecko-600 font-semibold mb-2">
               {BRAND.tagline}

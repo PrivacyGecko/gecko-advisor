@@ -129,32 +129,15 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
           <div className="flex items-center gap-8">
             <Link
               to="/"
-              className="flex items-center gap-3 group hover:opacity-80 transition-opacity"
+              className="flex items-center group hover:opacity-80 transition-opacity"
               aria-label="Gecko Advisor Home"
             >
               {/* Gecko Logo */}
-              <span
-                className="text-4xl leading-none select-none"
-                role="img"
-                aria-label={BRAND.logo.alt}
-              >
-                {BRAND.logo.emoji}
-              </span>
-
-              {/* Brand Text */}
-              <div className="hidden sm:flex flex-col">
-                <span className="text-xl font-bold text-gray-900 leading-tight">
-                  {BRAND.productName}
-                </span>
-                <span className="text-xs text-gecko-600 font-medium leading-tight">
-                  by {BRAND.companyName}
-                </span>
-              </div>
-
-              {/* Mobile - Product Name Only */}
-              <span className="sm:hidden text-lg font-bold text-gray-900">
-                {BRAND.productName}
-              </span>
+              <img
+                src={BRAND.logo.src}
+                alt={BRAND.logo.alt}
+                className="h-10 w-auto object-contain"
+              />
             </Link>
 
             {/* Navigation links */}
@@ -370,18 +353,11 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
         {/* Drawer Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           {/* Gecko Logo */}
-          <div className="flex items-center gap-2">
-            <span
-              className="text-3xl leading-none select-none"
-              role="img"
-              aria-label={BRAND.logo.alt}
-            >
-              {BRAND.logo.emoji}
-            </span>
-            <span className="text-lg font-bold text-gray-900">
-              {BRAND.productName}
-            </span>
-          </div>
+          <img
+            src={BRAND.logo.src}
+            alt={BRAND.logo.alt}
+            className="h-8 w-auto object-contain"
+          />
 
           {/* Close Button */}
           <button

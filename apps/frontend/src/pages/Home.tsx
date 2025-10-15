@@ -118,27 +118,17 @@ export default function Home() {
       <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
       {/* Hero Section - PrivacyGecko Branding */}
       <header className="text-center space-y-4 py-8 md:py-12">
-        {/* Logo and Brand */}
-        <div className="flex items-center justify-center gap-4 mb-6 animate-fade-in">
-          <span
-            className="text-6xl md:text-7xl leading-none"
-            role="img"
-            aria-label={BRAND.logo.alt}
-          >
-            {BRAND.logo.emoji}
-          </span>
+        {/* Logo */}
+        <div className="flex items-center justify-center mb-6 animate-fade-in">
+          <img
+            src={BRAND.logo.src}
+            alt={BRAND.logo.alt}
+            className="h-24 md:h-32 w-auto object-contain"
+          />
         </div>
 
-        {/* Product Name */}
-        <h1 className="text-5xl md:text-6xl font-extrabold text-slate-900 leading-tight tracking-tight animate-slide-up">
-          {BRAND.productName}
-        </h1>
-
-        {/* Company & Tagline */}
+        {/* Tagline */}
         <div className="space-y-2">
-          <p className="text-xl md:text-2xl text-gray-600 font-medium">
-            by {BRAND.companyName}
-          </p>
           <p className="text-2xl md:text-3xl text-gecko-600 font-bold">
             {BRAND.tagline}
           </p>

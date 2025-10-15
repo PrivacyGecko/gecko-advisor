@@ -197,11 +197,13 @@ export default function Pricing() {
         {/* Hero Section */}
         <section className="bg-gradient-to-b from-gecko-50 to-white py-16 sm:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            {/* Gecko Emoji */}
-            <div className="mb-6">
-              <span className="text-6xl" role="img" aria-label="Gecko">
-                {BRAND.logo.emoji}
-              </span>
+            {/* Logo */}
+            <div className="mb-6 flex justify-center">
+              <img
+                src={BRAND.logo.src}
+                alt={BRAND.logo.alt}
+                className="h-20 w-auto object-contain"
+              />
             </div>
 
             {/* Heading */}
@@ -615,11 +617,6 @@ export default function Pricing() {
         {/* CTA Section */}
         <section className="py-16 sm:py-24 bg-gradient-to-r from-gecko-500 to-gecko-600">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div className="mb-6">
-              <span className="text-6xl" role="img" aria-label="Gecko">
-                {BRAND.logo.emoji}
-              </span>
-            </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
               Ready to watch over your privacy?
             </h2>

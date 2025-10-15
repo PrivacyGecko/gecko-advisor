@@ -62,7 +62,7 @@ export interface BrandConfig {
 
   /** Logo configuration */
   logo: {
-    emoji: string;
+    src: string;
     alt: string;
     text: string;
   };
@@ -127,9 +127,9 @@ export const BRAND: BrandConfig = {
 
   // Logo Configuration
   logo: {
-    emoji: '🦎',                    // Gecko emoji as placeholder
-    alt: 'PrivacyGecko Logo',       // Alt text for accessibility
-    text: 'Gecko Advisor',          // Text logo
+    src: '/images/GeckoAdvisor_Logo.png',  // PNG logo image
+    alt: 'Gecko Advisor by PrivacyGecko',  // Alt text for accessibility
+    text: 'Gecko Advisor',                  // Text logo fallback
   },
 
   // Domain Configuration
@@ -203,7 +203,7 @@ export function getEmailLink(emailType: keyof BrandConfig['emails']): string {
 export const COMPANY_NAME = BRAND.companyName;
 export const PRODUCT_NAME = BRAND.productName;
 export const TAGLINE = BRAND.tagline;
-export const LOGO_EMOJI = BRAND.logo.emoji;
+export const LOGO_SRC = BRAND.logo.src;
 
 /**
  * Type re-export for use in components
