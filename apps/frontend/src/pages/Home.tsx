@@ -137,7 +137,7 @@ export default function Home() {
         {/* Value Proposition */}
         <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed mt-6">
           Scan and monitor privacy policies instantly. Get actionable privacy scores,
-          track changes over time, and protect your data with our AI-powered scanner.
+          track changes over time, and protect your data with our rule-based scanner.
         </p>
 
         {/* Trust Badge */}

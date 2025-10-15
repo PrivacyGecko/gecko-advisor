@@ -82,7 +82,7 @@ export const BRAND: BrandConfig = {
   companyName: 'PrivacyGecko',
   productName: 'Gecko Advisor',
   tagline: 'Watch Over Your Privacy',
-  shortDescription: 'Scan and monitor privacy policies instantly with AI-powered analysis',
+  shortDescription: 'Scan and monitor privacy policies instantly with rule-based analysis',
 
   // Contact Information
   emails: {
@@ -101,7 +101,7 @@ export const BRAND: BrandConfig = {
   // SEO Metadata
   seo: {
     title: 'Gecko Advisor - Privacy Policy Scanner by PrivacyGecko',
-    description: 'Scan and monitor privacy policies with Gecko Advisor. Get instant privacy scores, track changes, and protect your data with our AI-powered privacy scanner.',
+    description: 'Scan and monitor privacy policies with Gecko Advisor. Get instant privacy scores, track changes, and protect your data with our deterministic privacy scanner.',
     keywords: [
       'privacy policy scanner',
       'privacy monitoring',

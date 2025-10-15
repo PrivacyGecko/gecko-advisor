@@ -41,6 +41,19 @@ export default function AboutCredits() {
         </li>
       </ul>
 
+      <h2>Fonts</h2>
+      <ul>
+        <li>
+          <strong>Inter Font</strong> — Created by Rasmus Andersson, licensed under SIL Open Font License 1.1.
+          <br />
+          <a href="https://github.com/rsms/inter" target="_blank" rel="noreferrer">GitHub</a> ·
+          <a href="https://rsms.me/inter/" target="_blank" rel="noreferrer">Official Site</a> ·
+          <a href="/fonts/OFL.txt" target="_blank" rel="noreferrer">OFL License</a>
+          <br />
+          <em>Copyright © 2020 The Inter Project Authors</em>
+        </li>
+      </ul>
+
       <h2>Legal</h2>
       <ul>
         <li><a href="/terms.html">Terms of Use</a></li>
