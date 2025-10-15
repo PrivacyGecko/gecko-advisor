@@ -31,6 +31,7 @@ services:
       APP_ENV: stage
       FRONTEND_PUBLIC_URL: ${FRONTEND_PUBLIC_URL:-https://stage.geckoadvisor.com}
       BACKEND_PUBLIC_URL: ${BACKEND_PUBLIC_URL:-https://stageapi.geckoadvisor.com}
+      CSP: ${CSP}
 volumes:
   privacy-postgres:
   privacy-redis:

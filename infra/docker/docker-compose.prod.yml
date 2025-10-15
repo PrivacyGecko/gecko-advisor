@@ -31,6 +31,7 @@ services:
       APP_ENV: production
       FRONTEND_PUBLIC_URL: ${FRONTEND_PUBLIC_URL:-https://geckoadvisor.com}
       BACKEND_PUBLIC_URL: ${BACKEND_PUBLIC_URL:-https://api.geckoadvisor.com}
+      CSP: ${CSP}
 volumes:
   privacy-postgres:
   privacy-redis:
