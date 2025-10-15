@@ -175,7 +175,7 @@ export default function Home() {
               key={modeKey}
               role="tab"
               aria-selected={mode === modeKey}
-              className={`px-3 py-3 min-h-[44px] rounded-full border text-sm ${mode === modeKey ? 'bg-security-blue text-white' : 'bg-white'}`}
+              className={`px-3 py-3 min-h-[44px] rounded-full border text-sm ${mode === modeKey ? 'bg-gecko-600 text-white' : 'bg-white'}`}
               onClick={() => setMode(modeKey)}
             >
               {modeKey.toUpperCase()}
@@ -183,13 +183,21 @@ export default function Home() {
           ))}
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
+          <label htmlFor="scan-input" className="sr-only">
+            Enter website URL to scan for privacy analysis
+          </label>
           <input
+            id="scan-input"
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            className="flex-1 border rounded-lg px-3 py-3 sm:py-2 text-base focus:outline-none focus:ring-2 focus:ring-security-blue"
+            className="flex-1 border rounded-lg px-3 py-3 sm:py-2 text-base focus:outline-none focus:ring-2 focus:ring-gecko-600"
             placeholder={mode === 'url' ? 'https://example.com' : mode === 'app' ? 'app id' : '0x... or address'}
-            aria-label="Scan input"
+            aria-label="Website URL to scan for privacy analysis"
+            aria-describedby="scan-help-text"
           />
+          <span id="scan-help-text" className="sr-only">
+            Enter a valid website URL starting with https://
+          </span>
           <button
             onClick={onScan}
             disabled={loading || mode !== 'url' || (rateLimit?.scansRemaining === 0 && !isPro)}
@@ -364,7 +372,7 @@ function RecentReports() {
               <span className="text-xs text-slate-600 hidden sm:inline" title="Evidence count">
                 {report.evidenceCount} items
               </span>
-              <a href={`/r/${report.slug}`} className="text-security-blue underline text-sm">
+              <a href={`/r/${report.slug}`} className="text-gecko-600 underline text-sm">
                 View
               </a>
             </div>
