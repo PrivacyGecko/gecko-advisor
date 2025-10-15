@@ -15,6 +15,7 @@ import { adminRouter } from "./routes/admin.js";
 import { docsRouter } from "./routes/docs.js";
 import { authRouter } from "./routes/auth.js";
 import { stripeRouter } from "./routes/stripe.js";
+import { walletRouter } from "./routes/wallet.js";
 // import { batchRouter } from "./routes/batch.js";
 // import { apiRouter } from "./routes/api.js";
 import { healthRouter } from "./health.js";
@@ -143,6 +144,7 @@ export function createServer() {
   // Other routes
   app.use('/api', adminRouter);
   app.use('/api/auth', authRouter);
+  app.use('/api/wallet', walletRouter);
   app.use('/docs', docsRouter);
 
   if (sentryEnabled) {

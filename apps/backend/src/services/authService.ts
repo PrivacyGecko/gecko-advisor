@@ -23,6 +23,7 @@ export interface SafeUser {
   id: string;
   email: string;
   name: string | null;
+  authMethod: string;
   subscription: string;
   subscriptionStatus: string;
   subscriptionEndsAt: Date | null;

@@ -20,3 +20,5 @@ apps/**/tsconfig.tsbuildinfo
 assets/dlogs/
 assets/ss/
 assets/prompts/
+Project-Docs/
+tests/

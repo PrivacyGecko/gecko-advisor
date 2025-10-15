@@ -16,6 +16,15 @@ export interface User {
 }
 
 /**
+ * Wallet state interface
+ */
+export interface WalletState {
+  connected: boolean;
+  connecting: boolean;
+  address?: string;
+}
+
+/**
  * Authentication context interface
  * Provides user state and authentication methods
  */
@@ -23,10 +32,14 @@ export interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
+  wallet: WalletState;
   createAccount: (email: string) => Promise<void>;
   register: (email: string, password: string, name?: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  loginWithWallet: (walletAddress: string, signature: string, message: string) => Promise<void>;
+  linkWallet: (walletAddress: string, signature: string, message: string) => Promise<void>;
+  disconnectWallet: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,6 +61,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [walletState, setWalletState] = useState<WalletState>({
+    connected: false,
+    connecting: false,
+  });
 
   /**
    * Fetch current user data from /api/auth/me
@@ -91,6 +108,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (storedToken) {
       setToken(storedToken);
       fetchUser(storedToken).finally(() => setIsLoading(false));
+
+      // Check wallet status
+      fetch('/api/wallet/status', {
+        headers: { 'Authorization': `Bearer ${storedToken}` },
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.connected && data.address) {
+            setWalletState({
+              connected: true,
+              connecting: false,
+              address: data.address,
+            });
+          }
+        })
+        .catch(() => {
+          // Silently fail - wallet status is optional
+        });
     } else {
       setIsLoading(false);
     }
@@ -195,16 +230,124 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(AUTH_TOKEN_KEY);
     setToken(null);
     setUser(null);
+    setWalletState({ connected: false, connecting: false });
   }, []);
+
+  /**
+   * Login with wallet authentication
+   * POST /api/wallet/verify
+   * Verifies wallet signature and logs in the user
+   */
+  const loginWithWallet = useCallback(async (walletAddress: string, signature: string, message: string) => {
+    try {
+      setWalletState(prev => ({ ...prev, connecting: true }));
+
+      const response = await fetch('/api/wallet/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress, signature, message }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Wallet authentication failed');
+      }
+
+      const data = await response.json();
+      const authToken = data.token;
+
+      // Store token and update state
+      localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+      setToken(authToken);
+      setUser(data.user);
+      setWalletState({
+        connected: true,
+        connecting: false,
+        address: walletAddress,
+      });
+    } catch (error) {
+      console.error('[Auth] Wallet login failed:', error);
+      setWalletState({ connected: false, connecting: false });
+      throw error;
+    }
+  }, []);
+
+  /**
+   * Link wallet to existing account
+   * POST /api/wallet/link
+   * Requires existing authentication
+   */
+  const linkWallet = useCallback(async (walletAddress: string, signature: string, message: string) => {
+    if (!token) {
+      throw new Error('Not authenticated');
+    }
+
+    try {
+      setWalletState(prev => ({ ...prev, connecting: true }));
+
+      const response = await fetch('/api/wallet/link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ walletAddress, signature, message }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Wallet linking failed');
+      }
+
+      setWalletState({
+        connected: true,
+        connecting: false,
+        address: walletAddress,
+      });
+
+      // Refresh user data
+      await fetchUser(token);
+    } catch (error) {
+      console.error('[Auth] Wallet linking failed:', error);
+      setWalletState(prev => ({ ...prev, connecting: false }));
+      throw error;
+    }
+  }, [token, fetchUser]);
+
+  /**
+   * Disconnect wallet from account
+   * POST /api/wallet/disconnect
+   */
+  const disconnectWallet = useCallback(async () => {
+    if (!token) {
+      return;
+    }
+
+    try {
+      await fetch('/api/wallet/disconnect', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      setWalletState({ connected: false, connecting: false });
+    } catch (error) {
+      console.error('[Auth] Failed to disconnect wallet:', error);
+      throw error;
+    }
+  }, [token]);
 
   const value: AuthContextType = {
     user,
     token,
     isLoading,
+    wallet: walletState,
     createAccount,
     register,
     login,
     logout,
+    loginWithWallet,
+    linkWallet,
+    disconnectWallet,
   };
 
   return (

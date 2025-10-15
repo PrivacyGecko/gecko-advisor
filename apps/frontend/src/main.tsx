@@ -9,6 +9,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
+import { WalletProvider } from './contexts/WalletProvider';
 import './lib/performance'; // Initialize performance monitoring
 import './styles.css';
 
@@ -144,23 +145,25 @@ createRoot(document.getElementById('root')!).render(
       }}
     >
       <QueryClientProvider client={qc}>
-        <AuthProvider>
-          <Toaster
-            position="top-center"
-            toastOptions={{
-              duration: 3000,
-              style: {
-                background: '#1e293b',
-                color: '#fff',
-                fontSize: '14px',
-                fontWeight: 500,
-                padding: '12px 16px',
-                borderRadius: '8px',
-              },
-            }}
-          />
-          <RouterProvider router={router} />
-        </AuthProvider>
+        <WalletProvider>
+          <AuthProvider>
+            <Toaster
+              position="top-center"
+              toastOptions={{
+                duration: 3000,
+                style: {
+                  background: '#1e293b',
+                  color: '#fff',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  padding: '12px 16px',
+                  borderRadius: '8px',
+                },
+              }}
+            />
+            <RouterProvider router={router} />
+          </AuthProvider>
+        </WalletProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   </React.StrictMode>

@@ -6,6 +6,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useAuth } from '../contexts/AuthContext';
+import { WalletButton } from './WalletButton';
 import { BRAND } from '../config/branding';
 
 export interface HeaderProps {
@@ -171,6 +172,11 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
 
           {/* Auth section */}
           <div className="flex items-center gap-3">
+            {/* Wallet Connection Button - Always visible */}
+            <div className="hidden sm:block">
+              <WalletButton />
+            </div>
+
             {/* Mobile hamburger menu button */}
             <button
               onClick={() => setMobileMenuOpen(true)}
