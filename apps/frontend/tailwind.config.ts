@@ -22,8 +22,8 @@ export default {
           200: '#bbf7d0',
           300: '#86efac',
           400: '#4ade80',
-          500: '#2ecc71',  // Primary gecko green
-          600: '#27ae60',  // Darker green
+          500: '#2ecc71',  // Primary gecko green - use for backgrounds/borders
+          600: '#15803d',  // Darker green (5.02:1 contrast) - WCAG AA compliant for text
           700: '#22c55e',
           800: '#16a34a',
           900: '#15803d',

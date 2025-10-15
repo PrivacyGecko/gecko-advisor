@@ -127,9 +127,9 @@ export const BRAND: BrandConfig = {
 
   // Logo Configuration
   logo: {
-    src: '/images/GeckoAdvisor_Logo.png',  // PNG logo image
-    alt: 'Gecko Advisor by PrivacyGecko',  // Alt text for accessibility
-    text: 'Gecko Advisor',                  // Text logo fallback
+    src: '/images/GeckoAdvisor_Logo.webp',  // WebP logo image (38% smaller than PNG)
+    alt: 'Gecko Advisor by PrivacyGecko',   // Alt text for accessibility
+    text: 'Gecko Advisor',                   // Text logo fallback
   },
 
   // Domain Configuration
