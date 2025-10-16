@@ -21,8 +21,8 @@ export default defineConfig({
         manualChunks: (id) => {
           // Vendor chunks - split by package
           if (id.includes('node_modules')) {
-            // React ecosystem
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+            // React ecosystem - CRITICAL: Keep scheduler with React for proper initialization
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('scheduler')) {
               return 'vendor-react';
             }
             // TanStack Query
