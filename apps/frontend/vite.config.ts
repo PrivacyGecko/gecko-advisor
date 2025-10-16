@@ -14,19 +14,37 @@ export default defineConfig({
     },
   },
   build: {
-    // Code splitting and optimization - SIMPLIFIED to prevent circular dependencies
+    // Code splitting and optimization
     rollupOptions: {
       output: {
-        // Manual chunk splitting - MINIMAL strategy to avoid initialization errors
-        manualChunks: (id) => {
-          // Keep ALL React-related packages together (no separation)
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('scheduler')) {
-              return 'vendor-react';
-            }
-            // Everything else in one vendor bundle
-            return 'vendor';
-          }
+        // Manual chunk splitting for better caching
+        manualChunks: {
+          // Vendor chunks
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-query': ['@tanstack/react-query'],
+          'vendor-utils': ['clsx', 'zod'],
+
+          // Feature-specific chunks
+          'components-core': [
+            './src/components/ScoreDial.tsx',
+            './src/components/Card.tsx',
+            './src/components/Skeleton.tsx'
+          ],
+          'components-specialized': [
+            './src/components/VirtualizedEvidenceList.tsx',
+            './src/components/ScanProgress.tsx',
+            './src/components/ErrorBoundary.tsx'
+          ],
+          'pages-scan': [
+            './src/pages/Scan.tsx',
+            './src/pages/ReportPage.tsx'
+          ],
+          'pages-static': [
+            './src/pages/About.tsx',
+            './src/pages/Docs.tsx',
+            './src/pages/NotFound.tsx',
+            './src/pages/Pricing.tsx'
+          ]
         },
         // Optimize chunk file names for caching
         chunkFileNames: (chunkInfo) => {
@@ -51,26 +69,20 @@ export default defineConfig({
       },
     },
     // Target modern browsers for smaller bundles
-    target: ['es2020', 'chrome90', 'firefox88', 'safari14'],
-    // Use esbuild for minification - faster and safer than terser
+    target: ['es2020', 'chrome80', 'firefox78', 'safari14'],
+    // Enable minification
     minify: 'esbuild',
     // Source maps for debugging
     sourcemap: process.env.NODE_ENV === 'development',
-    // Bundle size limits - more aggressive
-    chunkSizeWarningLimit: 300, // KB - lowered from 500
+    // Bundle size limits
+    chunkSizeWarningLimit: 500, // KB
     // CSS code splitting
-    cssCodeSplit: true,
-    // Optimize dependencies
-    reportCompressedSize: true,
-    // Reduce chunk size
-    assetsInlineLimit: 4096 // 4kb - inline smaller assets
+    cssCodeSplit: true
   },
   // Performance optimizations
   esbuild: {
-    // Remove console.log in development builds (terser handles production)
-    drop: process.env.NODE_ENV === 'production' ? [] : [],
-    // Enable tree shaking
-    treeShaking: true,
+    // Remove console.log in production
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
   },
   // Resolve optimizations
   resolve: {
