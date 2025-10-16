@@ -97,16 +97,21 @@ export default defineConfig({
     target: ['es2020', 'chrome90', 'firefox88', 'safari14'],
     // Enable minification with terser for better compression in production
     minify: process.env.NODE_ENV === 'production' ? 'terser' : 'esbuild',
-    // Terser options for aggressive minification
+    // Terser options - reduced aggressiveness to prevent initialization errors
     terserOptions: process.env.NODE_ENV === 'production' ? {
       compress: {
         drop_console: true,
         drop_debugger: true,
         pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.trace'],
-        passes: 2,
+        passes: 1, // CRITICAL: Reduced from 2 to 1 to prevent module initialization issues
+        // Disable transforms that can break module initialization order
+        hoist_funs: false,
+        hoist_vars: false,
       },
       mangle: {
         safari10: true,
+        // Keep class names to preserve React component names for debugging
+        keep_classnames: false,
       },
       format: {
         comments: false,
