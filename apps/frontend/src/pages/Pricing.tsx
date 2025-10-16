@@ -204,9 +204,9 @@ export default function Pricing() {
     }
 
     // PAYMENT PROVIDER: Feature flags
-    // Stripe disabled (country restrictions), LemonSqueezy integration in progress
+    // Stripe disabled (country restrictions), LemonSqueezy enabled for global coverage
     const STRIPE_ENABLED = false;
-    const LEMONSQUEEZY_ENABLED = false;
+    const LEMONSQUEEZY_ENABLED = true;
 
     // Temporary: Show helpful message while credit card payments are being upgraded
     if (!STRIPE_ENABLED && !LEMONSQUEEZY_ENABLED) {
@@ -657,20 +657,11 @@ export default function Pricing() {
 
             {/* Payment Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Credit Card Option - COMING SOON (Stripe disabled, LemonSqueezy in progress) */}
+              {/* Credit Card Option - LemonSqueezy (Global payments in 135+ countries) */}
               <article
-                className="relative overflow-hidden bg-white p-8 rounded-2xl border-2 border-slate-300 shadow-lg opacity-75"
+                className="relative overflow-hidden bg-white p-8 rounded-2xl border-2 border-gecko-500 shadow-xl hover:shadow-2xl hover:border-gecko-600 transition-all duration-300"
                 aria-labelledby="payment-card-heading"
               >
-                {/* Coming Soon Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-50/90 to-white/90 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl">
-                  <div className="bg-white px-6 py-4 rounded-xl shadow-xl border-2 border-gecko-500 text-center">
-                    <p className="text-xl font-bold text-gray-900 mb-2">Coming Very Soon</p>
-                    <p className="text-sm text-gray-600 max-w-xs">Global credit card payments via LemonSqueezy</p>
-                    <p className="text-xs text-gecko-600 font-medium mt-2">135+ countries supported</p>
-                  </div>
-                </div>
-
                 {/* Recommended Badge */}
                 <div className="absolute top-4 right-4">
                   <span className="inline-block px-3 py-1.5 bg-gecko-100 text-gecko-700 text-xs font-bold rounded-full">
@@ -704,7 +695,7 @@ export default function Pricing() {
 
                 {/* Screen reader context */}
                 <span className="sr-only">
-                  Recommended payment method (coming soon). Subscribe for $4.99 per month using credit or debit card through LemonSqueezy with global coverage in 135+ countries. Cancel anytime without penalty.
+                  Recommended payment method. Subscribe for $4.99 per month using credit or debit card through LemonSqueezy with global coverage in 135+ countries. Cancel anytime without penalty.
                 </span>
               </article>
 

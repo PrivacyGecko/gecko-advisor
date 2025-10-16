@@ -5,6 +5,7 @@ import { logger } from "./logger.js";
 import { closeQueueConnections, initQueueConnections } from "./queue.js";
 import { connectDatabase, disconnectDatabase } from "./prisma.js";
 import { connectCache, disconnectCache } from "./cache.js";
+import { initializeLemonSqueezy } from "./lib/lemonsqueezy.js";
 
 export const app = createServer();
 
@@ -22,6 +23,11 @@ if (!process.env.VITEST_WORKER_ID) {
       // 2. Initialize Redis connections (cache and queue)
       await connectCache();
       await initQueueConnections();
+
+      // 3. Initialize LemonSqueezy SDK (if enabled)
+      if (config.payments.lemonsqueezy.enabled) {
+        initializeLemonSqueezy();
+      }
 
       logger.info('All connections initialized successfully');
 

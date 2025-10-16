@@ -55,11 +55,19 @@ model User {
   authMethod    AuthMethod @default(EMAIL)
 
   // Subscription
-  subscription         Subscription       @default(FREE)
-  stripeCustomerId     String?            @unique
-  stripeSubscriptionId String?            @unique
-  subscriptionStatus   SubscriptionStatus @default(INACTIVE)
-  subscriptionEndsAt   DateTime?
+  subscription         Subscription @default(FREE)
+  subscriptionProvider String? // 'STRIPE' | 'LEMONSQUEEZY' | 'WALLET'
+
+  // Stripe fields
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+
+  // LemonSqueezy fields
+  lsCustomerId     String? @unique
+  lsSubscriptionId String? @unique
+
+  subscriptionStatus SubscriptionStatus @default(INACTIVE)
+  subscriptionEndsAt DateTime?
 
   // API Access
   apiKey        String?   @unique

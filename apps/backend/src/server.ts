@@ -15,6 +15,7 @@ import { adminRouter } from "./routes/admin.js";
 import { docsRouter } from "./routes/docs.js";
 import { authRouter } from "./routes/auth.js";
 import { stripeRouter } from "./routes/stripe.js";
+import { lemonsqueezyRouter } from "./routes/lemonsqueezy.js";
 import { walletRouter } from "./routes/wallet.js";
 // import { batchRouter } from "./routes/batch.js";
 // import { apiRouter } from "./routes/api.js";
@@ -138,6 +139,10 @@ export function createServer() {
   // Pro tier feature routes
   // Stripe payment routes (requires STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_ID)
   app.use('/api/stripe', stripeRouter);
+
+  // LemonSqueezy payment routes (global coverage, handles tax compliance)
+  app.use('/api/lemonsqueezy', lemonsqueezyRouter);
+
   // app.use('/api/scan/batch', batchRouter);
   // app.use('/api/api-keys', apiRouter);
 
