@@ -8,7 +8,7 @@ import { buildReportPayload } from "./v2.reports.js";
 export const reportV1Router = Router();
 
 const mapEvidenceToLegacy = (evidence: Array<{ kind: string } & Record<string, unknown>>) =>
-  evidence.map(({ kind, ...rest }) => ({ ...rest, type: kind }));
+  evidence.map(({ kind, ...rest }) => ({ ...rest, type: kind || 'unknown' }));
 
 reportV1Router.get(["/report/:slug", "/r/:slug"], async (req, res) => {
   try {

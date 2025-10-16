@@ -15,6 +15,7 @@ import Header from '../components/Header';
 import LoginModal from '../components/LoginModal';
 import SignupModal from '../components/SignupModal';
 import RateLimitBanner, { type RateLimitInfo } from '../components/RateLimitBanner';
+import PublicScanWarning from '../components/PublicScanWarning';
 import EnhancedTrustIndicator from '../components/EnhancedTrustIndicator';
 import type { RecentReportsResponse } from '@privacy-advisor/shared';
 
@@ -314,6 +315,10 @@ export default function Home() {
         </ul>
       </Card>
       <Footer />
+
+      {/* Public Scan Warning - appears above Recent Reports */}
+      <PublicScanWarning />
+
       <RecentReports />
     </div>
 
