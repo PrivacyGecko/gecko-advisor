@@ -29,20 +29,31 @@ export const worker = new Worker<ScanJobData>(
   async (job: Job<ScanJobData>) => {
     const { scanId, url, requestId } = job.data;
     logger.info({ jobId: job.id, scanId, requestId }, 'Starting scan job');
+
+    // Update scan to running with progress tracking
     await prisma.scan.update({
       where: { id: scanId },
       data: { status: 'running', startedAt: new Date() },
     });
 
     try {
-      await scanSiteJob(prisma, scanId, url);
+      // Pass job for progress updates
+      await scanSiteJob(prisma, scanId, url, job);
+
+      // Mark as done
       await prisma.scan.update({
         where: { id: scanId },
         data: { status: 'done', finishedAt: new Date() },
       });
+
+      // Report 100% progress
+      await job.updateProgress(100);
+
       logger.info({ jobId: job.id, scanId }, 'Scan completed');
     } catch (error) {
       logger.error({ jobId: job.id, scanId, err: error }, 'Scan failed');
+
+      // Send to Sentry for monitoring
       if (sentryEnabled) {
         Sentry.captureException(error, {
           tags: {
@@ -58,38 +69,84 @@ export const worker = new Worker<ScanJobData>(
           },
         });
       }
+
+      // Determine error message based on error type
+      const errorMessage = error instanceof Error ? error.message : 'Scan failed due to crawler error';
+      const isTimeout = errorMessage.includes('timeout') || errorMessage.includes('time out');
+      const summary = isTimeout
+        ? 'Scan timed out. The site took too long to respond or analyze.'
+        : 'Scan failed due to an error during processing.';
+
+      // Update scan status to error with meaningful message
       await prisma.scan.update({
         where: { id: scanId },
         data: {
           status: 'error',
           finishedAt: new Date(),
-          summary: 'Scan failed due to crawler error',
+          summary,
         },
       });
+
       throw error;
     }
   },
   {
     connection: baseConnection,
     concurrency: config.concurrency,
+    // CRITICAL: Add job-level timeout to prevent hanging
+    lockDuration: config.jobTimeoutMs, // Job must complete within this time
+    // Settings for stalled job detection
+    stalledInterval: 30_000, // Check for stalled jobs every 30 seconds
+    maxStalledCount: 1, // Move to failed after 1 stalled detection
   }
 );
 
 worker.on('failed', async (job, err) => {
   if (!job) return;
   const isFinalAttempt = job.attemptsMade >= (job.opts.attempts ?? 1);
+  const errorMessage = err?.message ?? 'Unknown error';
+  const isTimeout = errorMessage.includes('timeout') || errorMessage.includes('stalled');
+
   logger.warn(
-    { jobId: job.id, scanId: job.data.scanId, attempts: job.attemptsMade, err: err?.message },
+    {
+      jobId: job.id,
+      scanId: job.data.scanId,
+      attempts: job.attemptsMade,
+      err: errorMessage,
+      isTimeout,
+      isFinalAttempt,
+    },
     'Job failed'
   );
+
   if (isFinalAttempt) {
+    // On final failure, ensure scan is marked as error in database
+    try {
+      const summary = isTimeout
+        ? 'Scan timed out. The site took too long to respond or analyze.'
+        : 'Scan failed after multiple retry attempts.';
+
+      await prisma.scan.update({
+        where: { id: job.data.scanId },
+        data: {
+          status: 'error',
+          finishedAt: new Date(),
+          summary,
+        },
+      });
+    } catch (updateError) {
+      logger.error({ updateError, scanId: job.data.scanId }, 'Failed to update scan status on final failure');
+    }
+
+    // Add to dead letter queue for investigation
     await deadLetterQueue.add(
       'scan-failed',
       {
         scanId: job.data.scanId,
         url: job.data.url,
         requestId: job.data.requestId,
-        error: err?.message,
+        error: errorMessage,
+        isTimeout,
         failedAt: new Date().toISOString(),
       },
       { removeOnComplete: 100, removeOnFail: 500 }

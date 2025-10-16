@@ -17,10 +17,31 @@ export default function Scan() {
   const nav = useNavigate();
   const { data, isLoading, error, isError, refetch } = useQuery(scanStatusQueryOptions(id));
 
+  // Track scan start time for timeout detection
+  const [scanStartTime] = React.useState(() => Date.now());
+  const [hasTimedOut, setHasTimedOut] = React.useState(false);
+  const [retryCount, setRetryCount] = React.useState(0);
+
   // Track if we're experiencing rate limiting
   const isRateLimited = React.useMemo(() => {
     return isError && error && (error as any).status === 429;
   }, [isError, error]);
+
+  // Detect scan timeout (60 seconds)
+  React.useEffect(() => {
+    const checkTimeout = () => {
+      const elapsedTime = Date.now() - scanStartTime;
+      const TIMEOUT_MS = 60000; // 60 seconds
+
+      // Only timeout if scan is still processing and hasn't completed
+      if (elapsedTime >= TIMEOUT_MS && data?.status !== 'done' && data?.status !== 'error' && !isError) {
+        setHasTimedOut(true);
+      }
+    };
+
+    const interval = setInterval(checkTimeout, 1000);
+    return () => clearInterval(interval);
+  }, [scanStartTime, data?.status, isError]);
 
   // Redirect to report page when scan is complete using slug from API response
   React.useEffect(() => {
@@ -28,6 +49,22 @@ export default function Scan() {
       nav(`/r/${data.slug}`);
     }
   }, [data, nav]);
+
+  // Retry handler - reloads the page with the same scan ID
+  const handleRetry = React.useCallback(() => {
+    if (retryCount >= 3) {
+      // Max retries reached, redirect to home
+      nav('/');
+      return;
+    }
+
+    setRetryCount(prev => prev + 1);
+    setHasTimedOut(false);
+    refetch();
+  }, [retryCount, refetch, nav]);
+
+  // Determine if we should show an error state
+  const shouldShowError = isError || hasTimedOut;
 
   return (
     <div className="max-w-3xl mx-auto p-4 md:p-6 space-y-4">
@@ -38,18 +75,20 @@ export default function Scan() {
       <Card>
         {isLoading ? (
           <ProgressSkeleton />
-        ) : isError ? (
+        ) : shouldShowError ? (
           <ErrorState
-            error={error || new Error('Failed to load scan status')}
-            title={isRateLimited ? "Scan Temporarily Slowed" : "Scan Status Error"}
+            error={hasTimedOut ? new Error('Scan timed out') : (error || new Error('Failed to load scan status'))}
+            title={hasTimedOut ? "Scan Timed Out" : isRateLimited ? "Scan Temporarily Slowed" : "Scan Status Error"}
             description={
-              isRateLimited
+              hasTimedOut
+                ? "The scan is taking longer than expected. This might be due to website complexity or temporary connectivity issues. You can retry the scan or start a new one."
+                : isRateLimited
                 ? "We're checking your scan progress a bit slower to avoid overloading the server. Your scan is still running and will complete normally. This is temporary and will resolve automatically."
                 : error?.message?.includes('Scan not found')
                 ? "The scan ID could not be found. It may have expired or been deleted. Please start a new scan."
                 : "There was an error checking the scan progress. This might be due to a network issue or a temporary server problem. The scan may still be running in the background."
             }
-            onRetry={() => refetch()}
+            onRetry={handleRetry}
             onGoHome={() => nav('/')}
             showDetails={process.env.NODE_ENV === 'development'}
           />
@@ -57,9 +96,9 @@ export default function Scan() {
           <div className="py-4">
             <ScanProgress
               progress={data?.progress ?? (data?.status === 'done' ? 100 : 45)}
-              status={data?.status ?? 'processing'}
-              currentStep={data?.currentStep}
-              estimatedTimeRemaining={data?.estimatedTimeRemaining}
+              status={data?.status === 'queued' ? 'pending' : data?.status === 'running' ? 'processing' : data?.status ?? 'processing'}
+              currentStep={undefined}
+              estimatedTimeRemaining={undefined}
             />
 
             {data?.status === 'done' && (
@@ -89,6 +128,13 @@ export default function Scan() {
               </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Retry count indicator */}
+      {retryCount > 0 && !shouldShowError && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-center">
+          <span className="font-medium text-amber-900">Retry attempt {retryCount} of 3</span>
         </div>
       )}
       <Link to="/" className="text-security-blue underline">New scan</Link>

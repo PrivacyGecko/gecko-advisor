@@ -21,6 +21,9 @@ export const config = {
   crawlTimeBudgetMs: parseNumber(process.env.WORKER_CRAWL_BUDGET_MS, 10_000),
   crawlPageLimit: parseNumber(process.env.WORKER_PAGE_LIMIT, 10),
   healthPort: parseNumber(process.env.WORKER_HEALTH_PORT, 5050),
+  // Job-level timeout to prevent hanging jobs (in milliseconds)
+  // Default: 60 seconds (includes crawling, scoring, and DB operations)
+  jobTimeoutMs: parseNumber(process.env.WORKER_JOB_TIMEOUT_MS, 60_000),
 };
 
 export type WorkerConfig = typeof config;

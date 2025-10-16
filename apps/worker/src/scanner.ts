@@ -236,12 +236,24 @@ async function recordTracker(
   });
 }
 
-export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput: string) {
+export async function scanSiteJob(
+  prisma: PrismaClient,
+  scanId: string,
+  urlInput: string,
+  job?: { updateProgress: (progress: number) => Promise<void> }
+) {
+  // Initial setup - 10% progress
+  if (job) await job.updateProgress(10).catch(() => {});
+
   const u = normalizeUrl(urlInput);
   const origin = u.origin;
   const hostname = u.hostname;
   const siteRoot = etldPlusOne(hostname);
+
+  // Load privacy lists - 20% progress
+  if (job) await job.updateProgress(20).catch(() => {});
   const lists = await getLists(prisma);
+
   const visited = new Set<string>();
   const queue: string[] = [u.href];
   const pagesLimit = 10;
@@ -251,10 +263,17 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
   const trackerDomains = new Set(lists.easyprivacy.domains);
   const fpDomains = new Set((lists.whotracks.fingerprinting ?? []).map((domain: string) => domain));
 
+  // Crawling phase: 30% - 70% progress
+  let crawlProgress = 0;
+
   while (queue.length && visited.size < pagesLimit && Date.now() - start < timeBudgetMs) {
     const curr = queue.shift();
     if (!curr || visited.has(curr)) continue;
     visited.add(curr);
+
+    // Update progress during crawl (30% - 70% range)
+    crawlProgress = 30 + Math.floor((visited.size / pagesLimit) * 40);
+    if (job) await job.updateProgress(crawlProgress).catch(() => {});
 
     const response = await fetchPage(curr, hostname);
     if (!response) continue;
@@ -362,8 +381,14 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
     });
   }
 
+  // Scoring phase - 75% progress
+  if (job) await job.updateProgress(75).catch(() => {});
+
   const { computeScore } = await import('./scoring.js');
   const result = await computeScore(prisma, scanId);
+
+  // Saving results - 90% progress
+  if (job) await job.updateProgress(90).catch(() => {});
 
   await prisma.$transaction(async (tx) => {
     await tx.issue.deleteMany({ where: { scanId } });
