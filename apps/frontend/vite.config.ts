@@ -14,61 +14,18 @@ export default defineConfig({
     },
   },
   build: {
-    // Code splitting and optimization
+    // Code splitting and optimization - SIMPLIFIED to prevent circular dependencies
     rollupOptions: {
       output: {
-        // Manual chunk splitting for better caching
+        // Manual chunk splitting - MINIMAL strategy to avoid initialization errors
         manualChunks: (id) => {
-          // Vendor chunks - split by package
+          // Keep ALL React-related packages together (no separation)
           if (id.includes('node_modules')) {
-            // React ecosystem - CRITICAL: Keep scheduler with React for proper initialization
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('scheduler')) {
+            if (id.includes('react') || id.includes('scheduler')) {
               return 'vendor-react';
             }
-            // TanStack Query
-            if (id.includes('@tanstack/react-query')) {
-              return 'vendor-query';
-            }
-            // Wallet/Solana dependencies (heavy, split separately)
-            if (id.includes('@solana') || id.includes('wallet') || id.includes('ox') || id.includes('viem')) {
-              return 'vendor-wallet';
-            }
-            // Utilities
-            if (id.includes('clsx') || id.includes('zod')) {
-              return 'vendor-utils';
-            }
-            // Other vendors
-            return 'vendor-other';
-          }
-
-          // Feature-specific chunks - improved granularity
-          if (id.includes('/src/components/')) {
-            // Core components (always needed)
-            if (id.includes('ScoreDial') || id.includes('Card') || id.includes('Skeleton')) {
-              return 'components-core';
-            }
-            // Specialized/heavy components
-            if (id.includes('VirtualizedEvidenceList') || id.includes('ScanProgress') || id.includes('ErrorBoundary')) {
-              return 'components-specialized';
-            }
-            // Wallet-related components (lazy load)
-            if (id.includes('Wallet') || id.includes('wallet')) {
-              return 'components-wallet';
-            }
-            // Other components
-            return 'components-other';
-          }
-
-          // Page-based splitting
-          if (id.includes('/src/pages/')) {
-            if (id.includes('Scan.tsx') || id.includes('ReportPage.tsx')) {
-              return 'pages-scan';
-            }
-            if (id.includes('About.tsx')) return 'pages-about';
-            if (id.includes('Docs.tsx')) return 'pages-docs';
-            if (id.includes('Pricing.tsx')) return 'pages-pricing';
-            if (id.includes('Legal')) return 'pages-legal';
-            return 'pages-other';
+            // Everything else in one vendor bundle
+            return 'vendor';
           }
         },
         // Optimize chunk file names for caching
@@ -95,28 +52,8 @@ export default defineConfig({
     },
     // Target modern browsers for smaller bundles
     target: ['es2020', 'chrome90', 'firefox88', 'safari14'],
-    // Enable minification with terser for better compression in production
-    minify: process.env.NODE_ENV === 'production' ? 'terser' : 'esbuild',
-    // Terser options - reduced aggressiveness to prevent initialization errors
-    terserOptions: process.env.NODE_ENV === 'production' ? {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.trace'],
-        passes: 1, // CRITICAL: Reduced from 2 to 1 to prevent module initialization issues
-        // Disable transforms that can break module initialization order
-        hoist_funs: false,
-        hoist_vars: false,
-      },
-      mangle: {
-        safari10: true,
-        // Keep class names to preserve React component names for debugging
-        keep_classnames: false,
-      },
-      format: {
-        comments: false,
-      },
-    } : undefined,
+    // Use esbuild for minification - faster and safer than terser
+    minify: 'esbuild',
     // Source maps for debugging
     sourcemap: process.env.NODE_ENV === 'development',
     // Bundle size limits - more aggressive
