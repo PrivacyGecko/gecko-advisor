@@ -133,12 +133,12 @@ export default function Pricing() {
     {
       question: 'What payment methods do you accept?',
       answer:
-        'We offer two ways to access PRO: (1) Monthly subscription via Stripe - we accept all major credit cards (Visa, Mastercard, American Express, Discover). (2) Token holdings - hold 10,000 or more $PRICKO tokens in your connected Solana wallet. Both methods provide full PRO access with the same features.',
+        'Currently, PRO access is available through Solana wallet authentication - hold 10,000 or more $PRICKO tokens in your connected wallet for instant PRO access. Credit card payments (via LemonSqueezy) are coming very soon and will support customers in 135+ countries worldwide. Contact support@geckoadvisor.com if you need alternative payment arrangements.',
     },
     {
       question: 'Is my payment information secure?',
       answer:
-        'Absolutely. We use Stripe, an industry-leading payment processor, to handle all transactions. Your payment information is encrypted and never stored on our servers. We are PCI compliant.',
+        'Absolutely. Wallet authentication uses zero-knowledge verification - your wallet address is hashed and never stored in plaintext. For credit card payments (coming soon), we will use LemonSqueezy, a trusted payment processor built for SaaS businesses, with full PCI compliance and secure encryption. Your payment information will never be stored on our servers.',
     },
     {
       question: 'What are "Advanced privacy insights"?',
@@ -168,12 +168,17 @@ export default function Pricing() {
     {
       question: 'What happens if my token balance drops below 10,000?',
       answer:
-        'Your PRO access is checked daily. If your wallet balance drops below 10,000 $PRICKO tokens, you\'ll lose PRO access unless you have an active Stripe subscription. You can always top up your tokens or switch to monthly subscription to maintain PRO benefits.',
+        'Your PRO access is checked daily. If your wallet balance drops below 10,000 $PRICKO tokens, you\'ll lose PRO access unless you have an active credit card subscription (coming soon). You can always top up your tokens or switch to monthly subscription to maintain PRO benefits.',
     },
     {
       question: 'Can I use both payment methods?',
       answer:
-        'Yes! You can have both a Stripe subscription and hold $PRICKO tokens. If you cancel your Stripe subscription but still hold 10,000+ tokens, your PRO access continues uninterrupted. This gives you maximum flexibility.',
+        'Yes! Once credit card payments are available, you can have both a monthly subscription and hold $PRICKO tokens. If you cancel your subscription but still hold 10,000+ tokens, your PRO access continues uninterrupted. This gives you maximum flexibility.',
+    },
+    {
+      question: 'Why LemonSqueezy instead of Stripe?',
+      answer:
+        'LemonSqueezy offers global coverage in 135+ countries (vs Stripe\'s limited availability) and acts as a Merchant of Record, handling all tax compliance worldwide automatically. This means faster approvals, broader customer reach, and zero tax headaches. They\'re specifically built for SaaS businesses like Gecko Advisor.',
     },
   ];
 
@@ -198,11 +203,34 @@ export default function Pricing() {
       return;
     }
 
+    // PAYMENT PROVIDER: Feature flags
+    // Stripe disabled (country restrictions), LemonSqueezy integration in progress
+    const STRIPE_ENABLED = false;
+    const LEMONSQUEEZY_ENABLED = false;
+
+    // Temporary: Show helpful message while credit card payments are being upgraded
+    if (!STRIPE_ENABLED && !LEMONSQUEEZY_ENABLED) {
+      alert(
+        '💳 Credit Card Payments Coming Very Soon!\n\n' +
+        'We\'re upgrading our payment system to support customers in 135+ countries worldwide.\n\n' +
+        '🎯 In the meantime, you can access PRO by:\n' +
+        '  • Connecting your Solana wallet with 10,000+ $PRICKO tokens\n' +
+        '  • Contacting support@geckoadvisor.com for alternative arrangements\n\n' +
+        '✨ Global credit card payments via LemonSqueezy will be live within days!\n\n' +
+        'Thank you for your patience.'
+      );
+      return;
+    }
+
     setIsCheckoutLoading(true);
 
     try {
-      // Call backend to create Stripe checkout session
-      const response = await fetch('/api/stripe/create-checkout', {
+      // Determine endpoint based on enabled provider
+      const endpoint = LEMONSQUEEZY_ENABLED
+        ? '/api/lemonsqueezy/create-checkout'
+        : '/api/stripe/create-checkout';
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -216,14 +244,12 @@ export default function Pricing() {
       }
 
       const { url } = await response.json();
-
-      // Redirect to Stripe Checkout
       window.location.href = url;
     } catch (error) {
       console.error('Checkout error:', error);
       alert(
         'Failed to start checkout process.\n\n' +
-        'Please try again or contact support@geckoadvisor.com if the problem persists.'
+        'Please try wallet authentication or contact support@geckoadvisor.com'
       );
       setIsCheckoutLoading(false);
     }
@@ -563,7 +589,7 @@ export default function Pricing() {
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Secure Payment</h3>
                 <p className="text-sm text-gray-600">
-                  All payments processed securely through Stripe. We never store your card details.
+                  Wallet authentication uses zero-knowledge verification. Credit card payments (coming soon) will be processed securely through LemonSqueezy with full PCI compliance. We never store your payment details.
                 </p>
               </div>
 
@@ -631,14 +657,23 @@ export default function Pricing() {
 
             {/* Payment Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Stripe Option - PRIMARY */}
+              {/* Credit Card Option - COMING SOON (Stripe disabled, LemonSqueezy in progress) */}
               <article
-                className="relative overflow-hidden bg-white p-8 rounded-2xl border-2 border-slate-300 shadow-lg hover:shadow-xl hover:border-slate-400 transition-all duration-300"
-                aria-labelledby="payment-stripe-heading"
+                className="relative overflow-hidden bg-white p-8 rounded-2xl border-2 border-slate-300 shadow-lg opacity-75"
+                aria-labelledby="payment-card-heading"
               >
+                {/* Coming Soon Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-50/90 to-white/90 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl">
+                  <div className="bg-white px-6 py-4 rounded-xl shadow-xl border-2 border-gecko-500 text-center">
+                    <p className="text-xl font-bold text-gray-900 mb-2">Coming Very Soon</p>
+                    <p className="text-sm text-gray-600 max-w-xs">Global credit card payments via LemonSqueezy</p>
+                    <p className="text-xs text-gecko-600 font-medium mt-2">135+ countries supported</p>
+                  </div>
+                </div>
+
                 {/* Recommended Badge */}
                 <div className="absolute top-4 right-4">
-                  <span className="inline-block px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-full">
+                  <span className="inline-block px-3 py-1.5 bg-gecko-100 text-gecko-700 text-xs font-bold rounded-full">
                     Recommended
                   </span>
                 </div>
@@ -649,7 +684,7 @@ export default function Pricing() {
                 </div>
 
                 {/* Content */}
-                <h4 id="payment-stripe-heading" className="text-xl font-bold text-gray-900 mb-3 text-center">
+                <h4 id="payment-card-heading" className="text-xl font-bold text-gray-900 mb-3 text-center">
                   Monthly Subscription
                 </h4>
                 <p className="text-4xl font-bold text-gray-900 mb-3 text-center tabular-nums">
@@ -664,12 +699,12 @@ export default function Pricing() {
                   <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                   </svg>
-                  <span className="text-sm font-medium text-slate-700">Secured by Stripe</span>
+                  <span className="text-sm font-medium text-slate-700">Secured by LemonSqueezy</span>
                 </div>
 
                 {/* Screen reader context */}
                 <span className="sr-only">
-                  Recommended payment method. Subscribe for $4.99 per month using credit or debit card through Stripe. Cancel anytime without penalty.
+                  Recommended payment method (coming soon). Subscribe for $4.99 per month using credit or debit card through LemonSqueezy with global coverage in 135+ countries. Cancel anytime without penalty.
                 </span>
               </article>
 
