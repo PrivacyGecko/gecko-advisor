@@ -51,39 +51,22 @@ export async function createLemonSqueezyCheckout(params: {
     throw new Error('LemonSqueezy store ID and variant ID must be configured');
   }
 
-  const checkoutData: NewCheckout = {
-    data: {
-      type: 'checkouts',
-      attributes: {
-        checkout_data: {
-          email: userEmail,
-          custom: {
-            user_id: userId,
-          },
-        },
-        product_options: {
-          enabled_variants: [Number.parseInt(variantId, 10)],
-          redirect_url: successUrl || `${config.apiOrigin}/pricing?success=true`,
+  // LemonSqueezy createCheckout API: createCheckout(storeId, variantId, options)
+  const response = await lsCreateCheckout(
+    storeId,
+    Number.parseInt(variantId, 10),
+    {
+      checkoutData: {
+        email: userEmail,
+        custom: {
+          user_id: userId,
         },
       },
-      relationships: {
-        store: {
-          data: {
-            type: 'stores',
-            id: storeId,
-          },
-        },
-        variant: {
-          data: {
-            type: 'variants',
-            id: variantId,
-          },
-        },
+      productOptions: {
+        redirectUrl: successUrl || `${config.apiOrigin}/pricing?success=true`,
       },
-    },
-  };
-
-  const response = await lsCreateCheckout(checkoutData);
+    }
+  );
 
   if (response.error) {
     logger.error({ error: response.error, userId }, 'Failed to create LemonSqueezy checkout');

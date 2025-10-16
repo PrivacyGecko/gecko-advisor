@@ -10,6 +10,7 @@ import { config } from '../config.js';
 import { logger } from '../logger.js';
 import { createLemonSqueezyCheckout, verifyWebhookSignature } from '../lib/lemonsqueezy.js';
 import { prisma } from '../prisma.js';
+import type { SafeUser } from '../services/authService.js';
 
 export const lemonsqueezyRouter = Router();
 
@@ -18,6 +19,14 @@ export const lemonsqueezyRouter = Router();
  * Create a LemonSqueezy checkout session for the authenticated user
  */
 lemonsqueezyRouter.post('/create-checkout', requireAuth, async (req, res) => {
+  // User is already attached by requireAuth middleware
+  const user = (req as typeof req & { user?: SafeUser }).user;
+
+  if (!user) {
+    logger.error('User not found in request after requireAuth');
+    return problem(res, 500, 'Internal Server Error', 'User not found');
+  }
+
   try {
     // Check if LemonSqueezy is enabled
     if (!config.payments.lemonsqueezy.enabled) {
@@ -25,31 +34,31 @@ lemonsqueezyRouter.post('/create-checkout', requireAuth, async (req, res) => {
       return problem(res, 503, 'Credit card payments are temporarily unavailable. Please use wallet authentication or contact support.');
     }
 
-    const userId = req.userId!;
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    // Fetch full user details from database
+    const fullUser = await prisma.user.findUnique({ where: { id: user.id } });
 
-    if (!user) {
+    if (!fullUser) {
       return problem(res, 404, 'User not found');
     }
 
     // Check if user already has PRO
-    if (user.subscription === 'PRO' || user.subscription === 'TEAM') {
-      logger.info({ userId }, 'User already has PRO subscription');
+    if (fullUser.subscription === 'PRO' || fullUser.subscription === 'TEAM') {
+      logger.info({ userId: fullUser.id }, 'User already has PRO subscription');
       return problem(res, 400, 'You already have an active PRO subscription');
     }
 
     // Create checkout session
     const checkoutUrl = await createLemonSqueezyCheckout({
-      userId: user.id,
-      userEmail: user.email,
+      userId: fullUser.id,
+      userEmail: fullUser.email,
       successUrl: req.body.successUrl,
     });
 
-    logger.info({ userId, checkoutUrl }, 'LemonSqueezy checkout session created');
+    logger.info({ userId: fullUser.id, checkoutUrl }, 'LemonSqueezy checkout session created');
 
     res.json({ url: checkoutUrl });
   } catch (error) {
-    logger.error({ error, userId: req.userId }, 'Failed to create LemonSqueezy checkout');
+    logger.error({ error, userId: user.id }, 'Failed to create LemonSqueezy checkout');
     return problem(res, 500, 'Failed to create checkout session. Please try again or contact support.');
   }
 });
