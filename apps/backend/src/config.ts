@@ -91,6 +91,28 @@ export const config = {
     connectSources,
     imageSources,
   },
+  // Payment Provider Configuration
+  // NOTE: Stripe code is preserved but disabled via feature flag
+  // LemonSqueezy integration is in progress
+  payments: {
+    stripe: {
+      enabled: process.env.STRIPE_ENABLED === 'true',
+      secretKey: process.env.STRIPE_SECRET_KEY,
+      webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+      priceId: process.env.STRIPE_PRICE_ID,
+    },
+    lemonsqueezy: {
+      enabled: process.env.LEMONSQUEEZY_ENABLED === 'true',
+      apiKey: process.env.LEMONSQUEEZY_API_KEY,
+      storeId: process.env.LEMONSQUEEZY_STORE_ID,
+      variantId: process.env.LEMONSQUEEZY_VARIANT_ID,
+      webhookSecret: process.env.LEMONSQUEEZY_WEBHOOK_SECRET,
+    },
+    wallet: {
+      enabled: process.env.WALLET_AUTH_ENABLED !== 'false', // Default true
+      requiredTokens: parseNumber(process.env.WALLET_PRO_TOKEN_THRESHOLD, 10000),
+    },
+  },
 };
 
 export type AppConfig = typeof config;
