@@ -74,7 +74,15 @@ export function createServer() {
   // Apply raw body parser BEFORE JSON parser for webhook endpoint
   app.use('/api/stripe/webhook', express.raw({ type: 'application/json', limit: '1mb' }), (req, _res, next) => {
     // Store raw body for signature verification
-    (req as any).rawBody = req.body;
+    (req as Request & { rawBody?: Buffer }).rawBody = req.body;
+    next();
+  });
+
+  // LemonSqueezy webhook needs raw body for signature verification
+  // Apply raw body parser BEFORE JSON parser for webhook endpoint
+  app.use('/api/lemonsqueezy/webhook', express.raw({ type: 'application/json', limit: '1mb' }), (req, _res, next) => {
+    // Store raw body for signature verification
+    (req as Request & { rawBody?: Buffer }).rawBody = req.body;
     next();
   });
 
@@ -99,7 +107,15 @@ export function createServer() {
     cors({
       origin: allowedOrigins,
       methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'X-Admin-Key', 'X-Request-ID', 'Authorization', 'X-API-Key', 'Stripe-Signature'],
+      allowedHeaders: [
+        'Content-Type',
+        'X-Admin-Key',
+        'X-Request-ID',
+        'Authorization',
+        'X-API-Key',
+        'Stripe-Signature',
+        'X-Signature', // LemonSqueezy webhook signature
+      ],
       maxAge: 600,
       credentials: false,
       preflightContinue: false,

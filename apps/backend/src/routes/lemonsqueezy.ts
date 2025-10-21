@@ -3,243 +3,184 @@ SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
 SPDX-License-Identifier: MIT
 */
 
-import { Router } from 'express';
+import { Router, type Request, type Response } from 'express';
 import { requireAuth } from '../middleware/auth.js';
+import { requirePaymentProvider } from '../middleware/paymentProvider.js';
 import { problem } from '../problem.js';
-import { config } from '../config.js';
 import { logger } from '../logger.js';
-import { createLemonSqueezyCheckout, verifyWebhookSignature } from '../lib/lemonsqueezy.js';
 import { prisma } from '../prisma.js';
+import { LemonSqueezyService } from '../services/lemonsqueezyService.js';
 import type { SafeUser } from '../services/authService.js';
+import type { LemonSqueezyEvent } from '../services/lemonsqueezyService.js';
 
 export const lemonsqueezyRouter = Router();
 
+// Initialize LemonSqueezy service
+const lemonSqueezyService = new LemonSqueezyService(prisma);
+
 /**
+ * Create checkout session for Pro subscription
+ *
  * POST /api/lemonsqueezy/create-checkout
- * Create a LemonSqueezy checkout session for the authenticated user
+ * Requires: Authentication, LemonSqueezy enabled
+ * Body: { successUrl?: string } (optional redirect URL after successful checkout)
+ * Returns: { url: string }
  */
-lemonsqueezyRouter.post('/create-checkout', requireAuth, async (req, res) => {
-  // User is already attached by requireAuth middleware
-  const user = (req as typeof req & { user?: SafeUser }).user;
+lemonsqueezyRouter.post(
+  '/create-checkout',
+  requirePaymentProvider('lemonsqueezy'),
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      const user = (req as Request & { user?: SafeUser }).user;
 
-  if (!user) {
-    logger.error('User not found in request after requireAuth');
-    return problem(res, 500, 'Internal Server Error', 'User not found');
+      if (!user) {
+        return problem(res, 401, 'Unauthorized', 'User not authenticated');
+      }
+
+      // Check if user already has an active Pro subscription
+      if (
+        (user.subscription === 'PRO' || user.subscription === 'TEAM') &&
+        (user.subscriptionStatus === 'ACTIVE' || user.subscriptionStatus === 'TRIALING')
+      ) {
+        return problem(
+          res,
+          400,
+          'Bad Request',
+          'You already have an active Pro subscription. Manage your subscription through the customer portal.'
+        );
+      }
+
+      // Extract optional success URL from request body
+      const successUrl = req.body?.successUrl;
+
+      // Create checkout session via service
+      const checkoutUrl = await lemonSqueezyService.createCheckoutSession(
+        user.id,
+        user.email,
+        successUrl
+      );
+
+      logger.info({ userId: user.id }, 'Created LemonSqueezy checkout session for user');
+
+      res.json({
+        url: checkoutUrl,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === 'USER_NOT_FOUND') {
+          return problem(res, 404, 'Not Found', 'User not found');
+        }
+        if (error.message === 'ALREADY_SUBSCRIBED') {
+          return problem(res, 400, 'Bad Request', 'Already subscribed to Pro');
+        }
+        if (error.message === 'LEMONSQUEEZY_CONFIG_INCOMPLETE') {
+          logger.error('LemonSqueezy configuration incomplete');
+          return problem(res, 500, 'Internal Server Error', 'Payment service configuration error');
+        }
+        if (error.message.includes('LEMONSQUEEZY_') || error.message.includes('CHECKOUT_')) {
+          return problem(res, 500, 'Internal Server Error', 'Payment service error');
+        }
+
+        logger.error({ error: error.message, userId: (req as Request & { user?: SafeUser }).user?.id }, 'Checkout error');
+      }
+
+      return problem(res, 500, 'Internal Server Error', 'Failed to create checkout session');
+    }
   }
-
-  try {
-    // Check if LemonSqueezy is enabled
-    if (!config.payments.lemonsqueezy.enabled) {
-      logger.warn('LemonSqueezy checkout requested but provider is disabled');
-      return problem(res, 503, 'Credit card payments are temporarily unavailable. Please use wallet authentication or contact support.');
-    }
-
-    // Fetch full user details from database
-    const fullUser = await prisma.user.findUnique({ where: { id: user.id } });
-
-    if (!fullUser) {
-      return problem(res, 404, 'User not found');
-    }
-
-    // Check if user already has PRO
-    if (fullUser.subscription === 'PRO' || fullUser.subscription === 'TEAM') {
-      logger.info({ userId: fullUser.id }, 'User already has PRO subscription');
-      return problem(res, 400, 'You already have an active PRO subscription');
-    }
-
-    // Create checkout session
-    const checkoutUrl = await createLemonSqueezyCheckout({
-      userId: fullUser.id,
-      userEmail: fullUser.email,
-      successUrl: req.body.successUrl,
-    });
-
-    logger.info({ userId: fullUser.id, checkoutUrl }, 'LemonSqueezy checkout session created');
-
-    res.json({ url: checkoutUrl });
-  } catch (error) {
-    logger.error({ error, userId: user.id }, 'Failed to create LemonSqueezy checkout');
-    return problem(res, 500, 'Failed to create checkout session. Please try again or contact support.');
-  }
-});
+);
 
 /**
+ * LemonSqueezy webhook endpoint
+ *
  * POST /api/lemonsqueezy/webhook
- * Handle LemonSqueezy webhook events for subscription lifecycle
+ * Public endpoint - validates signature
+ * Handles: subscription lifecycle events (created, updated, cancelled, payment events)
+ * Returns: { received: true }
  */
-lemonsqueezyRouter.post('/webhook', async (req, res) => {
+lemonsqueezyRouter.post('/webhook', async (req: Request, res: Response) => {
+  const signature = req.headers['x-signature'];
+
+  if (!signature || typeof signature !== 'string') {
+    logger.warn({ headers: req.headers }, 'Webhook missing x-signature header');
+    return problem(res, 400, 'Bad Request', 'Missing x-signature header');
+  }
+
   try {
-    const signature = req.headers['x-signature'] as string;
-    const payload = JSON.stringify(req.body);
+    // Get raw body for signature verification
+    // Note: This requires express.raw() middleware to be configured for this route
+    const rawBody = (req as Request & { rawBody?: Buffer }).rawBody;
+    const payload = rawBody ? rawBody.toString('utf-8') : JSON.stringify(req.body);
+
+    if (!payload) {
+      logger.error('Webhook missing raw body');
+      return problem(res, 400, 'Bad Request', 'Missing request body');
+    }
 
     // Verify webhook signature
-    if (!signature || !verifyWebhookSignature(payload, signature)) {
-      logger.error('Invalid LemonSqueezy webhook signature');
-      return problem(res, 401, 'Invalid webhook signature');
+    const isValid = lemonSqueezyService.verifyWebhookSignature(payload, signature);
+
+    if (!isValid) {
+      logger.warn('Invalid LemonSqueezy webhook signature');
+      return problem(res, 401, 'Unauthorized', 'Invalid webhook signature');
     }
 
-    const event = req.body;
-    const eventName = event.meta?.event_name;
+    // Parse event from body
+    const event = typeof payload === 'string' ? JSON.parse(payload) : req.body;
 
-    logger.info({ eventName, eventId: event.data?.id }, 'LemonSqueezy webhook received');
+    logger.info(
+      { eventType: event.meta?.event_name, eventId: event.data?.id },
+      'Received verified LemonSqueezy webhook'
+    );
 
-    switch (eventName) {
-      case 'subscription_created':
-        await handleSubscriptionCreated(event);
-        break;
+    // Handle webhook event asynchronously
+    // Don't await to respond quickly to LemonSqueezy
+    lemonSqueezyService.handleWebhook(event as LemonSqueezyEvent).catch((error) => {
+      logger.error(
+        { error, eventType: event.meta?.event_name, eventId: event.data?.id },
+        'Error handling webhook event'
+      );
+    });
 
-      case 'subscription_updated':
-        await handleSubscriptionUpdated(event);
-        break;
-
-      case 'subscription_cancelled':
-      case 'subscription_expired':
-        await handleSubscriptionCancelled(event);
-        break;
-
-      case 'subscription_payment_success':
-        await handlePaymentSuccess(event);
-        break;
-
-      case 'subscription_payment_failed':
-        await handlePaymentFailed(event);
-        break;
-
-      default:
-        logger.info({ eventName }, 'Unhandled LemonSqueezy webhook event');
-    }
-
-    res.status(200).json({ received: true });
+    // Acknowledge receipt immediately
+    res.json({ received: true });
   } catch (error) {
-    logger.error({ error }, 'Error processing LemonSqueezy webhook');
-    return problem(res, 500, 'Webhook processing failed');
+    if (error instanceof Error) {
+      logger.error({ error: error.message }, 'Webhook processing error');
+    }
+
+    return problem(res, 500, 'Internal Server Error', 'Failed to process webhook');
   }
 });
 
 /**
- * Handle subscription_created event
- * Grant PRO access to the user
+ * Get subscription status
+ *
+ * GET /api/lemonsqueezy/subscription
+ * Requires: Authentication
+ * Returns: { subscription, subscriptionStatus, subscriptionEndsAt, provider, hasActiveSubscription }
  */
-async function handleSubscriptionCreated(event: any) {
-  const customData = event.data.attributes.first_subscription_item?.custom_data;
-  const userId = customData?.user_id;
-  const userEmail = event.data.attributes.user_email;
-  const customerId = event.data.attributes.customer_id;
-  const subscriptionId = event.data.id;
-  const renewsAt = event.data.attributes.renews_at;
+lemonsqueezyRouter.get(
+  '/subscription',
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      const user = (req as Request & { user?: SafeUser }).user;
 
-  logger.info({ userId, userEmail, subscriptionId }, 'Processing subscription_created');
+      if (!user) {
+        return problem(res, 401, 'Unauthorized', 'User not authenticated');
+      }
 
-  // Find user by ID or email
-  const user = await prisma.user.findFirst({
-    where: userId ? { id: userId } : { email: userEmail },
-  });
+      const status = await lemonSqueezyService.getSubscriptionStatus(user.id);
 
-  if (!user) {
-    logger.error({ userId, userEmail }, 'User not found for subscription_created event');
-    return;
+      res.json(status);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'USER_NOT_FOUND') {
+        return problem(res, 404, 'Not Found', 'User not found');
+      }
+
+      logger.error({ error, userId: (req as Request & { user?: SafeUser }).user?.id }, 'Failed to get subscription status');
+      return problem(res, 500, 'Internal Server Error', 'Failed to get subscription status');
+    }
   }
-
-  // Grant PRO access
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      subscription: 'PRO',
-      subscriptionProvider: 'LEMONSQUEEZY',
-      lsCustomerId: String(customerId),
-      lsSubscriptionId: String(subscriptionId),
-      subscriptionEndsAt: renewsAt ? new Date(renewsAt) : null,
-    },
-  });
-
-  logger.info({ userId: user.id, subscriptionId }, 'PRO access granted via LemonSqueezy');
-}
-
-/**
- * Handle subscription_updated event
- * Update subscription details
- */
-async function handleSubscriptionUpdated(event: any) {
-  const subscriptionId = event.data.id;
-  const renewsAt = event.data.attributes.renews_at;
-  const status = event.data.attributes.status;
-
-  logger.info({ subscriptionId, status }, 'Processing subscription_updated');
-
-  const user = await prisma.user.findFirst({
-    where: { lsSubscriptionId: String(subscriptionId) },
-  });
-
-  if (!user) {
-    logger.error({ subscriptionId }, 'User not found for subscription_updated event');
-    return;
-  }
-
-  // Update subscription end date
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      subscriptionEndsAt: renewsAt ? new Date(renewsAt) : null,
-    },
-  });
-
-  logger.info({ userId: user.id, subscriptionId }, 'Subscription updated');
-}
-
-/**
- * Handle subscription_cancelled/subscription_expired events
- * Revoke PRO access
- */
-async function handleSubscriptionCancelled(event: any) {
-  const subscriptionId = event.data.id;
-  const endsAt = event.data.attributes.ends_at;
-
-  logger.info({ subscriptionId }, 'Processing subscription cancellation/expiration');
-
-  const user = await prisma.user.findFirst({
-    where: { lsSubscriptionId: String(subscriptionId) },
-    include: { walletLink: true }, // Include wallet link to check for wallet-based PRO
-  });
-
-  if (!user) {
-    logger.error({ subscriptionId }, 'User not found for subscription cancellation event');
-    return;
-  }
-
-  // Check if user has wallet-based PRO access
-  // If they do, don't downgrade them (they have dual PRO access)
-  if (user.walletLink) {
-    logger.info({ userId: user.id }, 'User has wallet PRO access, not downgrading');
-    return;
-  }
-
-  // Revoke PRO access
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      subscription: 'FREE',
-      subscriptionProvider: null,
-      subscriptionEndsAt: endsAt ? new Date(endsAt) : null,
-    },
-  });
-
-  logger.info({ userId: user.id, subscriptionId }, 'PRO access revoked');
-}
-
-/**
- * Handle subscription_payment_success event
- * Log successful payment
- */
-async function handlePaymentSuccess(event: any) {
-  const subscriptionId = event.data.id;
-  logger.info({ subscriptionId }, 'Payment successful');
-}
-
-/**
- * Handle subscription_payment_failed event
- * Log failed payment (LemonSqueezy handles dunning automatically)
- */
-async function handlePaymentFailed(event: any) {
-  const subscriptionId = event.data.id;
-  logger.error({ subscriptionId }, 'Payment failed - LemonSqueezy will retry');
-}
+);
