@@ -148,7 +148,8 @@ export function createServer() {
   // General rate limiting for other endpoints (skip routes with specific rate limiting)
   app.use('/api', (req, res, next) => {
     // Skip general rate limit for routes that have their own specific rate limiting
-    const statusPathRegex = /^\/api\/(v[12]\/)?scan\/[^/]+\/status$/;
+    // NOTE: req.path has the mount point '/api' stripped, so we match without it
+    const statusPathRegex = /^\/(v[12]\/)?scan\/[^/]+\/status$/;
     if (statusPathRegex.test(req.path)) {
       return next();
     }
