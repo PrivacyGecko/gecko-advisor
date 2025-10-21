@@ -23,3 +23,7 @@ assets/prompts/
 assets/project-docs/
 Project-Docs/
 tests/
+apps/frontend/public/legal-docs/geckoadvisor_cookie_simple.md
+apps/frontend/public/legal-docs/geckoadvisor_privacy_simple.md
+apps/frontend/public/legal-docs/geckoadvisor_terms_simple.md
+playwright.config.ts
