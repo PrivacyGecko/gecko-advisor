@@ -145,8 +145,15 @@ export function createServer() {
   app.use('/api/report', reportRateLimit);
   app.use('/api/reports', reportRateLimit);
 
-  // General rate limiting for other endpoints
-  app.use('/api', generalRateLimit);
+  // General rate limiting for other endpoints (skip routes with specific rate limiting)
+  app.use('/api', (req, res, next) => {
+    // Skip general rate limit for routes that have their own specific rate limiting
+    const statusPathRegex = /^\/api\/(v[12]\/)?scan\/[^/]+\/status$/;
+    if (statusPathRegex.test(req.path)) {
+      return next();
+    }
+    return generalRateLimit(req, res, next);
+  });
 
   app.use('/api/v1', apiV1Router);
   app.use('/api/v2', apiV2Router);
