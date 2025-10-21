@@ -60,7 +60,16 @@ async function readJson(relativePath: string): Promise<JsonList> {
   return JSON.parse(content) as JsonList;
 }
 
+// In-memory cache for privacy lists (refreshed every 5 minutes)
+let listsCache: { data: Lists; timestamp: number } | null = null;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 export async function getLists(prisma: PrismaClient): Promise<Lists> {
+  // Return cached lists if still fresh
+  if (listsCache && Date.now() - listsCache.timestamp < CACHE_TTL_MS) {
+    return listsCache.data;
+  }
+
   const lists = await prisma.cachedList.findMany();
   const easyStored = lists.find((list) => list.source === 'easyprivacy')?.data;
   const whoStored = lists.find((list) => list.source === 'whotracks')?.data;
@@ -68,14 +77,22 @@ export async function getLists(prisma: PrismaClient): Promise<Lists> {
   const easy = normalizeEasyList(easyStored);
   const who = normalizeWhoTracksList(whoStored);
 
-  if (easy && who) return { easyprivacy: easy, whotracks: who };
+  let result: Lists;
 
-  const fallbackEasy = normalizeEasyList(await readJson('packages/shared/data/easyprivacy-demo.json'));
-  const fallbackWho = normalizeWhoTracksList(await readJson('packages/shared/data/whotracks-demo.json'));
+  if (easy && who) {
+    result = { easyprivacy: easy, whotracks: who };
+  } else {
+    const fallbackEasy = normalizeEasyList(await readJson('packages/shared/data/easyprivacy-demo.json'));
+    const fallbackWho = normalizeWhoTracksList(await readJson('packages/shared/data/whotracks-demo.json'));
 
-  if (!fallbackEasy || !fallbackWho) {
-    throw new Error('Failed to load privacy lists');
+    if (!fallbackEasy || !fallbackWho) {
+      throw new Error('Failed to load privacy lists');
+    }
+
+    result = { easyprivacy: fallbackEasy, whotracks: fallbackWho };
   }
 
-  return { easyprivacy: fallbackEasy, whotracks: fallbackWho };
+  // Cache the result
+  listsCache = { data: result, timestamp: Date.now() };
+  return result;
 }
