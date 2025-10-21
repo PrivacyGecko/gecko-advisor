@@ -230,20 +230,17 @@ export const generalRateLimit = createIntelligentRateLimit({
 });
 
 /**
- * Very lenient rate limiter for status polling endpoints
- * Status checks are lightweight read operations that need high frequency
- * to support real-time UI updates during scan processing
+ * Rate limiter for status polling endpoints
+ * Status checks are lightweight read operations used by the UI to track scan progress.
  *
- * Rationale for 300 req/min limit:
- * - Frontend polls at 1 req/sec = 60 req/min per scan
- * - Scans take 10-30 seconds typically, up to 60 seconds max
- * - Users may have multiple scans or tabs open
- * - 300 req/min = 5 req/sec provides 5x headroom over polling rate
- * - Prevents legitimate users from hitting 429 errors during normal usage
+ * Rationale for 30 req/min limit:
+ * - Frontend poll interval is ~2 seconds (≈30 req/min) during active scans
+ * - Provides enough headroom for occasional retries without triggering 429s
+ * - Still guards against abusive polling patterns during incidents
  */
 export const statusRateLimit = rateLimit({
   windowMs: 60_000, // 1 minute window
-  limit: 300, // 300 requests per minute = 5 per second
+  limit: 30, // 30 requests per minute ≈ 1 every 2 seconds
   keyGenerator: (req) => {
     // Use IP + scan ID for per-scan rate limiting
     // This allows users to poll multiple scans simultaneously without interference
