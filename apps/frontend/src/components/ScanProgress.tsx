@@ -31,8 +31,6 @@ export interface ScanProgressProps {
  * - Responsive design for mobile and desktop
  * - Real-time progress updates
  */
-const clamp = (value: number) => Math.min(100, Math.max(0, value));
-
 const ScanProgress = React.memo(function ScanProgress({
   progress,
   status,
@@ -40,8 +38,6 @@ const ScanProgress = React.memo(function ScanProgress({
   estimatedTimeRemaining,
   className = ''
 }: ScanProgressProps) {
-  const boundedProgress = React.useMemo(() => clamp(progress), [progress]);
-
   // Track elapsed time since component mount
   const [elapsedSeconds, setElapsedSeconds] = React.useState(0);
 
@@ -73,7 +69,7 @@ const ScanProgress = React.memo(function ScanProgress({
   // Determine current step based on progress
   const getCurrentStep = () => {
     for (const step of scanSteps) {
-      if (boundedProgress >= step.range[0] && boundedProgress <= step.range[1]) {
+      if (progress >= step.range[0] && progress <= step.range[1]) {
         return step;
       }
     }
@@ -113,7 +109,7 @@ const ScanProgress = React.memo(function ScanProgress({
     <div className={`space-y-6 ${className}`}>
       {/* Main progress display */}
       <div className="flex flex-col items-center text-center space-y-4">
-        <ProgressDial percent={boundedProgress} />
+        <ProgressDial percent={progress} />
 
         {/* Status and current step with elapsed time */}
         <div
@@ -162,9 +158,9 @@ const ScanProgress = React.memo(function ScanProgress({
 
         <div className="space-y-2">
           {scanSteps.map((step, index) => {
-            const isCompleted = boundedProgress > step.range[1];
-            const isActive = boundedProgress >= step.range[0] && boundedProgress <= step.range[1];
-            const isPending = boundedProgress < step.range[0];
+            const isCompleted = progress > step.range[1];
+            const isActive = progress >= step.range[0] && progress <= step.range[1];
+            const isPending = progress < step.range[0];
 
             return (
               <div
@@ -215,10 +211,10 @@ const ScanProgress = React.memo(function ScanProgress({
                       <div
                         className="bg-blue-500 h-1 sm:h-1.5 rounded-full transition-all duration-300"
                         style={{
-                          width: `${Math.min(100, ((boundedProgress - step.range[0]) / (step.range[1] - step.range[0])) * 100)}%`
+                          width: `${Math.min(100, ((progress - step.range[0]) / (step.range[1] - step.range[0])) * 100)}%`
                         }}
                         role="progressbar"
-                        aria-valuenow={boundedProgress}
+                        aria-valuenow={progress}
                         aria-valuemin={step.range[0]}
                         aria-valuemax={step.range[1]}
                         aria-label={`${step.label} progress`}
