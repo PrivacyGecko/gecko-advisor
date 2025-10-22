@@ -115,7 +115,9 @@ export const WalletButton: React.FC<WalletButtonProps> = ({
 
     try {
       // Step 1: Get challenge from backend
-      const challengeRes = await fetch(`/api/wallet/challenge/${publicKey.toBase58()}`);
+      const challengeRes = await fetch(`/api/wallet/challenge/${publicKey.toBase58()}`, {
+        method: 'POST',
+      });
 
       if (!challengeRes.ok) {
         throw new Error('Failed to get challenge from backend');
