@@ -75,9 +75,10 @@ model User {
   apiResetAt    DateTime?
 
   // Relations
-  scans       Scan[]
-  watchedUrls WatchedUrl[]
-  walletLink  WalletLink?
+  scans                Scan[]
+  watchedUrls          WatchedUrl[]
+  walletLink           WalletLink?
+  passwordResetTokens  PasswordResetToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -199,6 +200,20 @@ model WatchedUrl {
 
   @@unique([userId, url])
   @@index([lastChecked, checkFrequency], map: "WatchedUrl_schedule_idx")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tokenHash])
+  @@index([userId, expiresAt], map: "PasswordResetToken_user_idx")
 }
 
 // Wallet authentication linking

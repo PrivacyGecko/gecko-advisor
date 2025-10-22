@@ -22,6 +22,7 @@ const Docs = React.lazy(() => import('./pages/Docs'));
 const About = React.lazy(() => import('./pages/About'));
 const Pricing = React.lazy(() => import('./pages/Pricing'));
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 
 // Loading component for Suspense fallback
@@ -93,6 +94,14 @@ const router = createBrowserRouter([
     element: (
       <React.Suspense fallback={<PageLoader />}>
         <Pricing />
+      </React.Suspense>
+    )
+  },
+  {
+    path: '/reset-password',
+    element: (
+      <React.Suspense fallback={<PageLoader />}>
+        <ResetPassword />
       </React.Suspense>
     )
   },

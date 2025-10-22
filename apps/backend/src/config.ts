@@ -36,6 +36,7 @@ const stageOrigin = process.env.STAGE_ORIGIN;
 const apiOrigin = process.env.API_ORIGIN ?? process.env.BACKEND_PUBLIC_URL;
 const workerOrigin = process.env.WORKER_PUBLIC_URL;
 const allowOrigin = process.env.ALLOW_ORIGIN;
+const frontendOrigin = process.env.FRONTEND_PUBLIC_URL ?? stageOrigin ?? allowOrigin;
 const extraOrigins = parseOrigins(process.env.CORS_EXTRA_ORIGINS);
 
 const isLocalEnv = nodeEnv === 'development' || appEnv === 'development' || nodeEnv === 'test' || appEnv === 'test';
@@ -83,6 +84,7 @@ export const config = {
   logLevel,
   stageOrigin,
   apiOrigin,
+  frontendOrigin,
   workerOrigin,
   cspReportUri,
   workerAttempts: parseNumber(process.env.WORKER_JOB_ATTEMPTS, 3),
@@ -90,6 +92,14 @@ export const config = {
   csp: {
     connectSources,
     imageSources,
+  },
+  email: {
+    sendgrid: {
+      enabled: process.env.SENDGRID_API_KEY ? process.env.SENDGRID_ENABLED !== 'false' : false,
+      apiKey: process.env.SENDGRID_API_KEY,
+      fromEmail: process.env.SENDGRID_FROM_EMAIL,
+      resetUrl: process.env.PASSWORD_RESET_URL ?? (frontendOrigin ? `${frontendOrigin}/reset-password` : undefined),
+    },
   },
   // Payment Provider Configuration
   // NOTE: Stripe code is preserved but disabled via feature flag
@@ -120,5 +130,4 @@ export type AppConfig = typeof config;
 export function isDev() {
   return config.nodeEnv === 'development';
 }
-
 

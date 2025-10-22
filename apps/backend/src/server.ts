@@ -129,8 +129,11 @@ export function createServer() {
 
   // Status endpoints need lenient rate limiting (lightweight read operations)
   app.use('/api/v1/scan/:id/status', statusRateLimit);
+  app.use('/api/v1/scans/:id/status', statusRateLimit);
   app.use('/api/v2/scan/:id/status', statusRateLimit);
+  app.use('/api/v2/scans/:id/status', statusRateLimit);
   app.use('/api/scan/:id/status', statusRateLimit);
+  app.use('/api/scans/:id/status', statusRateLimit);
 
   // Scan submission endpoints have stricter limits
   // Apply limiter ONLY to POST requests to avoid throttling status polling
@@ -138,8 +141,11 @@ export function createServer() {
     req.method === 'POST' ? mw(req, res, next) : next();
 
   app.use('/api/v1/scan', postOnly(scanRateLimit));
+  app.use('/api/v1/scans', postOnly(scanRateLimit));
   app.use('/api/v2/scan', postOnly(scanRateLimit));
+  app.use('/api/v2/scans', postOnly(scanRateLimit));
   app.use('/api/scan', postOnly(scanRateLimit));
+  app.use('/api/scans', postOnly(scanRateLimit));
 
   // Report endpoints (read-heavy, moderate limits)
   app.use('/api/v1/report', reportRateLimit);
@@ -153,7 +159,7 @@ export function createServer() {
   app.use('/api', (req, res, next) => {
     // Skip general rate limit for routes that have their own specific rate limiting
     // NOTE: req.path has the mount point '/api' stripped, so we match without it
-    const statusPathRegex = /^\/(v[12]\/)?scan\/[^/]+\/status$/;
+    const statusPathRegex = /^\/(v[12]\/)?scans?\/[^/]+\/status$/;
     if (statusPathRegex.test(req.path)) {
       return next();
     }
@@ -218,7 +224,6 @@ export function createServer() {
 
   return app;
 }
-
 
 
 

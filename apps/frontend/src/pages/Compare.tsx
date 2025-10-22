@@ -8,6 +8,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import LoginModal from '../components/LoginModal';
 import SignupModal from '../components/SignupModal';
+import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import { useSearchParams } from 'react-router-dom';
 
 export default function Compare() {
@@ -17,6 +18,8 @@ export default function Compare() {
   const [input, setInput] = React.useState(right);
   const [showLogin, setShowLogin] = React.useState(false);
   const [showSignup, setShowSignup] = React.useState(false);
+  const [showForgotPassword, setShowForgotPassword] = React.useState(false);
+  const [forgotEmail, setForgotEmail] = React.useState('');
 
   function addRight() {
     const s = new URLSearchParams(sp);
@@ -58,8 +61,33 @@ export default function Compare() {
       )}
       </div>
       <Footer />
-      <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
-      <SignupModal isOpen={showSignup} onClose={() => setShowSignup(false)} />
+      <LoginModal
+        isOpen={showLogin}
+        onClose={() => setShowLogin(false)}
+        onForgotPassword={(emailValue) => {
+          setForgotEmail(emailValue ?? '');
+          setShowLogin(false);
+          setShowForgotPassword(true);
+        }}
+        onSwitchToSignup={() => {
+          setShowLogin(false);
+          setShowSignup(true);
+        }}
+      />
+      <SignupModal
+        isOpen={showSignup}
+        onClose={() => setShowSignup(false)}
+        onSwitchToLogin={() => {
+          setShowSignup(false);
+          setShowLogin(true);
+        }}
+      />
+      <ForgotPasswordModal
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+        onBackToLogin={() => setShowLogin(true)}
+        defaultEmail={forgotEmail}
+      />
     </>
   );
 }

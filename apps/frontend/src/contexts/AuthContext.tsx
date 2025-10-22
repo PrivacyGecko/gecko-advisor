@@ -36,6 +36,8 @@ export interface AuthContextType {
   createAccount: (email: string) => Promise<void>;
   register: (email: string, password: string, name?: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<void>;
+  resetPassword: (token: string, password: string) => Promise<void>;
   logout: () => void;
   loginWithWallet: (walletAddress: string, signature: string, message: string) => Promise<void>;
   linkWallet: (walletAddress: string, signature: string, message: string) => Promise<void>;
@@ -224,6 +226,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [fetchUser]);
 
   /**
+   * Request password reset email
+   */
+  const requestPasswordReset = useCallback(async (email: string) => {
+    const response = await fetch(`${API_BASE}/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      try {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to send password reset email');
+      } catch (err) {
+        if (err instanceof Error) {
+          throw err;
+        }
+        throw new Error('Failed to send password reset email');
+      }
+    }
+  }, []);
+
+  /**
+   * Complete password reset with token
+   */
+  const resetPassword = useCallback(async (tokenValue: string, password: string) => {
+    const response = await fetch(`${API_BASE}/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: tokenValue, password }),
+    });
+
+    if (!response.ok) {
+      try {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to reset password');
+      } catch (err) {
+        if (err instanceof Error) {
+          throw err;
+        }
+        throw new Error('Failed to reset password');
+      }
+    }
+
+    const data = await response.json();
+    const authToken = data.token as string;
+    const nextUser = data.user as User;
+
+    localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+    setToken(authToken);
+    setUser(nextUser);
+  }, []);
+
+  /**
    * Logout user and clear stored token
    */
   const logout = useCallback(() => {
@@ -344,6 +400,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     createAccount,
     register,
     login,
+    requestPasswordReset,
+    resetPassword,
     logout,
     loginWithWallet,
     linkWallet,

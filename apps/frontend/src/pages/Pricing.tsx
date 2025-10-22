@@ -11,6 +11,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import LoginModal from '../components/LoginModal';
 import SignupModal from '../components/SignupModal';
+import ForgotPasswordModal from '../components/ForgotPasswordModal';
 
 /**
  * PricingTier Interface
@@ -72,6 +73,8 @@ export default function Pricing() {
   const navigate = useNavigate();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
@@ -854,6 +857,11 @@ export default function Pricing() {
           setShowLoginModal(false);
           setShowSignupModal(true);
         }}
+        onForgotPassword={(emailValue) => {
+          setForgotPasswordEmail(emailValue ?? '');
+          setShowLoginModal(false);
+          setShowForgotPasswordModal(true);
+        }}
       />
       <SignupModal
         isOpen={showSignupModal}
@@ -862,6 +870,12 @@ export default function Pricing() {
           setShowSignupModal(false);
           setShowLoginModal(true);
         }}
+      />
+      <ForgotPasswordModal
+        isOpen={showForgotPasswordModal}
+        onClose={() => setShowForgotPasswordModal(false)}
+        onBackToLogin={() => setShowLoginModal(true)}
+        defaultEmail={forgotPasswordEmail}
       />
     </>
   );
