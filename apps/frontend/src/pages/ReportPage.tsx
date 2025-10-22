@@ -284,7 +284,7 @@ export default function ReportPage() {
     );
   }
 
-  return <ReportBody slug={slug} data={data} />;
+  return <ReportBody slug={slug} data={data} isPro={isPro} />;
 }
 
 /**
@@ -337,7 +337,7 @@ function ReportSkeleton() {
   );
 }
 
-function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }) {
+function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportResponse; isPro: boolean }) {
   const { scan, evidence, meta } = data;
 
   const trackerDomains = React.useMemo(() => {
@@ -881,4 +881,3 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
     </>
   );
 }
-
