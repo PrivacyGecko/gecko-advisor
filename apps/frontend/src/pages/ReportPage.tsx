@@ -19,6 +19,7 @@ import Footer from '../components/Footer';
 import ProUpgradeCTA from '../components/ProUpgradeCTA';
 import type { LegacyReportResponse } from '@privacy-advisor/shared';
 import { computeDataSharingLevel, type DataSharingLevel } from '../lib/dataSharing';
+import { useAuth } from '../contexts/AuthContext';
 
 type EvidenceItem = LegacyReportResponse['evidence'][number];
 type EvidenceType = EvidenceItem['type'];
@@ -234,6 +235,8 @@ const copyCurrentUrl = async () => {
 export default function ReportPage() {
   const { slug = '' } = useParams();
   const { data, isLoading, isError, error, refetch } = useQuery(reportQueryOptions(slug));
+  const { user } = useAuth();
+  const isPro = user?.subscription === 'PRO' || user?.subscription === 'TEAM';
 
   if (isLoading) {
     return <ReportSkeleton />;
@@ -584,7 +587,7 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
       </div>
 
       {/* PRO Upgrade CTA - positioned after summary cards, before evidence sections */}
-      <ProUpgradeCTA />
+      <ProUpgradeCTA isPro={isPro} />
 
       <div className="flex flex-wrap items-center gap-2 text-sm" role="tablist" aria-label="Severity filter (1 All, 2 High, 3 Med, 4 Low)">
         {severityOptions.map((option) => (
@@ -878,5 +881,4 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
     </>
   );
 }
-
 
