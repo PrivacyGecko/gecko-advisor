@@ -217,7 +217,9 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
                   {/* User email and badge */}
                   <div className="hidden sm:flex flex-col items-start">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm max-w-[150px] truncate">{user.email}</span>
+                      <span className="text-sm max-w-[150px] truncate">
+                        {user.name && user.name.trim().length > 0 ? user.name : user.email}
+                      </span>
                       {isPro && (
                         <span className="px-1.5 py-0.5 text-xs font-semibold bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded">
                           PRO
@@ -246,8 +248,11 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
                     {/* User info */}
                     <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-900 truncate">{user.email}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {user.name && user.name.trim().length > 0 ? user.name : user.email}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">{user.email}</p>
+                      <p className="text-xs text-gray-500">
                         {user.subscription} {isPro && '✨'}
                       </p>
                     </div>
