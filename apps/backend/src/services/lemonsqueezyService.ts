@@ -178,7 +178,9 @@ export class LemonSqueezyService {
         },
         productOptions: {
           redirectUrl:
-            successUrl || `${config.apiOrigin}/dashboard?success=true`,
+            successUrl ??
+            config.payments.lemonsqueezy.checkoutRedirectUrl ??
+            `${config.apiOrigin}/dashboard?success=true`,
         },
       });
 
