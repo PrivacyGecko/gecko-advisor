@@ -28,16 +28,20 @@ export function normalizeUrl(input: string): URL {
   try {
     url = new URL(trimmedInput);
   } catch {
-    // Only if parsing fails, try adding http prefix
+    // Only if parsing fails, try adding HTTPS prefix and fall back to HTTP if needed
     // But first validate the input doesn't contain protocol separators that could be bypassed
     if (trimmedInput.includes('://') || trimmedInput.startsWith('//')) {
       throw new Error('Invalid URL format');
     }
 
     try {
-      url = new URL(`http://${trimmedInput}`);
+      url = new URL(`https://${trimmedInput}`);
     } catch {
-      throw new Error('Invalid URL format');
+      try {
+        url = new URL(`http://${trimmedInput}`);
+      } catch {
+        throw new Error('Invalid URL format');
+      }
     }
   }
 
@@ -122,5 +126,4 @@ export function issueSeverityWeight(severity: 'info' | 'low' | 'medium' | 'high'
       return 1;
   }
 }
-
 
