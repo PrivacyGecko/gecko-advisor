@@ -13,7 +13,7 @@ import { toReportView, type ReportViewModel } from '../../lib/adapters/scan';
 import { addHistory } from '../../lib/history';
 import { useSentryRouteTags } from '../../sentry';
 
-const DEFAULT_PROGRESS = 35;
+const DEFAULT_PROGRESS = 0;
 
 type SeverityFilter = 'all' | 'high' | 'medium' | 'low';
 
@@ -207,7 +207,7 @@ export default function ScanRoute() {
 function ScanningState({ status, progress, slug }: { status: string; progress: number; slug?: string }) {
   return (
     <div className="mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col items-center justify-center gap-6 p-6 text-center">
-      <ProgressDial percent={Math.min(100, Math.max(5, progress))} />
+      <ProgressDial percent={progress} />
       <div className="text-2xl font-semibold text-slate-900">{status === 'running' ? 'Scanning in progress�' : 'Queued�'}</div>
       <p className="max-w-md text-sm text-slate-600">We�re collecting evidence, checking trackers, and grading TLS. This usually takes under 10 seconds.</p>
       {slug && (

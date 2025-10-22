@@ -95,7 +95,7 @@ export default function Scan() {
         ) : (
           <div className="py-4">
             <ScanProgress
-              progress={data?.progress ?? (data?.status === 'done' ? 100 : 45)}
+              progress={data?.progress ?? (data?.status === 'done' ? 100 : 0)}
               status={data?.status === 'queued' ? 'pending' : data?.status === 'running' ? 'processing' : data?.status ?? 'processing'}
               currentStep={undefined}
               estimatedTimeRemaining={undefined}
