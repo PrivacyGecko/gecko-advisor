@@ -23,6 +23,7 @@ const About = React.lazy(() => import('./pages/About'));
 const Pricing = React.lazy(() => import('./pages/Pricing'));
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
+const CheckoutSuccess = React.lazy(() => import('./pages/CheckoutSuccess'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 
 // Loading component for Suspense fallback
@@ -94,6 +95,14 @@ const router = createBrowserRouter([
     element: (
       <React.Suspense fallback={<PageLoader />}>
         <Pricing />
+      </React.Suspense>
+    )
+  },
+  {
+    path: '/checkout-success',
+    element: (
+      <React.Suspense fallback={<PageLoader />}>
+        <CheckoutSuccess />
       </React.Suspense>
     )
   },
