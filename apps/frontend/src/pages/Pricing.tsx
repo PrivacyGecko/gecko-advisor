@@ -136,12 +136,12 @@ export default function Pricing() {
     {
       question: 'What payment methods do you accept?',
       answer:
-        'Currently, PRO access is available through Solana wallet authentication - hold 10,000 or more $PRICKO tokens in your connected wallet for instant PRO access. Credit card payments (via LemonSqueezy) are coming very soon and will support customers in 135+ countries worldwide. Contact support@geckoadvisor.com if you need alternative payment arrangements.',
+        'Currently, PRO access is available through Solana wallet authentication - hold 10,000 or more $PRICKO tokens in your connected wallet for instant PRO access. Credit card payments are coming soon after token launch. Contact support@geckoadvisor.com if you need alternative arrangements.',
     },
     {
       question: 'Is my payment information secure?',
       answer:
-        'Absolutely. Wallet authentication uses zero-knowledge verification - your wallet address is hashed and never stored in plaintext. For credit card payments (coming soon), we will use LemonSqueezy, a trusted payment processor built for SaaS businesses, with full PCI compliance and secure encryption. Your payment information will never be stored on our servers.',
+        'Absolutely. Wallet authentication uses zero-knowledge verification—your wallet address is hashed and never stored in plaintext. Card payments will roll out after the $PRICKO launch, and your payment information will never touch our servers.',
     },
     {
       question: 'What are "Advanced privacy insights"?',
@@ -179,9 +179,9 @@ export default function Pricing() {
         'Yes! Once credit card payments are available, you can have both a monthly subscription and hold $PRICKO tokens. If you cancel your subscription but still hold 10,000+ tokens, your PRO access continues uninterrupted. This gives you maximum flexibility.',
     },
     {
-      question: 'Why LemonSqueezy instead of Stripe?',
+      question: 'What about credit or debit cards?',
       answer:
-        'LemonSqueezy offers global coverage in 135+ countries (vs Stripe\'s limited availability) and acts as a Merchant of Record, handling all tax compliance worldwide automatically. This means faster approvals, broader customer reach, and zero tax headaches. They\'re specifically built for SaaS businesses like Gecko Advisor.',
+        'We\'re beta-focused on the $PRICKO token launch. Once tokens are live, we\'ll open up traditional payment methods.',
     },
   ];
 
@@ -206,56 +206,9 @@ export default function Pricing() {
       return;
     }
 
-    // PAYMENT PROVIDER: Feature flags
-    // Stripe disabled (country restrictions), LemonSqueezy enabled for global coverage
-    const STRIPE_ENABLED = false;
-    const LEMONSQUEEZY_ENABLED = true;
-
-    // Temporary: Show helpful message while credit card payments are being upgraded
-    if (!STRIPE_ENABLED && !LEMONSQUEEZY_ENABLED) {
-      alert(
-        '💳 Credit Card Payments Coming Very Soon!\n\n' +
-        'We\'re upgrading our payment system to support customers in 135+ countries worldwide.\n\n' +
-        '🎯 In the meantime, you can access PRO by:\n' +
-        '  • Connecting your Solana wallet with 10,000+ $PRICKO tokens\n' +
-        '  • Contacting support@geckoadvisor.com for alternative arrangements\n\n' +
-        '✨ Global credit card payments via LemonSqueezy will be live within days!\n\n' +
-        'Thank you for your patience.'
-      );
-      return;
-    }
-
-    setIsCheckoutLoading(true);
-
-    try {
-      // Determine endpoint based on enabled provider
-      const endpoint = LEMONSQUEEZY_ENABLED
-        ? '/api/lemonsqueezy/create-checkout'
-        : '/api/stripe/create-checkout';
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to create checkout session');
-      }
-
-      const { url } = await response.json();
-      window.location.href = url;
-    } catch (error) {
-      console.error('Checkout error:', error);
-      alert(
-        'Failed to start checkout process.\n\n' +
-        'Please try wallet authentication or contact support@geckoadvisor.com'
-      );
-      setIsCheckoutLoading(false);
-    }
+    // Payments are on hold until the $PRICKO launch
+    alert('PRO subscriptions open with the $PRICKO token launch. Connect your wallet soon to unlock unlimited scans.');
+    return;
   };
 
   // Toggle FAQ accordion
@@ -334,30 +287,9 @@ export default function Pricing() {
                     </div>
                   </div>
 
-                  {/* CTA Button */}
-                  <button
-                    onClick={tier.name === 'FREE' ? handleFreeCTA : handleProCTA}
-                    disabled={tier.name === 'PRO' && isCheckoutLoading}
-                    className={`w-full py-4 px-6 rounded-lg font-semibold text-base transition-all shadow-md hover:shadow-lg mb-8 disabled:opacity-50 disabled:cursor-not-allowed ${
-                      tier.ctaVariant === 'primary'
-                        ? 'bg-gradient-to-r from-gecko-500 to-gecko-600 text-white hover:from-gecko-600 hover:to-gecko-700'
-                        : 'bg-white text-gecko-600 border-2 border-gecko-500 hover:bg-gecko-50'
-                    }`}
-                    aria-label={tier.cta}
-                  >
-                    {tier.name === 'PRO' && isCheckoutLoading ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Loading...
-                      </span>
-                    ) : (
-                      tier.cta
-                    )}
-                  </button>
-
+                  <div className="w-full py-4 px-6 rounded-lg font-semibold text-base text-slate-500 bg-slate-100 border-2 border-dashed border-slate-300 text-center mb-8">
+                    $PRICKO token launch opening soon. Card checkout will follow after tokens go live.
+                  </div>
                   {/* Features list */}
                   <div className="space-y-4">
                     <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
@@ -592,7 +524,7 @@ export default function Pricing() {
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Secure Payment</h3>
                 <p className="text-sm text-gray-600">
-                  Wallet authentication uses zero-knowledge verification. Credit card payments (coming soon) will be processed securely through LemonSqueezy with full PCI compliance. We never store your payment details.
+
                 </p>
               </div>
 
@@ -660,7 +592,7 @@ export default function Pricing() {
 
             {/* Payment Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Credit Card Option - LemonSqueezy (Global payments in 135+ countries) */}
+              {/* Card checkout will return after tokens go live */}
               <article
                 className="relative overflow-hidden bg-white p-8 rounded-2xl border-2 border-gecko-500 shadow-xl hover:shadow-2xl hover:border-gecko-600 transition-all duration-300"
                 aria-labelledby="payment-card-heading"
@@ -693,12 +625,12 @@ export default function Pricing() {
                   <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                   </svg>
-                  <span className="text-sm font-medium text-slate-700">Secured by LemonSqueezy</span>
+                  <span className="text-sm font-medium text-slate-700">More payment methods coming soon</span>
                 </div>
 
                 {/* Screen reader context */}
                 <span className="sr-only">
-                  Recommended payment method. Subscribe for $4.99 per month using credit or debit card through LemonSqueezy with global coverage in 135+ countries. Cancel anytime without penalty.
+                  Card checkout will open shortly after the $PRICKO token launch.
                 </span>
               </article>
 
