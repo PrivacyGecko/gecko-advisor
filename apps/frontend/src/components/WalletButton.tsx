@@ -12,6 +12,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { truncateAddress } from '../lib/wallet';
 import WalletDropdownMenu from './WalletDropdownMenu';
 
+const WALLET_AUTH_ENABLED = import.meta.env.VITE_WALLET_AUTH_ENABLED !== 'false';
+
 /**
  * WalletButton Component Props
  */
@@ -50,6 +52,9 @@ export const WalletButton: React.FC<WalletButtonProps> = ({
   className,
   showFullButtonOnMobile = false,
 }) => {
+  if (!WALLET_AUTH_ENABLED) {
+    return null;
+  }
   const { wallet, connect, disconnect, connecting, publicKey, signMessage } = useWallet();
   const { setVisible } = useWalletModal();
   const { wallet: walletState, loginWithWallet, user } = useAuth();
