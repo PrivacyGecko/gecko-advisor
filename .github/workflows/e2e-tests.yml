@@ -12,6 +12,7 @@ on:
 env:
   NODE_VERSION: '18'
   PNPM_VERSION: '8'
+  PAYMENT_TESTS_ENABLED: ${{ vars.PAYMENT_TESTS_ENABLED || 'false' }}
 
 jobs:
   e2e-tests:
@@ -122,9 +123,13 @@ jobs:
 
       - name: Run E2E tests
         run: |
+          FILTER="--grep=${{ matrix.test-suite }}"
+          if [ "${{ env.PAYMENT_TESTS_ENABLED }}" != "true" ]; then
+            FILTER="$FILTER --grep-invert=@requires-payment"
+          fi
           pnpm exec playwright test \
             --project=${{ matrix.browser }} \
-            --grep="${{ matrix.test-suite }}" \
+            $FILTER \
             --reporter=html,json,junit \
             --output-dir=test-results/${{ matrix.browser }}-${{ matrix.test-suite }}
         env:
