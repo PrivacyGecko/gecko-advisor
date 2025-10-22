@@ -6,11 +6,19 @@ import { logger } from '../logger.js';
 import { requireAuth } from '../middleware/auth.js';
 import { StripeService } from '../services/stripeService.js';
 import type { SafeUser } from '../services/authService.js';
+import { config } from '../config.js';
 
 export const stripeRouter = Router();
 
-// Initialize Stripe service
-const stripeService = new StripeService(prisma);
+const stripeEnabled = config.payments.stripe.enabled;
+const stripeService = stripeEnabled ? new StripeService(prisma) : null;
+
+stripeRouter.use((req, res, next) => {
+  if (!stripeEnabled || !stripeService) {
+    return problem(res, 503, 'Service Unavailable', 'Stripe payments are disabled.');
+  }
+  return next();
+});
 
 /**
  * Create checkout session for Pro subscription
@@ -42,7 +50,7 @@ stripeRouter.post('/create-checkout', requireAuth, async (req: Request, res: Res
     }
 
     // Create checkout session
-    const session = await stripeService.createCheckoutSession(user.id, user.email);
+    const session = await stripeService!.createCheckoutSession(user.id, user.email);
 
     logger.info(
       { userId: user.id, sessionId: session.id },
@@ -98,7 +106,7 @@ stripeRouter.post('/create-portal', requireAuth, async (req: Request, res: Respo
     }
 
     // Create portal session
-    const session = await stripeService.createPortalSession(user.stripeCustomerId);
+    const session = await stripeService!.createPortalSession(user.stripeCustomerId);
 
     logger.info(
       { userId: user.id, sessionId: session.id },
@@ -144,7 +152,7 @@ stripeRouter.post(
       }
 
       // Verify webhook signature and construct event
-      const event = stripeService.verifyWebhookSignature(payload, signature);
+      const event = stripeService!.verifyWebhookSignature(payload, signature);
 
       logger.info(
         { eventType: event.type, eventId: event.id },
@@ -153,7 +161,7 @@ stripeRouter.post(
 
       // Handle webhook event asynchronously
       // Don't await to respond quickly to Stripe
-      stripeService.handleWebhook(event).catch((error) => {
+      stripeService!.handleWebhook(event).catch((error) => {
         logger.error(
           { error, eventType: event.type, eventId: event.id },
           'Error handling webhook event'

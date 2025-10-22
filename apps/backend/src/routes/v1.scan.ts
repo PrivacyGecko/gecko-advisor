@@ -66,6 +66,7 @@ scanV1Router.post(['/', '/url'], async (req, res) => {
       input: url,
       normalizedInput,
       status: 'queued',
+      progress: 0,
       source: force ? 'manual-force' : 'manual',
     });
 
@@ -125,6 +126,7 @@ scanV1Router.post('/app', async (req, res) => {
     targetType: 'app',
     input: appId,
     status: 'done',
+    progress: 100,
     source: 'stub',
     score: 75,
     label: 'Caution',
@@ -140,6 +142,7 @@ scanV1Router.post('/address', async (req, res) => {
     targetType: 'address',
     input: parsed.data.address,
     status: 'done',
+    progress: 100,
     source: 'stub',
     score: 80,
     label: 'Safe',

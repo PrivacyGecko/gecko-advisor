@@ -106,7 +106,7 @@ export const config = {
   // LemonSqueezy integration is in progress
   payments: {
     stripe: {
-      enabled: process.env.STRIPE_ENABLED === 'true',
+      enabled: process.env.STRIPE_ENABLED === 'true' && !!process.env.STRIPE_SECRET_KEY,
       secretKey: process.env.STRIPE_SECRET_KEY,
       webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
       priceId: process.env.STRIPE_PRICE_ID,

@@ -1,7 +1,8 @@
-﻿import type { Prisma, PrismaClient } from '@prisma/client';
+import type { Prisma, PrismaClient } from '@prisma/client';
 import { load as loadHtml } from 'cheerio';
 import { normalizeUrl, etldPlusOne } from '@privacy-advisor/shared';
 import { getLists } from './lists.js';
+import { logger } from './logger.js';
 
 /**
  * Sanitizes HTML content to prevent XSS attacks by removing dangerous elements and attributes.
@@ -238,8 +239,31 @@ export async function scanSiteJob(
   urlInput: string,
   job?: { updateProgress: (progress: number) => Promise<void> }
 ) {
+  const reportProgress = async (value: number) => {
+    const tasks: Promise<unknown>[] = [];
+
+    if (job) {
+      tasks.push(
+        job.updateProgress(value).catch((error) => {
+          logger.debug({ error, scanId, value }, 'Failed to update job progress');
+        })
+      );
+    }
+
+    tasks.push(
+      prisma.scan.update({
+        where: { id: scanId },
+        data: { progress: value },
+      }).catch((error) => {
+        logger.debug({ error, scanId, value }, 'Failed to persist scan progress');
+      })
+    );
+
+    await Promise.all(tasks);
+  };
+
   // Initial setup - 10% progress
-  if (job) await job.updateProgress(10).catch(() => {});
+  await reportProgress(10);
 
   const u = normalizeUrl(urlInput);
   const origin = u.origin;
@@ -247,7 +271,7 @@ export async function scanSiteJob(
   const siteRoot = etldPlusOne(hostname);
 
   // Load privacy lists - 20% progress
-  if (job) await job.updateProgress(20).catch(() => {});
+  await reportProgress(20);
   const lists = await getLists(prisma);
 
   const visited = new Set<string>();
@@ -274,7 +298,7 @@ export async function scanSiteJob(
 
     // Update progress during crawl (30% - 70% range)
     crawlProgress = 30 + Math.floor((visited.size / pagesLimit) * 40);
-    if (job) await job.updateProgress(crawlProgress).catch(() => {});
+    await reportProgress(crawlProgress);
 
     const response = await fetchPage(curr, hostname);
     if (!response) continue;
@@ -388,7 +412,7 @@ export async function scanSiteJob(
   }
 
   // Batch insert all evidence - 70% progress
-  if (job) await job.updateProgress(70).catch(() => {});
+  await reportProgress(70);
   if (allEvidence.length > 0) {
     await prisma.evidence.createMany({
       data: allEvidence,
@@ -397,13 +421,13 @@ export async function scanSiteJob(
   }
 
   // Scoring phase - 75% progress
-  if (job) await job.updateProgress(75).catch(() => {});
+  await reportProgress(75);
 
   const { computeScore } = await import('./scoring.js');
   const result = await computeScore(prisma, scanId);
 
   // Saving results - 90% progress
-  if (job) await job.updateProgress(90).catch(() => {});
+  await reportProgress(90);
 
   await prisma.$transaction(async (tx) => {
     await tx.issue.deleteMany({ where: { scanId } });
@@ -434,8 +458,6 @@ export async function scanSiteJob(
     });
   });
 }
-
-
 
 
 

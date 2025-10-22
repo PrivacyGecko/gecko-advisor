@@ -101,6 +101,7 @@ export const ScanSchema = z.object({
   status: z.string(),
   score: z.number().nullable().optional(),
   label: z.string().nullable().optional(),
+  progress: z.number().int().min(0).max(100).optional(),
   summary: z.string().nullable().optional(),
   slug: z.string(),
   source: z.string().optional(),

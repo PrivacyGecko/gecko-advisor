@@ -171,8 +171,9 @@ export function createServer() {
   app.use('/api', apiV2Router);
 
   // Pro tier feature routes
-  // Stripe payment routes (requires STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_ID)
-  app.use('/api/stripe', stripeRouter);
+  if (config.payments.stripe.enabled) {
+    app.use('/api/stripe', stripeRouter);
+  }
 
   // LemonSqueezy payment routes (global coverage, handles tax compliance)
   app.use('/api/lemonsqueezy', lemonsqueezyRouter);
@@ -224,8 +225,6 @@ export function createServer() {
 
   return app;
 }
-
-
 
 
 
