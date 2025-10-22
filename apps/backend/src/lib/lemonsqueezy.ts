@@ -63,7 +63,10 @@ export async function createLemonSqueezyCheckout(params: {
         },
       },
       productOptions: {
-        redirectUrl: successUrl || `${config.apiOrigin}/pricing?success=true`,
+        redirectUrl:
+          successUrl ??
+          config.payments.lemonsqueezy.checkoutRedirectUrl ??
+          `${config.apiOrigin}/pricing?success=true`,
       },
     }
   );

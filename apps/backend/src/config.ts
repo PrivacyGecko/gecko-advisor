@@ -117,6 +117,7 @@ export const config = {
       storeId: process.env.LEMONSQUEEZY_STORE_ID,
       variantId: process.env.LEMONSQUEEZY_VARIANT_ID,
       webhookSecret: process.env.LEMONSQUEEZY_WEBHOOK_SECRET,
+      checkoutRedirectUrl: process.env.LEMONSQUEEZY_CHECKOUT_REDIRECT_URL,
     },
     wallet: {
       enabled: process.env.WALLET_AUTH_ENABLED !== 'false', // Default true
@@ -130,4 +131,3 @@ export type AppConfig = typeof config;
 export function isDev() {
   return config.nodeEnv === 'development';
 }
-
