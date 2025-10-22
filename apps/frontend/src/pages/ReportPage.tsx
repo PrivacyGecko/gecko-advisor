@@ -16,8 +16,10 @@ import VirtualizedEvidenceList from '../components/VirtualizedEvidenceList';
 import { ScoreDialSkeleton, CardSkeleton, EvidenceCardSkeleton } from '../components/Skeleton';
 import { ErrorState } from '../components/ErrorBoundary';
 import Footer from '../components/Footer';
+import ProUpgradeCTA from '../components/ProUpgradeCTA';
 import type { LegacyReportResponse } from '@privacy-advisor/shared';
 import { computeDataSharingLevel, type DataSharingLevel } from '../lib/dataSharing';
+import { useAuth } from '../contexts/AuthContext';
 
 type EvidenceItem = LegacyReportResponse['evidence'][number];
 type EvidenceType = EvidenceItem['type'];
@@ -27,7 +29,7 @@ type SeverityFilter = 'all' | 'high' | 'medium' | 'low';
  * Maps evidence type to human-readable category label
  */
 const getCategoryLabel = (type: string | undefined): string => {
-  if (!type) return 'Security & Privacy';
+  if (!type || type === 'undefined' || type === 'unknown') return 'Security & Privacy';
 
   const labels: Record<string, string> = {
     'tracker': 'Tracking & Analytics',
@@ -233,6 +235,8 @@ const copyCurrentUrl = async () => {
 export default function ReportPage() {
   const { slug = '' } = useParams();
   const { data, isLoading, isError, error, refetch } = useQuery(reportQueryOptions(slug));
+  const { user } = useAuth();
+  const isPro = user?.subscription === 'PRO' || user?.subscription === 'TEAM';
 
   if (isLoading) {
     return <ReportSkeleton />;
@@ -280,7 +284,7 @@ export default function ReportPage() {
     );
   }
 
-  return <ReportBody slug={slug} data={data} />;
+  return <ReportBody slug={slug} data={data} isPro={isPro} />;
 }
 
 /**
@@ -333,7 +337,7 @@ function ReportSkeleton() {
   );
 }
 
-function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }) {
+function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportResponse; isPro: boolean }) {
   const { scan, evidence, meta } = data;
 
   const trackerDomains = React.useMemo(() => {
@@ -544,8 +548,20 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
           <div className="mt-2 text-2xl font-semibold">{scan.score ?? 0}</div>
         </Card>
         <Card>
-          <div className="text-xs text-slate-500">Data sharing level</div>
-          <div className="mt-2 text-2xl font-semibold">{dataSharingLevel}</div>
+          <div className="text-xs text-slate-500 inline-flex items-center gap-2">
+            Data Sharing Risk
+            <InfoPopover label="Data Sharing Risk">
+              Indicates the level of data sharing based on trackers, third-party connections, and cookies. Lower is better.
+            </InfoPopover>
+          </div>
+          <div className={`mt-2 text-2xl font-semibold ${
+            dataSharingLevel === 'None' ? 'text-green-700' :
+            dataSharingLevel === 'Low' ? 'text-green-600' :
+            dataSharingLevel === 'Medium' ? 'text-amber-600' :
+            'text-red-600'
+          }`}>
+            {dataSharingLevel}
+          </div>
           <div className="text-xs text-slate-600">
             <span className="sr-only">Breakdown: </span>
             Trackers: {trackerDomains.length}
@@ -558,7 +574,9 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
         <Card>
           <div className="text-xs text-slate-500">TLS/HTTPS</div>
           <div className="mt-2 text-2xl font-semibold">{sslStatus}</div>
-          <div className="text-xs text-slate-600">TLS grade {tlsGrade ?? 'unknown'}</div>
+          <div className="text-xs text-slate-600">
+            {tlsGrade ? `TLS grade: ${tlsGrade}` : 'TLS grade: Not rated'}
+          </div>
         </Card>
         <Card>
           <div className="text-xs text-slate-500">Top trackers</div>
@@ -567,6 +585,9 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
           </div>
         </Card>
       </div>
+
+      {/* PRO Upgrade CTA - positioned after summary cards, before evidence sections */}
+      <ProUpgradeCTA isPro={isPro} />
 
       <div className="flex flex-wrap items-center gap-2 text-sm" role="tablist" aria-label="Severity filter (1 All, 2 High, 3 Med, 4 Low)">
         {severityOptions.map((option) => (
@@ -860,5 +881,3 @@ function ReportBody({ slug, data }: { slug: string; data: LegacyReportResponse }
     </>
   );
 }
-
-

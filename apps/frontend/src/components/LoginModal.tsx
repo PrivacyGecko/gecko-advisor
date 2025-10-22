@@ -11,6 +11,7 @@ export interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSwitchToSignup?: () => void;
+  onForgotPassword?: (email?: string) => void;
 }
 
 /**
@@ -32,7 +33,7 @@ export interface LoginModalProps {
  *   onSwitchToSignup={() => { setShowLogin(false); setShowSignup(true); }}
  * />
  */
-export default function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProps) {
+export default function LoginModal({ isOpen, onClose, onSwitchToSignup, onForgotPassword }: LoginModalProps) {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -141,9 +142,21 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginM
 
           {/* Password input */}
           <div>
-            <label htmlFor="login-password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label htmlFor="login-password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              {onForgotPassword && (
+                <button
+                  type="button"
+                  className="text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                  onClick={() => onForgotPassword(email)}
+                  disabled={isLoading}
+                >
+                  Forgot password?
+                </button>
+              )}
+            </div>
             <input
               id="login-password"
               type="password"

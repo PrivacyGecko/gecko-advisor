@@ -1,7 +1,8 @@
-﻿import type { Prisma, PrismaClient } from '@prisma/client';
+import type { Prisma, PrismaClient } from '@prisma/client';
 import { load as loadHtml } from 'cheerio';
 import { normalizeUrl, etldPlusOne } from '@privacy-advisor/shared';
 import { getLists } from './lists.js';
+import { logger } from './logger.js';
 
 /**
  * Sanitizes HTML content to prevent XSS attacks by removing dangerous elements and attributes.
@@ -101,6 +102,14 @@ type ThirdPartyEvidence = {
   fingerprinting: boolean;
 };
 
+type EvidenceData = {
+  scanId: string;
+  kind: string;
+  severity: number;
+  title: string;
+  details: Prisma.InputJsonValue;
+};
+
 type FetchResponse = {
   headers: Headers;
   text(): Promise<string>;
@@ -158,90 +167,113 @@ async function fetchPage(curr: string, hostname: string): Promise<FetchResponse 
   }
 }
 
-async function recordHeaderIssues(
-  prisma: PrismaClient,
+function collectHeaderIssues(
   scanId: string,
   headers: Headers,
-): Promise<void> {
-  await Promise.all(
-    SECURITY_HEADERS.map(async (name) => {
-      if (!headers.has(name)) {
-        await prisma.evidence.create({
-          data: {
-            scanId,
-            kind: 'header',
-            severity: 2,
-            title: `Missing header: ${name}`,
-            details: { name },
-          },
-        });
-      }
-    }),
-  );
+): EvidenceData[] {
+  const evidence: EvidenceData[] = [];
+  for (const name of SECURITY_HEADERS) {
+    if (!headers.has(name)) {
+      evidence.push({
+        scanId,
+        kind: 'header',
+        severity: 2,
+        title: `Missing header: ${name}`,
+        details: { name },
+      });
+    }
+  }
+  return evidence;
 }
 
-async function recordCookieIssues(
-  prisma: PrismaClient,
+function collectCookieIssues(
   scanId: string,
   headers: Headers,
-): Promise<void> {
+): EvidenceData[] {
+  const evidence: EvidenceData[] = [];
   const cookies = (headers as unknown as { getSetCookie?: () => string[] }).getSetCookie?.() ?? [];
-  await Promise.all(
-    cookies.map(async (cookie) => {
-      const lower = cookie.toLowerCase();
-      if (!lower.includes('secure') || !lower.includes('samesite')) {
-        await prisma.evidence.create({
-          data: {
-            scanId,
-            kind: 'cookie',
-            severity: 2,
-            title: 'Cookie missing Secure/SameSite',
-            details: { cookie },
-          },
-        });
-      }
-    }),
-  );
+  for (const cookie of cookies) {
+    const lower = cookie.toLowerCase();
+    if (!lower.includes('secure') || !lower.includes('samesite')) {
+      evidence.push({
+        scanId,
+        kind: 'cookie',
+        severity: 2,
+        title: 'Cookie missing Secure/SameSite',
+        details: { cookie },
+      });
+    }
+  }
+  return evidence;
 }
 
-async function recordThirdParty(
-  prisma: PrismaClient,
+function createThirdPartyEvidence(
   evidence: ThirdPartyEvidence,
-): Promise<void> {
+): EvidenceData {
   const { scanId, hostname, root, fingerprinting } = evidence;
-  await prisma.evidence.create({
-    data: {
-      scanId,
-      kind: 'thirdparty',
-      severity: 2,
-      title: `Third-party request: ${hostname}`,
-      details: { domain: hostname, root, fingerprinting },
-    },
-  });
+  return {
+    scanId,
+    kind: 'thirdparty',
+    severity: 2,
+    title: `Third-party request: ${hostname}`,
+    details: { domain: hostname, root, fingerprinting },
+  };
 }
 
-async function recordTracker(
-  prisma: PrismaClient,
+function createTrackerEvidence(
   evidence: ThirdPartyEvidence,
-): Promise<void> {
+): EvidenceData {
   const { scanId, root, fingerprinting } = evidence;
-  await prisma.evidence.create({
-    data: {
-      scanId,
-      kind: 'tracker',
-      severity: 3,
-      title: `Tracker matched: ${root}`,
-      details: { domain: root, fingerprinting },
-    },
-  });
+  return {
+    scanId,
+    kind: 'tracker',
+    severity: 3,
+    title: `Tracker matched: ${root}`,
+    details: { domain: root, fingerprinting },
+  };
 }
 
-export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput: string) {
+export async function scanSiteJob(
+  prisma: PrismaClient,
+  scanId: string,
+  urlInput: string,
+  job?: { updateProgress: (progress: number) => Promise<void> }
+) {
+  const reportProgress = async (value: number) => {
+    const tasks: Promise<unknown>[] = [];
+
+    if (job) {
+      tasks.push(
+        job.updateProgress(value).catch((error) => {
+          logger.debug({ error, scanId, value }, 'Failed to update job progress');
+        })
+      );
+    }
+
+    tasks.push(
+      prisma.scan.update({
+        where: { id: scanId },
+        data: { progress: value },
+      }).catch((error) => {
+        logger.debug({ error, scanId, value }, 'Failed to persist scan progress');
+      })
+    );
+
+    await Promise.all(tasks);
+  };
+
+  // Initial setup - 10% progress
+  await reportProgress(10);
+
   const u = normalizeUrl(urlInput);
   const origin = u.origin;
   const hostname = u.hostname;
   const siteRoot = etldPlusOne(hostname);
+
+  // Load privacy lists - 20% progress
+  await reportProgress(20);
   const lists = await getLists(prisma);
+
   const visited = new Set<string>();
   const queue: string[] = [u.href];
   const pagesLimit = 10;
@@ -251,10 +283,22 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
   const trackerDomains = new Set(lists.easyprivacy.domains);
   const fpDomains = new Set((lists.whotracks.fingerprinting ?? []).map((domain: string) => domain));
 
+  // Collect all evidence in memory for batch insertion
+  const allEvidence: EvidenceData[] = [];
+  const seenThirdParties = new Set<string>();
+  const seenTrackers = new Set<string>();
+
+  // Crawling phase: 30% - 70% progress
+  let crawlProgress = 0;
+
   while (queue.length && visited.size < pagesLimit && Date.now() - start < timeBudgetMs) {
     const curr = queue.shift();
     if (!curr || visited.has(curr)) continue;
     visited.add(curr);
+
+    // Update progress during crawl (30% - 70% range)
+    crawlProgress = 30 + Math.floor((visited.size / pagesLimit) * 40);
+    await reportProgress(crawlProgress);
 
     const response = await fetchPage(curr, hostname);
     if (!response) continue;
@@ -262,13 +306,18 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
     const { headers } = response;
     if (!isHeaders(headers)) continue;
 
-    await recordHeaderIssues(prisma, scanId, headers);
-    await recordCookieIssues(prisma, scanId, headers);
+    // Collect header and cookie issues
+    allEvidence.push(...collectHeaderIssues(scanId, headers));
+    allEvidence.push(...collectCookieIssues(scanId, headers));
 
     if (visited.size === 1) {
       const grade = await gradeTls(u);
-      await prisma.evidence.create({
-        data: { scanId, kind: 'tls', severity: 1, title: `TLS grade ${grade}`, details: { grade } },
+      allEvidence.push({
+        scanId,
+        kind: 'tls',
+        severity: 1,
+        title: `TLS grade ${grade}`,
+        details: { grade },
       });
     }
 
@@ -283,29 +332,25 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
     });
 
     if (policyAnchor && visited.size === 1) {
-      await prisma.evidence.create({
-        data: {
-          scanId,
-          kind: 'policy',
-          severity: 1,
-          title: 'Privacy policy link detected',
-          details: { href: $(policyAnchor).attr('href') ?? '' },
-        },
+      allEvidence.push({
+        scanId,
+        kind: 'policy',
+        severity: 1,
+        title: 'Privacy policy link detected',
+        details: { href: $(policyAnchor).attr('href') ?? '' },
       });
     }
 
-    const resourceDomains = new Set<string>();
+    // Collect third-party and tracker evidence
     $('script[src],img[src],link[href]').each((_i, element) => {
       const src = $(element).attr('src') ?? $(element).attr('href') ?? '';
       if (!src) return;
 
-      // Sanitize and validate the URL before processing
       const sanitizedSrc = sanitizeUrl(src, curr);
       if (!sanitizedSrc) return;
 
       try {
         const resolved = new URL(sanitizedSrc);
-        resourceDomains.add(resolved.hostname);
         const root = etldPlusOne(resolved.hostname);
         const evidence: ThirdPartyEvidence = {
           scanId,
@@ -314,34 +359,39 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
           fingerprinting: fpDomains.has(root),
         };
         const isThirdParty = root !== siteRoot;
-        if (isThirdParty) recordThirdParty(prisma, evidence).catch(() => {});
-        if (trackerDomains.has(root)) recordTracker(prisma, evidence).catch(() => {});
+
+        // Use deduplication to avoid duplicate evidence
+        if (isThirdParty && !seenThirdParties.has(resolved.hostname)) {
+          seenThirdParties.add(resolved.hostname);
+          allEvidence.push(createThirdPartyEvidence(evidence));
+        }
+
+        if (trackerDomains.has(root) && !seenTrackers.has(root)) {
+          seenTrackers.add(root);
+          allEvidence.push(createTrackerEvidence(evidence));
+        }
       } catch {
         // ignore invalid URLs
       }
     });
 
     if (/navigator\.plugins|canvas|getImageData|AudioContext|OfflineAudioContext/i.test(sanitizedHtml)) {
-      await prisma.evidence.create({
-        data: {
-          scanId,
-          kind: 'fingerprint',
-          severity: 3,
-          title: 'Fingerprinting heuristics detected',
-          details: {},
-        },
+      allEvidence.push({
+        scanId,
+        kind: 'fingerprint',
+        severity: 3,
+        title: 'Fingerprinting heuristics detected',
+        details: {},
       });
     }
 
     if (u.protocol === 'https:' && /http:\/\//i.test(sanitizedHtml)) {
-      await prisma.evidence.create({
-        data: {
-          scanId,
-          kind: 'insecure',
-          severity: 3,
-          title: 'Mixed content detected',
-          details: {},
-        },
+      allEvidence.push({
+        scanId,
+        kind: 'insecure',
+        severity: 3,
+        title: 'Mixed content detected',
+        details: {},
       });
     }
 
@@ -349,7 +399,6 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
       const href = (anchor as { attribs?: { href?: string } }).attribs?.href;
       if (!href) return;
 
-      // Sanitize and validate the URL before processing
       const sanitizedHref = sanitizeUrl(href, curr);
       if (!sanitizedHref) return;
 
@@ -362,8 +411,23 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
     });
   }
 
+  // Batch insert all evidence - 70% progress
+  await reportProgress(70);
+  if (allEvidence.length > 0) {
+    await prisma.evidence.createMany({
+      data: allEvidence,
+      skipDuplicates: true,
+    });
+  }
+
+  // Scoring phase - 75% progress
+  await reportProgress(75);
+
   const { computeScore } = await import('./scoring.js');
   const result = await computeScore(prisma, scanId);
+
+  // Saving results - 90% progress
+  await reportProgress(90);
 
   await prisma.$transaction(async (tx) => {
     await tx.issue.deleteMany({ where: { scanId } });
@@ -394,8 +458,6 @@ export async function scanSiteJob(prisma: PrismaClient, scanId: string, urlInput
     });
   });
 }
-
-
 
 
 

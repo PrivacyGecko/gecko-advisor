@@ -14,8 +14,9 @@ import { apiV1Router, apiV2Router } from "./routes/index.js";
 import { adminRouter } from "./routes/admin.js";
 import { docsRouter } from "./routes/docs.js";
 import { authRouter } from "./routes/auth.js";
-// TEMPORARILY DISABLED FOR STAGE DEPLOYMENT - Uncomment when Stripe is configured
-// import { stripeRouter } from "./routes/stripe.js";
+import { stripeRouter } from "./routes/stripe.js";
+import { lemonsqueezyRouter } from "./routes/lemonsqueezy.js";
+import { walletRouter } from "./routes/wallet.js";
 // import { batchRouter } from "./routes/batch.js";
 // import { apiRouter } from "./routes/api.js";
 import { healthRouter } from "./health.js";
@@ -71,12 +72,19 @@ export function createServer() {
 
   // Stripe webhook needs raw body for signature verification
   // Apply raw body parser BEFORE JSON parser for webhook endpoint
-  // TEMPORARILY DISABLED FOR STAGE DEPLOYMENT - Enable when Stripe is configured
-  // app.use('/api/stripe/webhook', express.raw({ type: 'application/json', limit: '1mb' }), (req, _res, next) => {
-  //   // Store raw body for signature verification
-  //   (req as any).rawBody = req.body;
-  //   next();
-  // });
+  app.use('/api/stripe/webhook', express.raw({ type: 'application/json', limit: '1mb' }), (req, _res, next) => {
+    // Store raw body for signature verification
+    (req as Request & { rawBody?: Buffer }).rawBody = req.body;
+    next();
+  });
+
+  // LemonSqueezy webhook needs raw body for signature verification
+  // Apply raw body parser BEFORE JSON parser for webhook endpoint
+  app.use('/api/lemonsqueezy/webhook', express.raw({ type: 'application/json', limit: '1mb' }), (req, _res, next) => {
+    // Store raw body for signature verification
+    (req as Request & { rawBody?: Buffer }).rawBody = req.body;
+    next();
+  });
 
   app.use(express.json({ limit: '200kb' }));
 
@@ -99,7 +107,15 @@ export function createServer() {
     cors({
       origin: allowedOrigins,
       methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'X-Admin-Key', 'X-Request-ID', 'Authorization', 'X-API-Key', 'Stripe-Signature'],
+      allowedHeaders: [
+        'Content-Type',
+        'X-Admin-Key',
+        'X-Request-ID',
+        'Authorization',
+        'X-API-Key',
+        'Stripe-Signature',
+        'X-Signature', // LemonSqueezy webhook signature
+      ],
       maxAge: 600,
       credentials: false,
       preflightContinue: false,
@@ -113,13 +129,23 @@ export function createServer() {
 
   // Status endpoints need lenient rate limiting (lightweight read operations)
   app.use('/api/v1/scan/:id/status', statusRateLimit);
+  app.use('/api/v1/scans/:id/status', statusRateLimit);
   app.use('/api/v2/scan/:id/status', statusRateLimit);
+  app.use('/api/v2/scans/:id/status', statusRateLimit);
   app.use('/api/scan/:id/status', statusRateLimit);
+  app.use('/api/scans/:id/status', statusRateLimit);
 
   // Scan submission endpoints have stricter limits
-  app.use('/api/v1/scan', scanRateLimit);
-  app.use('/api/v2/scan', scanRateLimit);
-  app.use('/api/scan', scanRateLimit);
+  // Apply limiter ONLY to POST requests to avoid throttling status polling
+  const postOnly = (mw: express.RequestHandler): express.RequestHandler => (req, res, next) =>
+    req.method === 'POST' ? mw(req, res, next) : next();
+
+  app.use('/api/v1/scan', postOnly(scanRateLimit));
+  app.use('/api/v1/scans', postOnly(scanRateLimit));
+  app.use('/api/v2/scan', postOnly(scanRateLimit));
+  app.use('/api/v2/scans', postOnly(scanRateLimit));
+  app.use('/api/scan', postOnly(scanRateLimit));
+  app.use('/api/scans', postOnly(scanRateLimit));
 
   // Report endpoints (read-heavy, moderate limits)
   app.use('/api/v1/report', reportRateLimit);
@@ -129,23 +155,36 @@ export function createServer() {
   app.use('/api/report', reportRateLimit);
   app.use('/api/reports', reportRateLimit);
 
-  // General rate limiting for other endpoints
-  app.use('/api', generalRateLimit);
+  // General rate limiting for other endpoints (skip routes with specific rate limiting)
+  app.use('/api', (req, res, next) => {
+    // Skip general rate limit for routes that have their own specific rate limiting
+    // NOTE: req.path has the mount point '/api' stripped, so we match without it
+    const statusPathRegex = /^\/(v[12]\/)?scans?\/[^/]+\/status$/;
+    if (statusPathRegex.test(req.path)) {
+      return next();
+    }
+    return generalRateLimit(req, res, next);
+  });
 
   app.use('/api/v1', apiV1Router);
   app.use('/api/v2', apiV2Router);
   app.use('/api', apiV2Router);
 
   // Pro tier feature routes
-  // TEMPORARILY DISABLED FOR STAGE DEPLOYMENT - Enable when Stripe is configured
-  // These routes work but require Stripe environment variables to function properly
-  // app.use('/api/stripe', stripeRouter);
+  if (config.payments.stripe.enabled) {
+    app.use('/api/stripe', stripeRouter);
+  }
+
+  // LemonSqueezy payment routes (global coverage, handles tax compliance)
+  app.use('/api/lemonsqueezy', lemonsqueezyRouter);
+
   // app.use('/api/scan/batch', batchRouter);
   // app.use('/api/api-keys', apiRouter);
 
   // Other routes
   app.use('/api', adminRouter);
   app.use('/api/auth', authRouter);
+  app.use('/api/wallet', walletRouter);
   app.use('/docs', docsRouter);
 
   if (sentryEnabled) {
@@ -186,10 +225,6 @@ export function createServer() {
 
   return app;
 }
-
-
-
-
 
 
 

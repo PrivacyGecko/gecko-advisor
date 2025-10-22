@@ -1,13 +1,19 @@
 import type { PrismaClient, User } from '@prisma/client';
+import { AuthMethod } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { nanoid } from 'nanoid';
+import crypto from 'node:crypto';
 import { logger } from '../logger.js';
+import { config } from '../config.js';
+import { sendPasswordResetEmail } from '../email/sendgrid.js';
 
 const SALT_ROUNDS = 10;
 const JWT_EXPIRATION = '7d';
 const API_KEY_PREFIX = 'pa_';
 const API_KEY_LENGTH = 32;
+const RESET_TOKEN_BYTES = 32;
+const RESET_TOKEN_EXPIRATION_MINUTES = 60;
 
 /**
  * JWT payload structure
@@ -23,6 +29,7 @@ export interface SafeUser {
   id: string;
   email: string;
   name: string | null;
+  authMethod: string;
   subscription: string;
   subscriptionStatus: string;
   subscriptionEndsAt: Date | null;
@@ -60,6 +67,13 @@ export class AuthService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { passwordHash, emailVerified, stripeSubscriptionId, ...safeUser } = user;
     return safeUser;
+  }
+
+  /**
+   * Create SHA-256 hash for password reset token comparison
+   */
+  private hashResetToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
   }
 
   /**
@@ -195,6 +209,135 @@ export class AuthService {
     return {
       user: this.sanitizeUser(user),
       token,
+    };
+  }
+
+  /**
+   * Request a password reset and send email with SendGrid
+   *
+   * @param email User email address
+   */
+  async requestPasswordReset(email: string): Promise<void> {
+    const normalizedEmail = email.toLowerCase();
+    const user = await this.prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    if (!user) {
+      logger.info({ email: normalizedEmail }, 'Password reset requested for non-existent email');
+      return;
+    }
+
+    const token = crypto.randomBytes(RESET_TOKEN_BYTES).toString('hex');
+    const tokenHash = this.hashResetToken(token);
+    const expiresAt = new Date(Date.now() + RESET_TOKEN_EXPIRATION_MINUTES * 60 * 1000);
+
+    await this.prisma.$transaction([
+      this.prisma.passwordResetToken.deleteMany({ where: { userId: user.id } }),
+      this.prisma.passwordResetToken.create({
+        data: {
+          userId: user.id,
+          tokenHash,
+          expiresAt,
+        },
+      }),
+    ]);
+
+    const baseResetUrl =
+      config.email.sendgrid.resetUrl ??
+      (config.frontendOrigin ? `${config.frontendOrigin.replace(/\/$/, '')}/reset-password` : null);
+
+    if (!baseResetUrl) {
+      logger.warn('Password reset URL not configured; skipping email send');
+      return;
+    }
+
+    let resetLink: string;
+    try {
+      const url = new URL(baseResetUrl);
+      url.searchParams.set('token', token);
+      resetLink = url.toString();
+    } catch {
+      resetLink = `${baseResetUrl}${baseResetUrl.includes('?') ? '&' : '?'}token=${token}`;
+    }
+
+    await sendPasswordResetEmail(user.email, resetLink);
+  }
+
+  /**
+   * Reset password using token
+   *
+   * @param token Reset token provided in email
+   * @param newPassword New password
+   * @returns Authentication result for the user
+   */
+  async resetPassword(token: string, newPassword: string): Promise<AuthResult> {
+    if (newPassword.length < 8) {
+      throw new Error('PASSWORD_TOO_SHORT');
+    }
+
+    const tokenHash = this.hashResetToken(token);
+    const resetRecord = await this.prisma.passwordResetToken.findUnique({
+      where: { tokenHash },
+    });
+
+    if (!resetRecord || resetRecord.usedAt) {
+      throw new Error('RESET_TOKEN_INVALID');
+    }
+
+    if (resetRecord.expiresAt.getTime() < Date.now()) {
+      throw new Error('RESET_TOKEN_EXPIRED');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: resetRecord.userId },
+    });
+
+    if (!user) {
+      throw new Error('USER_NOT_FOUND');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+    const updatedUser = await this.prisma.$transaction(async (tx) => {
+      const nextAuthMethod =
+        user.authMethod === AuthMethod.WALLET
+          ? AuthMethod.BOTH
+          : user.authMethod;
+
+      const savedUser = await tx.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash,
+          authMethod: nextAuthMethod,
+        },
+      });
+
+      const now = new Date();
+
+      await tx.passwordResetToken.update({
+        where: { id: resetRecord.id },
+        data: { usedAt: now },
+      });
+
+      await tx.passwordResetToken.deleteMany({
+        where: {
+          userId: user.id,
+          usedAt: null,
+          id: { not: resetRecord.id },
+        },
+      });
+
+      return savedUser;
+    });
+
+    logger.info({ userId: updatedUser.id }, 'Password reset successfully');
+
+    const jwtToken = this.generateToken(updatedUser.id);
+
+    return {
+      user: this.sanitizeUser(updatedUser),
+      token: jwtToken,
     };
   }
 

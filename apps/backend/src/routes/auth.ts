@@ -31,6 +31,21 @@ const LoginSchema = z.object({
 });
 
 /**
+ * Validation schema for forgot password
+ */
+const ForgotPasswordSchema = z.object({
+  email: z.string().email('Invalid email address'),
+});
+
+/**
+ * Validation schema for resetting password
+ */
+const ResetPasswordSchema = z.object({
+  token: z.string().min(16, 'Invalid reset token'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+/**
  * Singleton instance of AuthService
  */
 const authService = new AuthService(prisma);
@@ -225,6 +240,79 @@ authRouter.post('/login', async (req, res) => {
 
     logger.error({ error }, 'Login failed');
     return problem(res, 500, 'Internal Server Error', 'Failed to login');
+  }
+});
+
+/**
+ * POST /api/auth/forgot-password
+ * Initiate password reset flow
+ *
+ * Request body:
+ * { "email": "user@example.com" }
+ *
+ * Response: 200 even if email is not registered
+ */
+authRouter.post('/forgot-password', async (req, res) => {
+  const validation = ForgotPasswordSchema.safeParse(req.body);
+  if (!validation.success) {
+    const firstError = validation.error.errors[0];
+    logger.debug({ error: validation.error }, 'Forgot password validation failed');
+    return problem(res, 400, 'Bad Request', firstError?.message ?? 'Invalid request data');
+  }
+
+  const { email } = validation.data;
+
+  try {
+    await authService.requestPasswordReset(email);
+  } catch (error) {
+    logger.error({ error, email }, 'Forgot password request failed');
+    // Intentionally continue to return generic success response
+  }
+
+  return res.json({
+    message: 'If an account exists for that email, a reset link has been sent.',
+  });
+});
+
+/**
+ * POST /api/auth/reset-password
+ * Complete password reset with token
+ *
+ * Request body:
+ * { "token": "reset-token", "password": "newpassword" }
+ *
+ * Response:
+ * { token, user }
+ */
+authRouter.post('/reset-password', async (req, res) => {
+  const validation = ResetPasswordSchema.safeParse(req.body);
+
+  if (!validation.success) {
+    const firstError = validation.error.errors[0];
+    logger.debug({ error: validation.error }, 'Reset password validation failed');
+    return problem(res, 400, 'Bad Request', firstError?.message ?? 'Invalid request data');
+  }
+
+  const { token, password } = validation.data;
+
+  try {
+    const result = await authService.resetPassword(token, password);
+    return res.json(result);
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === 'PASSWORD_TOO_SHORT') {
+        return problem(res, 400, 'Bad Request', 'Password must be at least 8 characters');
+      }
+      if (error.message === 'RESET_TOKEN_INVALID') {
+        return problem(res, 400, 'Bad Request', 'Reset link is invalid or has already been used');
+      }
+      if (error.message === 'RESET_TOKEN_EXPIRED') {
+        return problem(res, 400, 'Bad Request', 'Reset link has expired. Please request a new one.');
+      }
+    }
+
+    logger.error({ error }, 'Reset password failed');
+    return problem(res, 500, 'Internal Server Error', 'Failed to reset password');
   }
 });
 

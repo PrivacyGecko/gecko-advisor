@@ -136,6 +136,11 @@ pnpm test                   # Run vitest tests
 - Prettier for code formatting
 - Run `pnpm lint` and `pnpm typecheck` before committing
 
+### Documentation
+- All project documentation (.md files) should be placed in `/Project-Docs/` folder
+- Keep code documentation inline and API docs in respective packages
+- Technical decisions, deployment guides, and project reports go in Project-Docs
+
 ## Security Considerations
 
 ### Backend Security

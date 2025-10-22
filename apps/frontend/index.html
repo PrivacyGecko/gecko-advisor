@@ -48,7 +48,11 @@
 
     <!-- Preload critical resources -->
     <link rel="preload" href="/images/GeckoAdvisor_Logo.webp" as="image" type="image/webp" fetchpriority="high" />
-    <link rel="preload" href="/src/main.tsx" as="script" />
+
+    <!-- Google Fonts preconnect for faster loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
   </head>
   <body class="bg-slate-50">
     <div id="root"></div>

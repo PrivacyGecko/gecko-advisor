@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import type { RecentReportsResponse } from '@privacy-advisor/shared';
@@ -12,11 +12,13 @@ const INPUT_MODES = ['url', 'app', 'address'] as const;
 type InputMode = (typeof INPUT_MODES)[number];
 
 export default function HomeRoute() {
-  const [input, setInput] = useState('https://example.com');
+  const DEFAULT_URL = 'https://example.com';
+  const [input, setInput] = useState(DEFAULT_URL);
   const [mode, setMode] = useState<InputMode>('url');
   const [history, setHistory] = useState<ScanHistoryEntry[]>(() => readHistory());
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -97,8 +99,17 @@ export default function HomeRoute() {
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <input
+              ref={inputRef}
               value={input}
               onChange={(event) => setInput(event.target.value)}
+              onFocus={() => {
+                if (input === DEFAULT_URL) {
+                  // Select the helper text so users can immediately type over it
+                  requestAnimationFrame(() => {
+                    inputRef.current?.select();
+                  });
+                }
+              }}
               className="w-full flex-1 rounded-xl border border-slate-300 px-4 py-3 text-base shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-security-blue"
               placeholder={mode === 'url' ? 'https://example.com' : mode === 'app' ? 'App ID (coming soon)' : 'Wallet address (coming soon)'}
               aria-label="Scan input"
@@ -212,5 +223,4 @@ function badgeClass(label: string | undefined): string {
   if (label === 'High Risk') return 'rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-700';
   return 'rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700';
 }
-
 

@@ -230,16 +230,29 @@ export const generalRateLimit = createIntelligentRateLimit({
 });
 
 /**
- * Very lenient rate limiter for status polling endpoints
- * Status checks are lightweight read operations that need high frequency
- * to support real-time UI updates during scan processing
+ * Rate limiter for status polling endpoints
+ * Status checks are lightweight read operations used by the UI to track scan progress.
+ *
+ * Rationale for 30 req/min limit:
+ * - Frontend poll interval is ~2 seconds (≈30 req/min) during active scans
+ * - Provides enough headroom for occasional retries without triggering 429s
+ * - Still guards against abusive polling patterns during incidents
  */
-export const statusRateLimit = createIntelligentRateLimit({
-  baseLimit: 120, // 120 requests per minute = 2 per second
-  complexityMultiplier: {
-    simple: 1.0,
-    complex: 1.0,
-    bulk: 1.0,
+export const statusRateLimit = rateLimit({
+  windowMs: 60_000, // 1 minute window
+  limit: 30, // 30 requests per minute ≈ 1 every 2 seconds
+  keyGenerator: (req) => {
+    // Use IP + scan ID for per-scan rate limiting
+    // This allows users to poll multiple scans simultaneously without interference
+    const ip = req.ip ?? req.headers['x-forwarded-for']?.toString() ?? 'anonymous';
+    const scanId = req.params.id ?? 'unknown';
+    return `status:${ip}:${scanId}`;
   },
-  enableDynamicAdjustment: false, // Status checks don't need queue-based adjustment
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  handler: rateLimitHandler,
+  skip: (req) => {
+    // Skip rate limiting for health checks and admin endpoints
+    return req.path.startsWith('/healthz') || req.path.startsWith('/api/admin');
+  },
 });

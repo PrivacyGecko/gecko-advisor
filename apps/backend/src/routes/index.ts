@@ -6,8 +6,10 @@ import { reportV2Router } from "./v2.reports.js";
 
 export const apiV1Router = Router();
 apiV1Router.use('/scan', scanV1Router);
+apiV1Router.use('/scans', scanV1Router);
 apiV1Router.use('/', reportV1Router);
 
 export const apiV2Router = Router();
 apiV2Router.use('/scan', scanV2Router);
+apiV2Router.use('/scans', scanV2Router);
 apiV2Router.use('/', reportV2Router);

@@ -15,7 +15,9 @@ import Header from '../components/Header';
 import LoginModal from '../components/LoginModal';
 import SignupModal from '../components/SignupModal';
 import RateLimitBanner, { type RateLimitInfo } from '../components/RateLimitBanner';
+import PublicScanWarning from '../components/PublicScanWarning';
 import EnhancedTrustIndicator from '../components/EnhancedTrustIndicator';
+import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import type { RecentReportsResponse } from '@privacy-advisor/shared';
 
 const INPUT_MODES = ['url', 'app', 'address'] as const;
@@ -54,6 +56,8 @@ export default function Home() {
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const navigate = useNavigate();
   const { user, token } = useAuth();
 
@@ -314,6 +318,10 @@ export default function Home() {
         </ul>
       </Card>
       <Footer />
+
+      {/* Public Scan Warning - appears above Recent Reports */}
+      <PublicScanWarning />
+
       <RecentReports />
     </div>
 
@@ -325,6 +333,11 @@ export default function Home() {
         setShowLoginModal(false);
         setShowSignupModal(true);
       }}
+      onForgotPassword={(emailValue) => {
+        setForgotPasswordEmail(emailValue ?? '');
+        setShowLoginModal(false);
+        setShowForgotPasswordModal(true);
+      }}
     />
     <SignupModal
       isOpen={showSignupModal}
@@ -333,6 +346,12 @@ export default function Home() {
         setShowSignupModal(false);
         setShowLoginModal(true);
       }}
+    />
+    <ForgotPasswordModal
+      isOpen={showForgotPasswordModal}
+      onClose={() => setShowForgotPasswordModal(false)}
+      onBackToLogin={() => setShowLoginModal(true)}
+      defaultEmail={forgotPasswordEmail}
     />
     </>
   );

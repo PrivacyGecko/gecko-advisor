@@ -25,6 +25,8 @@ export interface ScanProgressProps {
  * Features:
  * - Visual progress indication with steps
  * - Estimated time remaining
+ * - Elapsed time counter to reduce perceived wait time
+ * - Reassurance messages for long-running scans
  * - Accessibility compliant with ARIA live regions
  * - Responsive design for mobile and desktop
  * - Real-time progress updates
@@ -36,6 +38,23 @@ const ScanProgress = React.memo(function ScanProgress({
   estimatedTimeRemaining,
   className = ''
 }: ScanProgressProps) {
+  // Track elapsed time since component mount
+  const [elapsedSeconds, setElapsedSeconds] = React.useState(0);
+
+  // Start elapsed time counter when scanning
+  React.useEffect(() => {
+    if (status !== 'processing' && status !== 'pending') {
+      return;
+    }
+
+    const startTime = Date.now();
+    const interval = setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [status]);
+
   // Define scan steps with their typical progress ranges
   const scanSteps = [
     { id: 'initial', label: 'Initializing scan', range: [0, 10], icon: '🔄' },
@@ -54,7 +73,8 @@ const ScanProgress = React.memo(function ScanProgress({
         return step;
       }
     }
-    return scanSteps[scanSteps.length - 1];
+    // Fallback to last step if progress is beyond expected range
+    return scanSteps[scanSteps.length - 1] ?? scanSteps[0];
   };
 
   const activeStep = getCurrentStep();
@@ -91,7 +111,7 @@ const ScanProgress = React.memo(function ScanProgress({
       <div className="flex flex-col items-center text-center space-y-4">
         <ProgressDial percent={progress} />
 
-        {/* Status and current step */}
+        {/* Status and current step with elapsed time */}
         <div
           className={clsx(
             'px-4 py-2 rounded-full text-sm font-medium transition-colors',
@@ -104,12 +124,28 @@ const ScanProgress = React.memo(function ScanProgress({
         >
           <span className="mr-2" aria-hidden="true">{activeStep.icon}</span>
           {currentStep || activeStep.label}
+          {(status === 'processing' || status === 'pending') && elapsedSeconds > 0 && (
+            <span className="ml-1 text-xs opacity-75">
+              ({elapsedSeconds}s)
+            </span>
+          )}
         </div>
 
-        {/* Time remaining */}
-        {estimatedTimeRemaining && estimatedTimeRemaining > 0 && status === 'processing' && (
-          <div className="text-sm text-gray-600">
-            Estimated time remaining: {formatTimeRemaining(estimatedTimeRemaining)}
+        {/* Time remaining or typical duration */}
+        {status === 'processing' && (
+          <div className="text-sm text-gray-600 text-center">
+            {estimatedTimeRemaining && estimatedTimeRemaining > 0 ? (
+              <>Estimated time remaining: {formatTimeRemaining(estimatedTimeRemaining)}</>
+            ) : (
+              <span className="text-xs">Usually takes 5-10 seconds</span>
+            )}
+          </div>
+        )}
+
+        {/* Reassurance message for long-running scans */}
+        {status === 'processing' && elapsedSeconds > 20 && (
+          <div className="text-xs text-gray-500 text-center max-w-md px-4">
+            This may take up to 30 seconds for complex sites. Your scan is progressing normally.
           </div>
         )}
       </div>

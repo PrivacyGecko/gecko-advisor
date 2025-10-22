@@ -42,7 +42,8 @@ export default defineConfig({
           'pages-static': [
             './src/pages/About.tsx',
             './src/pages/Docs.tsx',
-            './src/pages/NotFound.tsx'
+            './src/pages/NotFound.tsx',
+            './src/pages/Pricing.tsx'
           ]
         },
         // Optimize chunk file names for caching

@@ -5,8 +5,13 @@ import { logger } from "./logger.js";
 import { closeQueueConnections, initQueueConnections } from "./queue.js";
 import { connectDatabase, disconnectDatabase } from "./prisma.js";
 import { connectCache, disconnectCache } from "./cache.js";
+import { prisma } from "./prisma.js";
+import { LemonSqueezyService } from "./services/lemonsqueezyService.js";
 
 export const app = createServer();
+
+// Initialize payment services
+let lemonSqueezyService: LemonSqueezyService | null = null;
 
 if (!process.env.VITEST_WORKER_ID) {
   let server: Server | undefined;
@@ -22,6 +27,22 @@ if (!process.env.VITEST_WORKER_ID) {
       // 2. Initialize Redis connections (cache and queue)
       await connectCache();
       await initQueueConnections();
+
+      // 3. Initialize payment services (if enabled)
+      if (config.payments.lemonsqueezy.enabled) {
+        logger.info('Initializing LemonSqueezy payment service...');
+        try {
+          lemonSqueezyService = new LemonSqueezyService(prisma);
+          lemonSqueezyService.initialize();
+          logger.info('LemonSqueezy service initialized successfully');
+        } catch (error) {
+          logger.error({ error }, 'Failed to initialize LemonSqueezy service - payment features will be unavailable');
+          // Don't fail startup if payment service initialization fails
+          // The service will still be available but payment endpoints will return errors
+        }
+      } else {
+        logger.info('LemonSqueezy payment service is disabled via feature flag');
+      }
 
       logger.info('All connections initialized successfully');
 

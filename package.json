@@ -47,5 +47,8 @@
     "tsx": "^4.19.0",
     "turbo": "^2.0.3",
     "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "sharp": "^0.34.4"
   }
 }

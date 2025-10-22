@@ -15,12 +15,16 @@ export const config = {
   sentryTracesSampleRate: Number.parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE ?? '0.05'),
   jobAttempts: parseNumber(process.env.WORKER_JOB_ATTEMPTS, 3),
   backoffMs: parseNumber(process.env.WORKER_BACKOFF_MS, 5000),
-  concurrency: parseNumber(process.env.WORKER_CONCURRENCY, 2),
+  // Increased default concurrency from 2 to 5 for better throughput
+  concurrency: parseNumber(process.env.WORKER_CONCURRENCY, 5),
   requestTimeoutMs: parseNumber(process.env.WORKER_REQUEST_TIMEOUT_MS, 5000),
   maxContentLength: parseNumber(process.env.WORKER_MAX_CONTENT_BYTES, 800_000),
   crawlTimeBudgetMs: parseNumber(process.env.WORKER_CRAWL_BUDGET_MS, 10_000),
   crawlPageLimit: parseNumber(process.env.WORKER_PAGE_LIMIT, 10),
   healthPort: parseNumber(process.env.WORKER_HEALTH_PORT, 5050),
+  // Job-level timeout to prevent hanging jobs (in milliseconds)
+  // Default: 60 seconds (includes crawling, scoring, and DB operations)
+  jobTimeoutMs: parseNumber(process.env.WORKER_JOB_TIMEOUT_MS, 60_000),
 };
 
 export type WorkerConfig = typeof config;

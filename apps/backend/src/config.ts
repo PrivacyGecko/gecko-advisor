@@ -36,6 +36,7 @@ const stageOrigin = process.env.STAGE_ORIGIN;
 const apiOrigin = process.env.API_ORIGIN ?? process.env.BACKEND_PUBLIC_URL;
 const workerOrigin = process.env.WORKER_PUBLIC_URL;
 const allowOrigin = process.env.ALLOW_ORIGIN;
+const frontendOrigin = process.env.FRONTEND_PUBLIC_URL ?? stageOrigin ?? allowOrigin;
 const extraOrigins = parseOrigins(process.env.CORS_EXTRA_ORIGINS);
 
 const isLocalEnv = nodeEnv === 'development' || appEnv === 'development' || nodeEnv === 'test' || appEnv === 'test';
@@ -83,6 +84,7 @@ export const config = {
   logLevel,
   stageOrigin,
   apiOrigin,
+  frontendOrigin,
   workerOrigin,
   cspReportUri,
   workerAttempts: parseNumber(process.env.WORKER_JOB_ATTEMPTS, 3),
@@ -91,6 +93,37 @@ export const config = {
     connectSources,
     imageSources,
   },
+  email: {
+    sendgrid: {
+      enabled: process.env.SENDGRID_API_KEY ? process.env.SENDGRID_ENABLED !== 'false' : false,
+      apiKey: process.env.SENDGRID_API_KEY,
+      fromEmail: process.env.SENDGRID_FROM_EMAIL,
+      resetUrl: process.env.PASSWORD_RESET_URL ?? (frontendOrigin ? `${frontendOrigin}/reset-password` : undefined),
+    },
+  },
+  // Payment Provider Configuration
+  // NOTE: Stripe code is preserved but disabled via feature flag
+  // LemonSqueezy integration is in progress
+  payments: {
+    stripe: {
+      enabled: process.env.STRIPE_ENABLED === 'true' && !!process.env.STRIPE_SECRET_KEY,
+      secretKey: process.env.STRIPE_SECRET_KEY,
+      webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+      priceId: process.env.STRIPE_PRICE_ID,
+    },
+    lemonsqueezy: {
+      enabled: process.env.LEMONSQUEEZY_ENABLED === 'true',
+      apiKey: process.env.LEMONSQUEEZY_API_KEY,
+      storeId: process.env.LEMONSQUEEZY_STORE_ID,
+      variantId: process.env.LEMONSQUEEZY_VARIANT_ID,
+      webhookSecret: process.env.LEMONSQUEEZY_WEBHOOK_SECRET,
+      checkoutRedirectUrl: process.env.LEMONSQUEEZY_CHECKOUT_REDIRECT_URL,
+    },
+    wallet: {
+      enabled: process.env.WALLET_AUTH_ENABLED !== 'false', // Default true
+      requiredTokens: parseNumber(process.env.WALLET_PRO_TOKEN_THRESHOLD, 10000),
+    },
+  },
 };
 
 export type AppConfig = typeof config;
@@ -98,5 +131,3 @@ export type AppConfig = typeof config;
 export function isDev() {
   return config.nodeEnv === 'development';
 }
-
-
