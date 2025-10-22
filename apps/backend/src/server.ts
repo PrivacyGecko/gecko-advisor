@@ -133,9 +133,13 @@ export function createServer() {
   app.use('/api/scan/:id/status', statusRateLimit);
 
   // Scan submission endpoints have stricter limits
-  app.use('/api/v1/scan', scanRateLimit);
-  app.use('/api/v2/scan', scanRateLimit);
-  app.use('/api/scan', scanRateLimit);
+  // Apply limiter ONLY to POST requests to avoid throttling status polling
+  const postOnly = (mw: express.RequestHandler): express.RequestHandler => (req, res, next) =>
+    req.method === 'POST' ? mw(req, res, next) : next();
+
+  app.use('/api/v1/scan', postOnly(scanRateLimit));
+  app.use('/api/v2/scan', postOnly(scanRateLimit));
+  app.use('/api/scan', postOnly(scanRateLimit));
 
   // Report endpoints (read-heavy, moderate limits)
   app.use('/api/v1/report', reportRateLimit);
@@ -214,7 +218,6 @@ export function createServer() {
 
   return app;
 }
-
 
 
 
