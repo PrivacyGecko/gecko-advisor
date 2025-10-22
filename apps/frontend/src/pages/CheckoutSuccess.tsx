@@ -41,7 +41,7 @@ export default function CheckoutSuccess() {
                 <ul className="mt-3 space-y-2 text-sm text-slate-600">
                   <li>• Head to your dashboard to unlock unlimited scans.</li>
                   <li>• Run a new scan to see advanced privacy insights.</li>
-                  <li>• Check email for your LemonSqueezy receipt.</li>
+                  <li>• Watch your inbox for a purchase confirmation once card payments go live.</li>
                 </ul>
               </div>
               <div className="rounded-2xl border border-slate-200/70 bg-slate-50 p-5 text-left">
