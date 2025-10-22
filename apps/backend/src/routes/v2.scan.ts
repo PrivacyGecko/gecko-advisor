@@ -10,7 +10,7 @@ import {
 import type { SafeUser } from "../services/authService.js";
 import { prisma } from "../prisma.js";
 import { problem } from "../problem.js";
-import { addScanJob, SCAN_PRIORITY } from "../queue.js";
+import { addScanJob, SCAN_PRIORITY, scanQueue } from "../queue.js";
 import { createScanWithSlug } from "../services/slug.js";
 import { findReusableScan } from "../services/dedupe.js";
 import { logger } from "../logger.js";
@@ -74,6 +74,7 @@ scanV2Router.post(['/', '/url'], optionalAuth, scanRateLimiter, async (req, res)
       input: url,
       normalizedInput,
       status: 'queued',
+      progress: 0,
       source: force ? 'manual-force' : 'manual',
       // User tracking
       userId: user?.id || null,
@@ -148,36 +149,91 @@ scanV2Router.post(['/', '/url'], optionalAuth, scanRateLimiter, async (req, res)
 scanV2Router.get('/:id/status', async (req, res) => {
   const scanId = req.params.id;
 
-  // Use shorter cache TTL for active scans, longer for completed ones
-  const scanData = await CacheService.getOrSet(
-    CACHE_KEYS.SCAN_STATUS(scanId),
-    async () => {
-      const scan = await prisma.scan.findUnique({
-        where: { id: scanId },
-        select: {
-          id: true,
-          status: true,
-          score: true,
-          label: true,
-          slug: true,
-          updatedAt: true,
-        },
-      });
+  const cacheKey = CACHE_KEYS.SCAN_STATUS(scanId);
 
-      return scan;
-    },
-    CACHE_TTL.SCAN_STATUS
-  );
+  let scanData = await CacheService.get<{
+    id: string;
+    status: string;
+    score: number | null;
+    label: string | null;
+    slug: string | null;
+    updatedAt: Date;
+    progress: number | null;
+  }>(cacheKey);
 
   if (!scanData) {
-    return problem(res, 404, 'Scan not found');
+    scanData = await prisma.scan.findUnique({
+      where: { id: scanId },
+      select: {
+        id: true,
+        status: true,
+        score: true,
+        label: true,
+        slug: true,
+        updatedAt: true,
+        progress: true,
+      },
+    });
+
+    if (!scanData) {
+      return problem(res, 404, 'Scan not found');
+    }
+
+    if (scanData.status === 'done' || scanData.status === 'error') {
+      await CacheService.set(cacheKey, scanData, CACHE_TTL.SCAN_STATUS);
+    } else {
+      await CacheService.del(cacheKey);
+    }
   }
+
+  let progress = scanData.progress ?? 0;
+
+  if (scanData.status === 'queued' || scanData.status === 'running') {
+    await CacheService.del(cacheKey);
+    try {
+      const job = await scanQueue.getJob(scanId);
+      if (job) {
+        const rawJobProgress = job.progress as number | Record<string, unknown> | undefined;
+        const jobProgress = typeof rawJobProgress === 'number' ? rawJobProgress : undefined;
+        if (typeof jobProgress === 'number') {
+          progress = jobProgress;
+          if (scanData.progress !== jobProgress) {
+            await prisma.scan.update({
+              where: { id: scanId },
+              data: { progress: jobProgress },
+            }).catch((error) => {
+              logger.debug({ error, scanId, jobProgress }, 'Failed to persist live progress');
+            });
+            scanData.progress = jobProgress;
+          }
+        }
+      }
+    } catch (error) {
+      logger.debug({ error, scanId }, 'Failed to fetch queue progress');
+    }
+    progress = Math.max(0, Math.min(progress, 99));
+  } else if (scanData.status === 'done') {
+    progress = 100;
+    if (scanData.progress !== 100) {
+      await prisma.scan.update({
+        where: { id: scanId },
+        data: { progress: 100 },
+      }).catch((error) => {
+        logger.debug({ error, scanId }, 'Failed to persist final progress');
+      });
+    }
+  } else {
+    progress = Math.max(0, Math.min(progress, 100));
+  }
+
+  progress = Math.max(0, Math.min(100, Math.round(progress)));
 
   res.json({
     status: scanData.status,
+    progress,
     score: scanData.score ?? undefined,
     label: scanData.label ?? undefined,
-    slug: scanData.slug,
+    slug: scanData.slug ?? undefined,
     updatedAt: scanData.updatedAt,
   });
 });
@@ -191,6 +247,7 @@ scanV2Router.post('/app', async (req, res) => {
     targetType: 'app',
     input: appId,
     status: 'done',
+    progress: 100,
     source: 'stub',
     score: 75,
     label: 'Caution',
@@ -207,6 +264,7 @@ scanV2Router.post('/address', async (req, res) => {
     targetType: 'address',
     input: parsed.data.address,
     status: 'done',
+    progress: 100,
     source: 'stub',
     score: 80,
     label: 'Safe',
@@ -322,5 +380,3 @@ scanV2Router.get('/history', async (req, res) => {
     return problem(res, 500, 'Internal Server Error', 'Failed to get scan history');
   }
 });
-
-

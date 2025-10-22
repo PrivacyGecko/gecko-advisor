@@ -13,7 +13,7 @@ import { toReportView, type ReportViewModel } from '../../lib/adapters/scan';
 import { addHistory } from '../../lib/history';
 import { useSentryRouteTags } from '../../sentry';
 
-const DEFAULT_PROGRESS = 35;
+const DEFAULT_PROGRESS = 5;
 
 type SeverityFilter = 'all' | 'high' | 'medium' | 'low';
 

@@ -33,7 +33,11 @@ export const worker = new Worker<ScanJobData>(
     // Update scan to running with progress tracking
     await prisma.scan.update({
       where: { id: scanId },
-      data: { status: 'running', startedAt: new Date() },
+      data: {
+        status: 'running',
+        startedAt: new Date(),
+        progress: 0,
+      },
     });
 
     try {
@@ -43,7 +47,11 @@ export const worker = new Worker<ScanJobData>(
       // Mark as done
       await prisma.scan.update({
         where: { id: scanId },
-        data: { status: 'done', finishedAt: new Date() },
+        data: {
+          status: 'done',
+          finishedAt: new Date(),
+          progress: 100,
+        },
       });
 
       // Report 100% progress

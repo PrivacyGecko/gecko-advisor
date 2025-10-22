@@ -97,6 +97,7 @@ model Scan {
   status          String
   score           Int?
   label           String?
+  progress        Int @default(0)
   summary         String?
   startedAt       DateTime?
   finishedAt      DateTime?

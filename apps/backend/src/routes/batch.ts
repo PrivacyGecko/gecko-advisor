@@ -97,6 +97,7 @@ batchRouter.post('/', requirePro, async (req: Request, res: Response) => {
           input: urlData.original,
           normalizedInput: urlData.normalized,
           status: 'queued',
+          progress: 0,
           source: 'batch',
           user: user.id ? { connect: { id: user.id } } : undefined,
           scannerIp: req.ip || null,
