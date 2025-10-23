@@ -2,16 +2,16 @@ name: E2E Tests
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, stage]
   pull_request:
-    branches: [main, dev]
+    branches: [main, dev, stage]
   schedule:
     # Run tests daily at 2 AM UTC
     - cron: '0 2 * * *'
 
 env:
   NODE_VERSION: '18'
-  PNPM_VERSION: '8'
+  PNPM_VERSION: '10.14.0'
   PAYMENT_TESTS_ENABLED: ${{ vars.PAYMENT_TESTS_ENABLED || 'false' }}
 
 jobs:
@@ -67,6 +67,7 @@ jobs:
         uses: pnpm/action-setup@v2
         with:
           version: ${{ env.PNPM_VERSION }}
+          run_install: false
 
       - name: Get pnpm store directory
         shell: bash
@@ -204,6 +205,7 @@ jobs:
         uses: pnpm/action-setup@v2
         with:
           version: ${{ env.PNPM_VERSION }}
+          run_install: false
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
