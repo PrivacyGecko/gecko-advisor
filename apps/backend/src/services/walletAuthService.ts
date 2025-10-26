@@ -19,7 +19,7 @@ export interface WalletLinkResult {
  */
 export interface ProStatusResult {
   isPro: boolean;
-  source: 'stripe' | 'wallet' | 'none';
+  source: 'wallet' | 'none';
   expiresAt?: Date;
   tokenBalance?: number;
 }
@@ -315,8 +315,8 @@ export class WalletAuthService {
   }
 
   /**
-   * Check if user has PRO status from either Stripe subscription or token holdings
-   * Implements OR logic: user is PRO if EITHER condition is met
+   * Check if user has PRO status from wallet token holdings
+   * Note: Payment integrations removed for 100% free open source release
    *
    * @param userId - User ID to check
    * @returns PRO status result with source and details
@@ -335,28 +335,6 @@ export class WalletAuthService {
       throw new Error('USER_NOT_FOUND');
     }
 
-    // Check Stripe subscription first
-    if (
-      user.subscription === 'PRO' &&
-      user.subscriptionStatus === 'ACTIVE' &&
-      user.stripeSubscriptionId
-    ) {
-      logger.info(
-        {
-          userId,
-          source: 'stripe',
-          expiresAt: user.subscriptionEndsAt,
-        },
-        'User has active Stripe PRO subscription'
-      );
-
-      return {
-        isPro: true,
-        source: 'stripe',
-        expiresAt: user.subscriptionEndsAt || undefined,
-      };
-    }
-
     // Check wallet token balance
     if (user.walletLink) {
       try {
@@ -371,11 +349,11 @@ export class WalletAuthService {
             hasWalletLink: true,
             currentSubscription: user.subscription,
           },
-          'User has wallet link, subscription status used as proxy'
+          'User has wallet link, checking subscription status'
         );
 
-        // If user has wallet link and PRO subscription without Stripe, it's from tokens
-        if (user.subscription === 'PRO' && !user.stripeSubscriptionId) {
+        // If user has wallet link and PRO subscription, it's from tokens
+        if (user.subscription === 'PRO') {
           return {
             isPro: true,
             source: 'wallet',
@@ -441,8 +419,8 @@ export class WalletAuthService {
       'Refreshed wallet balance'
     );
 
-    // Update user subscription if wallet provides PRO and no active Stripe subscription
-    if (isProEligible && !user.stripeSubscriptionId) {
+    // Update user subscription based on wallet token balance
+    if (isProEligible) {
       await this.prisma.user.update({
         where: { id: userId },
         data: {
@@ -451,8 +429,8 @@ export class WalletAuthService {
         },
       });
       logger.info({ userId, tokenBalance }, 'Updated user to PRO based on token balance');
-    } else if (!isProEligible && !user.stripeSubscriptionId && user.subscription === 'PRO') {
-      // Downgrade if token balance dropped and no Stripe subscription
+    } else if (!isProEligible && user.subscription === 'PRO') {
+      // Downgrade if token balance dropped
       await this.prisma.user.update({
         where: { id: userId },
         data: {
@@ -504,8 +482,8 @@ export class WalletAuthService {
       data: { authMethod: newAuthMethod },
     });
 
-    // Downgrade from PRO if no Stripe subscription
-    if (user.subscription === 'PRO' && !user.stripeSubscriptionId) {
+    // Downgrade from PRO after wallet unlink
+    if (user.subscription === 'PRO') {
       await this.prisma.user.update({
         where: { id: userId },
         data: {

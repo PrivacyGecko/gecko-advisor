@@ -6,6 +6,14 @@ function parseNumber(value: string | undefined, fallback: number): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+function parseBoolean(value: string | undefined, fallback = false): boolean {
+  if (value === undefined) return fallback;
+  const normalized = value.trim().toLowerCase();
+  if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
+  if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
+  return fallback;
+}
+
 function parseOrigins(value: string | undefined): string[] {
   if (!value) return [];
   return value
@@ -41,9 +49,6 @@ const extraOrigins = parseOrigins(process.env.CORS_EXTRA_ORIGINS);
 
 const isLocalEnv = nodeEnv === 'development' || appEnv === 'development' || nodeEnv === 'test' || appEnv === 'test';
 
-const rateLimitPerMinute = parseNumber(process.env.RATE_LIMIT_PER_MINUTE, 30);
-const rateLimitScanPerMinute = parseNumber(process.env.RATE_LIMIT_SCAN_PER_MINUTE, rateLimitPerMinute);
-const rateLimitReportPerMinute = parseNumber(process.env.RATE_LIMIT_REPORT_PER_MINUTE, rateLimitPerMinute * 4);
 const cacheTtlMs = parseNumber(process.env.CACHE_TTL_MS, 15 * 60 * 1000);
 const allowedOrigins = (() => {
   if (isLocalEnv) {
@@ -67,6 +72,28 @@ const connectSources = Array.from(
   ].filter(isNonEmpty))
 );
 
+const objectStorageEnabled = parseBoolean(process.env.OBJECT_STORAGE_ENABLED, false);
+const objectStorageConfiguration = {
+  enabled: objectStorageEnabled,
+  endpoint: process.env.OBJECT_STORAGE_ENDPOINT,
+  region: process.env.OBJECT_STORAGE_REGION ?? 'us-east-1',
+  forcePathStyle: parseBoolean(process.env.OBJECT_STORAGE_FORCE_PATH_STYLE, true),
+  accessKeyId: process.env.OBJECT_STORAGE_ACCESS_KEY,
+  secretAccessKey: process.env.OBJECT_STORAGE_SECRET_KEY,
+  bucket: process.env.OBJECT_STORAGE_BUCKET,
+  publicUrl: process.env.OBJECT_STORAGE_PUBLIC_URL,
+  reportPrefix: process.env.OBJECT_STORAGE_REPORT_PREFIX ?? 'reports/',
+  signedUrlExpirySeconds: parseNumber(process.env.OBJECT_STORAGE_SIGNED_URL_SECONDS, 3600),
+};
+
+const turnstileEnabled = parseBoolean(process.env.TURNSTILE_ENABLED, false);
+const turnstileConfiguration = {
+  enabled: turnstileEnabled && Boolean(process.env.TURNSTILE_SECRET_KEY),
+  siteKey: process.env.TURNSTILE_SITE_KEY,
+  secretKey: process.env.TURNSTILE_SECRET_KEY,
+  verifyEndpoint: process.env.TURNSTILE_VERIFY_URL ?? 'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+};
+
 const imageSources = ["'self'", 'data:'];
 
 export const config = {
@@ -77,9 +104,6 @@ export const config = {
   sentryDsn: process.env.SENTRY_DSN_BE,
   sentryTracesSampleRate: Number.parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE ?? '0.05'),
   allowedOrigins,
-  rateLimitPerMinute,
-  rateLimitScanPerMinute,
-  rateLimitReportPerMinute,
   cacheTtlMs,
   logLevel,
   stageOrigin,
@@ -89,41 +113,14 @@ export const config = {
   cspReportUri,
   workerAttempts: parseNumber(process.env.WORKER_JOB_ATTEMPTS, 3),
   workerBackoffMs: parseNumber(process.env.WORKER_BACKOFF_MS, 5000),
+  // Worker concurrency is an infrastructure constraint, not a user limit
+  workerConcurrency: parseNumber(process.env.WORKER_CONCURRENCY, 2),
   csp: {
     connectSources,
     imageSources,
   },
-  email: {
-    sendgrid: {
-      enabled: process.env.SENDGRID_API_KEY ? process.env.SENDGRID_ENABLED !== 'false' : false,
-      apiKey: process.env.SENDGRID_API_KEY,
-      fromEmail: process.env.SENDGRID_FROM_EMAIL,
-      resetUrl: process.env.PASSWORD_RESET_URL ?? (frontendOrigin ? `${frontendOrigin}/reset-password` : undefined),
-    },
-  },
-  // Payment Provider Configuration
-  // NOTE: Stripe code is preserved but disabled via feature flag
-  // LemonSqueezy integration is in progress
-  payments: {
-    stripe: {
-      enabled: process.env.STRIPE_ENABLED === 'true' && !!process.env.STRIPE_SECRET_KEY,
-      secretKey: process.env.STRIPE_SECRET_KEY,
-      webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
-      priceId: process.env.STRIPE_PRICE_ID,
-    },
-    lemonsqueezy: {
-      enabled: process.env.LEMONSQUEEZY_ENABLED === 'true',
-      apiKey: process.env.LEMONSQUEEZY_API_KEY,
-      storeId: process.env.LEMONSQUEEZY_STORE_ID,
-      variantId: process.env.LEMONSQUEEZY_VARIANT_ID,
-      webhookSecret: process.env.LEMONSQUEEZY_WEBHOOK_SECRET,
-      checkoutRedirectUrl: process.env.LEMONSQUEEZY_CHECKOUT_REDIRECT_URL,
-    },
-    wallet: {
-      enabled: process.env.WALLET_AUTH_ENABLED !== 'false', // Default true
-      requiredTokens: parseNumber(process.env.WALLET_PRO_TOKEN_THRESHOLD, 10000),
-    },
-  },
+  objectStorage: objectStorageConfiguration,
+  turnstile: turnstileConfiguration,
 };
 
 export type AppConfig = typeof config;

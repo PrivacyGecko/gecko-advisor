@@ -31,9 +31,15 @@
           <p><strong>Website:</strong> <a href="https://geckoadvisor.com" class="text-trust-500 hover:text-trust-600">https://geckoadvisor.com</a></p>
           <p><strong>Owner:</strong> Privacy Gecko (operating under the "GeckoAdvisor" brand)</p>
           <p><strong>Email:</strong> <a href="mailto:support@privacygecko.com" class="text-trust-500 hover:text-trust-600">support@privacygecko.com</a></p>
-          <p class="mt-4"><strong>Last Updated:</strong> October 15, 2025 | <strong>Effective Date:</strong> October 15, 2025</p>
+          <p class="mt-4"><strong>Last Updated:</strong> October 26, 2025 | <strong>Effective Date:</strong> October 26, 2025</p>
         </div>
       </header>
+
+      <!-- Important Notice -->
+      <div class="bg-gecko-50 border-l-4 border-gecko-500 p-6 mb-8">
+        <h2 class="text-lg font-semibold text-slate-900 mb-2">We use minimal cookies</h2>
+        <p class="text-slate-700 leading-relaxed">GeckoAdvisor uses only essential cookies required for security and basic functionality. We do NOT use analytics cookies, advertising cookies, or tracking cookies.</p>
+      </div>
 
       <!-- Table of Contents -->
       <nav class="bg-slate-50 rounded-lg p-6 mb-8 no-print" aria-label="Table of Contents">
@@ -41,17 +47,12 @@
         <ol class="space-y-2 text-sm">
           <li><a href="#what-are-cookies" class="text-trust-500 hover:text-trust-600 hover:underline">1. What Are Cookies?</a></li>
           <li><a href="#why-we-use" class="text-trust-500 hover:text-trust-600 hover:underline">2. Why We Use Cookies</a></li>
-          <li><a href="#types" class="text-trust-500 hover:text-trust-600 hover:underline">3. Types of Cookies We Use</a></li>
-          <li><a href="#third-party" class="text-trust-500 hover:text-trust-600 hover:underline">4. Third-Party Cookies</a></li>
-          <li><a href="#managing" class="text-trust-500 hover:text-trust-600 hover:underline">5. Managing Cookies</a></li>
-          <li><a href="#duration" class="text-trust-500 hover:text-trust-600 hover:underline">6. Cookie Duration</a></li>
-          <li><a href="#your-rights" class="text-trust-500 hover:text-trust-600 hover:underline">7. Your Rights</a></li>
-          <li><a href="#disable" class="text-trust-500 hover:text-trust-600 hover:underline">8. What Happens If You Disable Cookies?</a></li>
-          <li><a href="#other-tracking" class="text-trust-500 hover:text-trust-600 hover:underline">9. Other Tracking Technologies</a></li>
-          <li><a href="#updates" class="text-trust-500 hover:text-trust-600 hover:underline">10. Updates to This Policy</a></li>
-          <li><a href="#contact" class="text-trust-500 hover:text-trust-600 hover:underline">11. Contact Us</a></li>
-          <li><a href="#summary" class="text-trust-500 hover:text-trust-600 hover:underline">12. Cookie Summary Table</a></li>
-          <li><a href="#learn-more" class="text-trust-500 hover:text-trust-600 hover:underline">13. Learn More</a></li>
+          <li><a href="#types" class="text-trust-500 hover:text-trust-600 hover:underline">3. Cookies We Use</a></li>
+          <li><a href="#managing" class="text-trust-500 hover:text-trust-600 hover:underline">4. Managing Cookies</a></li>
+          <li><a href="#disable" class="text-trust-500 hover:text-trust-600 hover:underline">5. What Happens If You Disable Cookies?</a></li>
+          <li><a href="#other-tracking" class="text-trust-500 hover:text-trust-600 hover:underline">6. Other Tracking Technologies</a></li>
+          <li><a href="#updates" class="text-trust-500 hover:text-trust-600 hover:underline">7. Updates to This Policy</a></li>
+          <li><a href="#contact" class="text-trust-500 hover:text-trust-600 hover:underline">8. Contact Us</a></li>
         </ol>
       </nav>
 
@@ -63,11 +64,8 @@
           <p class="text-slate-700 leading-relaxed mb-4">
             Cookies are small text files stored on your device when you visit a website. They help websites remember your preferences and provide a better experience.
           </p>
-          <div class="bg-gecko-50 border-l-4 border-gecko-500 p-4">
-            <p class="text-slate-900 font-semibold">By using GeckoAdvisor, you consent to our use of cookies as described in this policy.</p>
-          </div>
-          <p class="text-slate-700 leading-relaxed mt-4">
-            For more details, see our <a href="/privacy.html" class="text-trust-500 hover:text-trust-600 underline">Privacy Policy</a>.
+          <p class="text-slate-700 leading-relaxed">
+            For more details about our data practices, see our <a href="/privacy.html" class="text-trust-500 hover:text-trust-600 underline">Privacy Policy</a>.
           </p>
         </section>
 
@@ -76,281 +74,194 @@
           <h2 class="text-2xl font-bold text-slate-900 mb-4">Why We Use Cookies</h2>
           <p class="text-slate-700 leading-relaxed mb-2">We use cookies to:</p>
           <ul class="list-disc list-inside space-y-2 text-slate-700 ml-4">
-            <li>Keep you logged in</li>
-            <li>Remember your preferences</li>
-            <li>Secure your account</li>
-            <li>Understand how people use our service</li>
-            <li>Improve performance and fix bugs</li>
+            <li>Prevent bot abuse and automated attacks (Cloudflare Turnstile)</li>
+            <li>Keep you logged in (if you create an optional account)</li>
+            <li>Ensure fair access for all users</li>
           </ul>
-        </section>
 
-        <!-- Section 3 -->
-        <section id="types">
-          <h2 class="text-2xl font-bold text-slate-900 mb-4">Types of Cookies We Use</h2>
-
-          <div class="space-y-6">
-            <!-- Essential Cookies -->
-            <div class="bg-slate-50 border border-slate-300 rounded-lg p-6">
-              <div class="flex items-start justify-between mb-3">
-                <h3 class="text-xl font-semibold text-slate-900">1. Essential Cookies (Always Active)</h3>
-                <span class="bg-red-100 text-red-800 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap ml-4">Required</span>
-              </div>
-              <p class="text-slate-700 mb-2"><strong>Purpose:</strong> Required for the website to function</p>
-              <p class="text-slate-700 mb-4"><strong>Can you disable them?</strong> No (service won't work without them)</p>
-
-              <h4 class="font-semibold text-slate-900 mb-2">What they do:</h4>
-              <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
-                <li>Keep you logged in</li>
-                <li>Protect against security threats</li>
-                <li>Remember your current session</li>
-                <li>Enable core features</li>
-              </ul>
-
-              <h4 class="font-semibold text-slate-900 mb-2">Examples:</h4>
-              <ul class="list-disc list-inside space-y-1 text-sm text-slate-700">
-                <li><code class="bg-slate-200 px-2 py-1 rounded">session_id</code> — Authentication (expires when you close browser)</li>
-                <li><code class="bg-slate-200 px-2 py-1 rounded">csrf_token</code> — Security protection (expires when you close browser)</li>
-                <li><code class="bg-slate-200 px-2 py-1 rounded">auth_token</code> — "Remember me" functionality (7 days)</li>
-              </ul>
-            </div>
-
-            <!-- Functional Cookies -->
-            <div class="bg-slate-50 border border-slate-300 rounded-lg p-6">
-              <div class="flex items-start justify-between mb-3">
-                <h3 class="text-xl font-semibold text-slate-900">2. Functional Cookies (Optional)</h3>
-                <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap ml-4">Optional</span>
-              </div>
-              <p class="text-slate-700 mb-2"><strong>Purpose:</strong> Enhance your experience</p>
-              <p class="text-slate-700 mb-4"><strong>Can you disable them?</strong> Yes (core features still work)</p>
-
-              <h4 class="font-semibold text-slate-900 mb-2">What they do:</h4>
-              <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
-                <li>Remember your theme (dark/light mode)</li>
-                <li>Save your language preference</li>
-                <li>Store your scan history view settings</li>
-              </ul>
-
-              <h4 class="font-semibold text-slate-900 mb-2">Examples:</h4>
-              <ul class="list-disc list-inside space-y-1 text-sm text-slate-700">
-                <li><code class="bg-slate-200 px-2 py-1 rounded">user_preferences</code> — UI settings (12 months)</li>
-                <li><code class="bg-slate-200 px-2 py-1 rounded">cookie_consent</code> — Your cookie choices (12 months)</li>
-              </ul>
-            </div>
-
-            <!-- Analytics Cookies -->
-            <div class="bg-slate-50 border border-slate-300 rounded-lg p-6">
-              <div class="flex items-start justify-between mb-3">
-                <h3 class="text-xl font-semibold text-slate-900">3. Analytics Cookies (Optional)</h3>
-                <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap ml-4">Optional</span>
-              </div>
-              <p class="text-slate-700 mb-2"><strong>Purpose:</strong> Help us improve our service</p>
-              <p class="text-slate-700 mb-4"><strong>Can you disable them?</strong> Yes</p>
-
-              <h4 class="font-semibold text-slate-900 mb-2">What they do:</h4>
-              <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
-                <li>Track which pages you visit</li>
-                <li>Measure how long you use our service</li>
-                <li>Identify technical issues</li>
-                <li>Understand which features are popular</li>
-              </ul>
-
-              <h4 class="font-semibold text-slate-900 mb-2">Examples:</h4>
-              <ul class="list-disc list-inside space-y-1 text-sm text-slate-700 mb-4">
-                <li><code class="bg-slate-200 px-2 py-1 rounded">_ga</code> — Google Analytics user ID (2 years)</li>
-                <li><code class="bg-slate-200 px-2 py-1 rounded">analytics_session</code> — Session tracking (expires when you close browser)</li>
-              </ul>
-
-              <div class="bg-blue-50 border-l-4 border-blue-500 p-3 mt-3">
-                <p class="text-sm text-blue-900"><strong>Note:</strong> We use privacy-focused analytics and don't track you across other websites.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Section 4 -->
-        <section id="third-party">
-          <h2 class="text-2xl font-bold text-slate-900 mb-4">Third-Party Cookies</h2>
-          <p class="text-slate-700 leading-relaxed mb-4">Some features require cookies from trusted partners:</p>
-
-          <div class="overflow-x-auto">
-            <table class="min-w-full border border-slate-300 rounded-lg overflow-hidden">
-              <thead class="bg-slate-100">
-                <tr>
-                  <th class="px-4 py-3 text-left text-sm font-semibold text-slate-900 border-b border-slate-300">Provider</th>
-                  <th class="px-4 py-3 text-left text-sm font-semibold text-slate-900 border-b border-slate-300">Purpose</th>
-                  <th class="px-4 py-3 text-left text-sm font-semibold text-slate-900 border-b border-slate-300">When Used</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-200">
-                <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-4 py-3 text-sm font-semibold text-slate-700">Cloudflare</td>
-                  <td class="px-4 py-3 text-sm text-slate-700">Security and performance</td>
-                  <td class="px-4 py-3 text-sm text-slate-700">All pages</td>
-                </tr>
-                <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-4 py-3 text-sm font-semibold text-slate-700">Stripe</td>
-                  <td class="px-4 py-3 text-sm text-slate-700">Payment processing</td>
-                  <td class="px-4 py-3 text-sm text-slate-700">Payment pages only</td>
-                </tr>
-                <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-4 py-3 text-sm font-semibold text-slate-700">Google Analytics</td>
-                  <td class="px-4 py-3 text-sm text-slate-700">Usage analytics (if you consent)</td>
-                  <td class="px-4 py-3 text-sm text-slate-700">All pages</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="mt-4 text-sm text-slate-700">
-            <p class="mb-2"><strong>Each provider has its own privacy policy:</strong></p>
-            <ul class="list-disc list-inside space-y-1 ml-4">
-              <li>Cloudflare: <a href="https://www.cloudflare.com/privacypolicy/" class="text-trust-500 hover:text-trust-600 underline" target="_blank" rel="noopener noreferrer">cloudflare.com/privacypolicy</a></li>
-              <li>Stripe: <a href="https://stripe.com/privacy" class="text-trust-500 hover:text-trust-600 underline" target="_blank" rel="noopener noreferrer">stripe.com/privacy</a></li>
-              <li>Google: <a href="https://policies.google.com/privacy" class="text-trust-500 hover:text-trust-600 underline" target="_blank" rel="noopener noreferrer">policies.google.com/privacy</a></li>
+          <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mt-4">
+            <p class="text-blue-900 font-semibold">We do NOT use cookies for:</p>
+            <ul class="list-disc list-inside space-y-1 text-slate-700 mt-2 ml-4">
+              <li>Analytics or usage tracking</li>
+              <li>Advertising or marketing</li>
+              <li>Tracking you across websites</li>
+              <li>Profiling or behavioral analysis</li>
             </ul>
           </div>
         </section>
 
-        <!-- Section 5 -->
+        <!-- Section 3 -->
+        <section id="types">
+          <h2 class="text-2xl font-bold text-slate-900 mb-4">Cookies We Use</h2>
+
+          <div class="space-y-6">
+            <!-- Cloudflare Turnstile -->
+            <div class="bg-slate-50 border border-slate-300 rounded-lg p-6">
+              <div class="flex items-start justify-between mb-3">
+                <h3 class="text-xl font-semibold text-slate-900">1. Cloudflare Turnstile (Required)</h3>
+                <span class="bg-red-100 text-red-800 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap ml-4">Required</span>
+              </div>
+              <p class="text-slate-700 mb-2"><strong>Provider:</strong> Cloudflare</p>
+              <p class="text-slate-700 mb-2"><strong>Purpose:</strong> Bot protection and abuse prevention</p>
+              <p class="text-slate-700 mb-4"><strong>Can you disable them?</strong> No (service won't work without bot protection)</p>
+
+              <h4 class="font-semibold text-slate-900 mb-2">What they do:</h4>
+              <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                <li>Verify that scan requests come from real humans, not bots</li>
+                <li>Prevent automated abuse and excessive requests</li>
+                <li>Protect our infrastructure for all users</li>
+              </ul>
+
+              <h4 class="font-semibold text-slate-900 mb-2">Cookies:</h4>
+              <ul class="list-disc list-inside space-y-1 text-sm text-slate-700 mb-4">
+                <li><code class="bg-slate-200 px-2 py-1 rounded">cf-turnstile-response</code> — Challenge verification token (temporary, seconds)</li>
+                <li><code class="bg-slate-200 px-2 py-1 rounded">__cf_bm</code> — Bot management (30 minutes)</li>
+              </ul>
+
+              <p class="text-sm text-slate-600">
+                <strong>Privacy:</strong> Turnstile is designed to be privacy-preserving. See <a href="https://www.cloudflare.com/privacypolicy/" class="text-trust-500 hover:text-trust-600 underline" target="_blank" rel="noopener noreferrer">Cloudflare's Privacy Policy</a> for details.
+              </p>
+            </div>
+
+            <!-- Session Cookies (Optional) -->
+            <div class="bg-slate-50 border border-slate-300 rounded-lg p-6">
+              <div class="flex items-start justify-between mb-3">
+                <h3 class="text-xl font-semibold text-slate-900">2. Session Cookies (Optional)</h3>
+                <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap ml-4">Optional</span>
+              </div>
+              <p class="text-slate-700 mb-2"><strong>Purpose:</strong> Authentication for optional user accounts</p>
+              <p class="text-slate-700 mb-4"><strong>Can you disable them?</strong> Yes (you can use GeckoAdvisor anonymously without creating an account)</p>
+
+              <h4 class="font-semibold text-slate-900 mb-2">What they do:</h4>
+              <ul class="list-disc list-inside space-y-1 text-slate-700 mb-4">
+                <li>Keep you logged in if you create an account</li>
+                <li>Remember your session</li>
+              </ul>
+
+              <h4 class="font-semibold text-slate-900 mb-2">Cookies:</h4>
+              <ul class="list-disc list-inside space-y-1 text-sm text-slate-700">
+                <li><code class="bg-slate-200 px-2 py-1 rounded">session_id</code> — Authentication (expires when you close browser)</li>
+                <li><code class="bg-slate-200 px-2 py-1 rounded">auth_token</code> — "Remember me" functionality (7 days, if enabled)</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- What We DON'T Use -->
+          <div class="bg-red-50 border-l-4 border-red-500 p-6 mt-6">
+            <h3 class="text-lg font-semibold text-slate-900 mb-2">We do NOT use:</h3>
+            <ul class="list-disc list-inside space-y-1 text-slate-700 ml-4">
+              <li><strong>Google Analytics cookies</strong> (_ga, _gid, _gat) — We don't track you</li>
+              <li><strong>Advertising cookies</strong> — We don't serve ads or track for advertising</li>
+              <li><strong>Payment provider cookies</strong> (Stripe, etc.) — Our service is 100% free</li>
+              <li><strong>Social media cookies</strong> — We don't embed social tracking pixels</li>
+              <li><strong>Third-party tracking cookies</strong> — We don't share data with trackers</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- Section 4 -->
         <section id="managing">
           <h2 class="text-2xl font-bold text-slate-900 mb-4">Managing Cookies</h2>
 
-          <h3 class="text-xl font-semibold text-slate-800 mb-3 mt-6">Our Cookie Settings</h3>
-          <p class="text-slate-700 leading-relaxed mb-2"><strong>On your first visit</strong>, you'll see a cookie banner where you can:</p>
-          <ul class="list-disc list-inside space-y-1 text-slate-700 ml-4 mb-4">
-            <li>Accept all cookies</li>
-            <li>Accept only essential cookies</li>
-            <li>Customize your preferences</li>
-          </ul>
-
-          <p class="text-slate-700 leading-relaxed mb-2"><strong>Change your mind anytime:</strong></p>
-          <ul class="list-disc list-inside space-y-1 text-slate-700 ml-4">
-            <li>Cookie settings: <a href="/cookies" class="text-trust-500 hover:text-trust-600 underline">/cookies</a></li>
-            <li>Footer link: "Cookie Preferences"</li>
-          </ul>
-
           <h3 class="text-xl font-semibold text-slate-800 mb-3 mt-6">Browser Settings</h3>
-          <p class="text-slate-700 leading-relaxed mb-3">You can also control cookies through your browser:</p>
+          <p class="text-slate-700 leading-relaxed mb-3">You can control cookies through your browser settings:</p>
           <div class="bg-slate-50 rounded-lg p-4 space-y-2 text-sm text-slate-700">
-            <p><strong>Chrome:</strong> Settings → Privacy and security → Cookies</p>
-            <p><strong>Firefox:</strong> Settings → Privacy & Security → Cookies</p>
-            <p><strong>Safari:</strong> Preferences → Privacy</p>
+            <p><strong>Chrome:</strong> Settings → Privacy and security → Cookies and other site data</p>
+            <p><strong>Firefox:</strong> Settings → Privacy & Security → Cookies and Site Data</p>
+            <p><strong>Safari:</strong> Preferences → Privacy → Cookies and website data</p>
             <p><strong>Edge:</strong> Settings → Cookies and site permissions</p>
           </div>
 
+          <h3 class="text-xl font-semibold text-slate-800 mb-3 mt-6">Cloudflare Turnstile Opt-Out</h3>
+          <p class="text-slate-700 leading-relaxed mb-2">For Cloudflare Turnstile cookies, you can:</p>
+          <ul class="list-disc list-inside space-y-1 text-slate-700 ml-4">
+            <li>Visit <a href="https://www.cloudflare.com/privacypolicy/" class="text-trust-500 hover:text-trust-600 underline" target="_blank" rel="noopener noreferrer">Cloudflare's Privacy Center</a> for opt-out options</li>
+            <li>Use browser privacy settings to block third-party cookies</li>
+          </ul>
+
           <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 mt-4">
-            <p class="text-yellow-900"><strong>Note:</strong> Blocking all cookies will prevent you from logging in and using our service.</p>
+            <p class="text-yellow-900"><strong>Note:</strong> Blocking Cloudflare Turnstile cookies will prevent you from using GeckoAdvisor, as bot protection is required for all users.</p>
           </div>
         </section>
 
-        <!-- Section 6 -->
-        <section id="duration">
-          <h2 class="text-2xl font-bold text-slate-900 mb-4">Cookie Duration</h2>
-          <div class="space-y-2 text-slate-700">
-            <p><strong>Session cookies</strong> — Deleted when you close your browser</p>
-            <p><strong>Persistent cookies</strong> — Stored for a set time (7 days to 2 years depending on purpose)</p>
-          </div>
-          <div class="bg-gecko-50 border-l-4 border-gecko-500 p-4 mt-4">
-            <p class="text-slate-900 font-semibold">We don't store cookies longer than necessary.</p>
-          </div>
-        </section>
-
-        <!-- Section 7 -->
-        <section id="your-rights">
-          <h2 class="text-2xl font-bold text-slate-900 mb-4">Your Rights</h2>
-
-          <h3 class="text-xl font-semibold text-slate-800 mb-3 mt-6">For EU/UK Users (GDPR)</h3>
-          <p class="text-slate-700 leading-relaxed mb-2">You have the right to:</p>
-          <ul class="list-disc list-inside space-y-1 text-slate-700 ml-4">
-            <li>Choose which cookies to accept</li>
-            <li>Withdraw consent at any time</li>
-            <li>Learn what each cookie does before accepting</li>
-          </ul>
-
-          <h3 class="text-xl font-semibold text-slate-800 mb-3 mt-6">For California Users</h3>
-          <p class="text-slate-700 leading-relaxed mb-2">You have the right to:</p>
-          <ul class="list-disc list-inside space-y-1 text-slate-700 ml-4">
-            <li>Know what cookies we use</li>
-            <li>Opt out of non-essential cookies</li>
-          </ul>
-
-          <h3 class="text-xl font-semibold text-slate-800 mb-3 mt-6">For All Users</h3>
-          <p class="text-slate-700 leading-relaxed mb-2">You can:</p>
-          <ul class="list-disc list-inside space-y-1 text-slate-700 ml-4">
-            <li>View all cookies we use</li>
-            <li>Change your preferences anytime</li>
-            <li>Delete cookies from your browser</li>
-          </ul>
-        </section>
-
-        <!-- Section 8 -->
+        <!-- Section 5 -->
         <section id="disable">
           <h2 class="text-2xl font-bold text-slate-900 mb-4">What Happens If You Disable Cookies?</h2>
 
           <div class="grid md:grid-cols-2 gap-4">
             <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-              <h3 class="font-semibold text-slate-900 mb-3">If you disable essential cookies:</h3>
+              <h3 class="font-semibold text-slate-900 mb-3">If you disable Cloudflare cookies:</h3>
               <ul class="space-y-2 text-sm text-slate-700">
                 <li class="flex items-start">
                   <span class="text-red-500 mr-2" aria-hidden="true">✗</span>
-                  <span>Can't log in</span>
+                  <span>Can't submit scan requests</span>
                 </li>
                 <li class="flex items-start">
                   <span class="text-red-500 mr-2" aria-hidden="true">✗</span>
-                  <span>Can't use core features</span>
+                  <span>Service will not work (bot protection required)</span>
                 </li>
                 <li class="flex items-start">
                   <span class="text-gecko-500 mr-2" aria-hidden="true">✓</span>
-                  <span>Can browse public pages</span>
+                  <span>Can view public scan results</span>
                 </li>
               </ul>
             </div>
 
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 class="font-semibold text-slate-900 mb-3">If you disable optional cookies only:</h3>
+              <h3 class="font-semibold text-slate-900 mb-3">If you disable session cookies:</h3>
               <ul class="space-y-2 text-sm text-slate-700">
                 <li class="flex items-start">
                   <span class="text-gecko-500 mr-2" aria-hidden="true">✓</span>
-                  <span>All features work</span>
+                  <span>Can still submit scans anonymously</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="text-gecko-500 mr-2" aria-hidden="true">✓</span>
+                  <span>Full service functionality</span>
                 </li>
                 <li class="flex items-start">
                   <span class="text-red-500 mr-2" aria-hidden="true">✗</span>
-                  <span>Preferences not saved</span>
-                </li>
-                <li class="flex items-start">
-                  <span class="text-red-500 mr-2" aria-hidden="true">✗</span>
-                  <span>We can't improve based on usage</span>
+                  <span>Can't stay logged in (if you created an account)</span>
                 </li>
               </ul>
             </div>
           </div>
         </section>
 
-        <!-- Section 9 -->
+        <!-- Section 6 -->
         <section id="other-tracking">
           <h2 class="text-2xl font-bold text-slate-900 mb-4">Other Tracking Technologies</h2>
           <p class="text-slate-700 leading-relaxed mb-2">Besides cookies, we use:</p>
           <ul class="list-disc list-inside space-y-2 text-slate-700 ml-4">
-            <li><strong>Local Storage:</strong> Store scan history and preferences</li>
+            <li><strong>Local Storage:</strong> Store scan history in your browser (optional, you control this)</li>
             <li><strong>Session Storage:</strong> Temporary data for current session</li>
           </ul>
           <p class="text-slate-700 leading-relaxed mt-4">
-            These work similarly to cookies and can be cleared through browser settings.
+            These work similarly to cookies and can be cleared through browser settings. We do NOT use them for tracking or analytics.
           </p>
+
+          <div class="bg-gecko-50 border-l-4 border-gecko-500 p-4 mt-4">
+            <p class="text-slate-900 font-semibold">We do NOT use:</p>
+            <ul class="list-disc list-inside space-y-1 text-slate-700 mt-2 ml-4">
+              <li>Web beacons or tracking pixels</li>
+              <li>Fingerprinting techniques</li>
+              <li>Cross-site tracking</li>
+              <li>Third-party analytics SDKs</li>
+            </ul>
+          </div>
         </section>
 
-        <!-- Section 10 -->
+        <!-- Section 7 -->
         <section id="updates">
           <h2 class="text-2xl font-bold text-slate-900 mb-4">Updates to This Policy</h2>
           <p class="text-slate-700 leading-relaxed mb-4">
             We may update this Cookie Policy from time to time. Changes will be posted here with a new "Last Updated" date.
           </p>
           <p class="text-slate-700 leading-relaxed">
-            <strong>Significant changes:</strong> We'll notify you via email or website banner.
+            <strong>Significant changes:</strong> We'll notify you via a notice on our website.
           </p>
         </section>
 
-        <!-- Section 11 -->
+        <!-- Section 8 -->
         <section id="contact">
           <h2 class="text-2xl font-bold text-slate-900 mb-4">Contact Us</h2>
           <p class="text-slate-700 leading-relaxed mb-4"><strong>Questions about cookies?</strong></p>
@@ -367,15 +278,15 @@
           <p class="text-slate-700 leading-relaxed mt-4">We'll respond within 2 business days.</p>
         </section>
 
-        <!-- Section 12 -->
-        <section id="summary">
+        <!-- Cookie Summary Table -->
+        <section id="summary" class="border-t border-slate-200 pt-8">
           <h2 class="text-2xl font-bold text-slate-900 mb-4">Cookie Summary Table</h2>
           <div class="overflow-x-auto">
             <table class="min-w-full border border-slate-300 rounded-lg overflow-hidden text-sm">
               <thead class="bg-slate-100">
                 <tr>
                   <th class="px-3 py-3 text-left text-xs font-semibold text-slate-900 border-b border-slate-300">Cookie Name</th>
-                  <th class="px-3 py-3 text-left text-xs font-semibold text-slate-900 border-b border-slate-300">Type</th>
+                  <th class="px-3 py-3 text-left text-xs font-semibold text-slate-900 border-b border-slate-300">Provider</th>
                   <th class="px-3 py-3 text-left text-xs font-semibold text-slate-900 border-b border-slate-300">Purpose</th>
                   <th class="px-3 py-3 text-left text-xs font-semibold text-slate-900 border-b border-slate-300">Duration</th>
                   <th class="px-3 py-3 text-left text-xs font-semibold text-slate-900 border-b border-slate-300">Required?</th>
@@ -383,68 +294,40 @@
               </thead>
               <tbody class="divide-y divide-slate-200">
                 <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-3 py-3 text-slate-700"><code class="bg-slate-200 px-2 py-1 rounded text-xs">session_id</code></td>
-                  <td class="px-3 py-3 text-slate-700">Essential</td>
-                  <td class="px-3 py-3 text-slate-700">Login/authentication</td>
-                  <td class="px-3 py-3 text-slate-700">Session</td>
+                  <td class="px-3 py-3 text-slate-700"><code class="bg-slate-200 px-2 py-1 rounded text-xs">cf-turnstile-response</code></td>
+                  <td class="px-3 py-3 text-slate-700">Cloudflare</td>
+                  <td class="px-3 py-3 text-slate-700">Bot verification</td>
+                  <td class="px-3 py-3 text-slate-700">Seconds</td>
                   <td class="px-3 py-3 text-slate-700"><span class="text-red-600 font-semibold">Yes</span></td>
-                </tr>
-                <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-3 py-3 text-slate-700"><code class="bg-slate-200 px-2 py-1 rounded text-xs">csrf_token</code></td>
-                  <td class="px-3 py-3 text-slate-700">Essential</td>
-                  <td class="px-3 py-3 text-slate-700">Security</td>
-                  <td class="px-3 py-3 text-slate-700">Session</td>
-                  <td class="px-3 py-3 text-slate-700"><span class="text-red-600 font-semibold">Yes</span></td>
-                </tr>
-                <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-3 py-3 text-slate-700"><code class="bg-slate-200 px-2 py-1 rounded text-xs">auth_token</code></td>
-                  <td class="px-3 py-3 text-slate-700">Essential</td>
-                  <td class="px-3 py-3 text-slate-700">Remember me</td>
-                  <td class="px-3 py-3 text-slate-700">7 days</td>
-                  <td class="px-3 py-3 text-slate-700"><span class="text-red-600 font-semibold">Yes</span></td>
-                </tr>
-                <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-3 py-3 text-slate-700"><code class="bg-slate-200 px-2 py-1 rounded text-xs">user_preferences</code></td>
-                  <td class="px-3 py-3 text-slate-700">Functional</td>
-                  <td class="px-3 py-3 text-slate-700">UI settings</td>
-                  <td class="px-3 py-3 text-slate-700">12 months</td>
-                  <td class="px-3 py-3 text-slate-700"><span class="text-blue-600 font-semibold">No</span></td>
-                </tr>
-                <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-3 py-3 text-slate-700"><code class="bg-slate-200 px-2 py-1 rounded text-xs">cookie_consent</code></td>
-                  <td class="px-3 py-3 text-slate-700">Functional</td>
-                  <td class="px-3 py-3 text-slate-700">Consent choices</td>
-                  <td class="px-3 py-3 text-slate-700">12 months</td>
-                  <td class="px-3 py-3 text-slate-700"><span class="text-blue-600 font-semibold">No</span></td>
-                </tr>
-                <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-3 py-3 text-slate-700"><code class="bg-slate-200 px-2 py-1 rounded text-xs">_ga</code></td>
-                  <td class="px-3 py-3 text-slate-700">Analytics</td>
-                  <td class="px-3 py-3 text-slate-700">Usage tracking</td>
-                  <td class="px-3 py-3 text-slate-700">2 years</td>
-                  <td class="px-3 py-3 text-slate-700"><span class="text-blue-600 font-semibold">No</span></td>
                 </tr>
                 <tr class="hover:bg-slate-50 transition-colors">
                   <td class="px-3 py-3 text-slate-700"><code class="bg-slate-200 px-2 py-1 rounded text-xs">__cf_bm</code></td>
-                  <td class="px-3 py-3 text-slate-700">Security (Cloudflare)</td>
+                  <td class="px-3 py-3 text-slate-700">Cloudflare</td>
                   <td class="px-3 py-3 text-slate-700">Bot protection</td>
                   <td class="px-3 py-3 text-slate-700">30 min</td>
                   <td class="px-3 py-3 text-slate-700"><span class="text-red-600 font-semibold">Yes</span></td>
                 </tr>
                 <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-3 py-3 text-slate-700"><code class="bg-slate-200 px-2 py-1 rounded text-xs">__stripe_*</code></td>
-                  <td class="px-3 py-3 text-slate-700">Payment (Stripe)</td>
-                  <td class="px-3 py-3 text-slate-700">Secure payments</td>
-                  <td class="px-3 py-3 text-slate-700">30 min - 1 year</td>
-                  <td class="px-3 py-3 text-slate-700"><span class="text-red-600 font-semibold">Yes</span> (payment pages)</td>
+                  <td class="px-3 py-3 text-slate-700"><code class="bg-slate-200 px-2 py-1 rounded text-xs">session_id</code></td>
+                  <td class="px-3 py-3 text-slate-700">GeckoAdvisor</td>
+                  <td class="px-3 py-3 text-slate-700">Authentication</td>
+                  <td class="px-3 py-3 text-slate-700">Session</td>
+                  <td class="px-3 py-3 text-slate-700"><span class="text-blue-600 font-semibold">No</span></td>
+                </tr>
+                <tr class="hover:bg-slate-50 transition-colors">
+                  <td class="px-3 py-3 text-slate-700"><code class="bg-slate-200 px-2 py-1 rounded text-xs">auth_token</code></td>
+                  <td class="px-3 py-3 text-slate-700">GeckoAdvisor</td>
+                  <td class="px-3 py-3 text-slate-700">Remember me</td>
+                  <td class="px-3 py-3 text-slate-700">7 days</td>
+                  <td class="px-3 py-3 text-slate-700"><span class="text-blue-600 font-semibold">No</span></td>
                 </tr>
               </tbody>
             </table>
           </div>
         </section>
 
-        <!-- Section 13 -->
-        <section id="learn-more">
+        <!-- Learn More -->
+        <section id="learn-more" class="border-t border-slate-200 pt-8">
           <h2 class="text-2xl font-bold text-slate-900 mb-4">Learn More</h2>
 
           <div class="space-y-4">
@@ -478,7 +361,7 @@
 
       <!-- Document Footer -->
       <footer class="border-t border-slate-200 mt-12 pt-6 text-center text-sm text-slate-600">
-        <p>Last Updated: October 15, 2025 • Version 1.0</p>
+        <p>Last Updated: October 26, 2025 • Version 2.0</p>
       </footer>
     </article>
   </main>

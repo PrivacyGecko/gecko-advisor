@@ -198,24 +198,6 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-
-            {!isPro && (
-              <Link
-                to="/pricing"
-                className={clsx(
-                  'inline-flex items-center gap-2 px-4 py-2 rounded-lg',
-                  'bg-gradient-to-r from-amber-500 to-amber-600 text-white',
-                  'text-sm font-semibold',
-                  'hover:from-amber-600 hover:to-amber-700',
-                  'transition-all shadow-md hover:shadow-lg'
-                )}
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Upgrade to Pro
-              </Link>
-            )}
           </div>
 
           {/* API key section for Pro users */}
@@ -238,7 +220,7 @@ export default function Dashboard() {
               </div>
               <p className="text-xs text-gray-500 mt-2">
                 Use this API key for automated scanning. See{' '}
-                <Link to="/docs" className="text-blue-600 hover:underline">
+                <Link to="/docs" className="text-trust-600 hover:text-trust-700 hover:underline">
                   documentation
                 </Link>{' '}
                 for details.

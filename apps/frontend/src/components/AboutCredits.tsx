@@ -8,12 +8,46 @@ export default function AboutCredits() {
   return (
     <div className="prose max-w-none p-6">
       <h1>About & Credits</h1>
+
+      <section className="mb-8 p-6 bg-advisor-50 border-l-4 border-advisor-600 rounded-r-lg">
+        <h2 className="text-2xl font-bold text-advisor-900 mt-0">About Privacy Gecko</h2>
+        <p className="text-lg text-gray-800 leading-relaxed">
+          Privacy Gecko helps everyone understand how websites track and collect data. Our open-source privacy scanner reveals hidden trackers, cookies, and data collection practices—making privacy transparency accessible to all.
+        </p>
+        <p className="text-lg text-gray-800 leading-relaxed">
+          Our open-source methodology ensures transparency and reproducibility. All scanning logic is public, deterministic, and auditable. We analyze privacy practices without collecting user data—our commitment to privacy extends to our own operations.
+        </p>
+        <p className="text-lg text-gray-800 leading-relaxed">
+          Founded on the principle that privacy transparency benefits everyone, Privacy Gecko is free and accessible to anyone who wants to understand how websites handle their data.
+        </p>
+
+        <h3 className="text-xl font-bold text-advisor-900 mt-6 mb-3">Our Approach</h3>
+        <ul className="text-base text-gray-800 space-y-2 my-4">
+          <li><strong>Open-source methodology</strong> for full auditability</li>
+          <li><strong>Deterministic scoring</strong> for reproducible results</li>
+          <li><strong>Evidence-based analysis</strong> backed by recognized privacy databases</li>
+          <li><strong>Free and accessible</strong> for everyone who cares about privacy</li>
+        </ul>
+
+        <h3 className="text-xl font-bold text-advisor-900 mt-6 mb-3">Our Values</h3>
+        <ul className="text-base text-gray-800 space-y-2 my-4">
+          <li><strong>Transparency:</strong> Our code, data sources, and methodology are public</li>
+          <li><strong>Accuracy:</strong> We cite sources and provide evidence for every finding</li>
+          <li><strong>Privacy:</strong> We don't track users while analyzing tracking</li>
+          <li><strong>Accessibility:</strong> Free and open for everyone to use</li>
+        </ul>
+      </section>
+
+      <h2>What We Do</h2>
       <p>
         Gecko Advisor provides explainable privacy checks for user-submitted URLs.
         It uses bundled, offline lists for deterministic scans in tests and production.
       </p>
 
-      <h2>Data Sources</h2>
+      <h2>Data Sources & Attribution</h2>
+      <p className="text-base text-gray-700 mb-4">
+        Gecko Advisor's privacy analysis is powered by industry-recognized privacy databases and our own proprietary scanning engine. We transparently disclose all data sources:
+      </p>
       <ul>
         <li>
           <strong>EasyPrivacy</strong> — Dual licensed (GPL v3 + Creative Commons BY-SA 3.0). Used server-side for tracker detection.

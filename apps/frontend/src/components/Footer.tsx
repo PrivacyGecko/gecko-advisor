@@ -46,9 +46,6 @@ export default function Footer() {
                 className="h-10 w-auto object-contain"
               />
             </Link>
-            <p className="text-sm text-gecko-600 font-semibold mb-2">
-              {BRAND.tagline}
-            </p>
             <p className="text-sm text-gray-600 leading-relaxed">
               {BRAND.shortDescription}
             </p>
@@ -107,14 +104,6 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  to="/pricing"
-                  className="text-sm text-gray-600 hover:text-gecko-600 transition-colors"
-                >
-                  Pricing
-                </Link>
-              </li>
-              <li>
-                <Link
                   to="/docs"
                   className="text-sm text-gray-600 hover:text-gecko-600 transition-colors"
                 >
@@ -128,6 +117,16 @@ export default function Footer() {
                 >
                   Compare Sites
                 </Link>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/privacygecko/gecko-advisor"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-gray-600 hover:text-gecko-600 transition-colors"
+                >
+                  View on GitHub
+                </a>
               </li>
             </ul>
           </div>
@@ -223,15 +222,16 @@ export default function Footer() {
               © {currentYear} {BRAND.companyName}. All rights reserved.
             </p>
 
-            {/* Additional Links */}
-            <div className="flex items-center gap-6 text-sm text-gray-500">
+            {/* Trust Indicators */}
+            <div className="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm text-gray-500 flex-wrap justify-center sm:justify-end">
               <span className="flex items-center gap-1">
                 <svg className="w-4 h-4 text-gecko-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                 </svg>
                 Open Source
               </span>
-              <span>Made with privacy in mind</span>
+              <span>Transparent</span>
+              <span>Free for Everyone</span>
             </div>
           </div>
         </div>

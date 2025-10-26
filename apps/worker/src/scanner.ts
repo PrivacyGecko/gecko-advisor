@@ -1,8 +1,10 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
 import { load as loadHtml } from 'cheerio';
-import { normalizeUrl, etldPlusOne } from '@privacy-advisor/shared';
+import { normalizeUrl, etldPlusOne, buildReportPayload, buildReportStorageKey } from '@privacy-advisor/shared';
 import { getLists } from './lists.js';
 import { logger } from './logger.js';
+import { objectStorage } from './objectStorage.js';
+import { config } from './config.js';
 
 /**
  * Sanitizes HTML content to prevent XSS attacks by removing dangerous elements and attributes.
@@ -457,9 +459,44 @@ export async function scanSiteJob(
       },
     });
   });
+
+  if (objectStorage.isEnabled()) {
+    try {
+      const enrichedScan = await prisma.scan.findUnique({
+        where: { id: scanId },
+        include: {
+          evidence: { orderBy: { createdAt: 'asc' } },
+          issues: { orderBy: [{ sortWeight: 'asc' }, { createdAt: 'asc' }] },
+        },
+      });
+
+      if (enrichedScan) {
+        const payload = buildReportPayload(enrichedScan, {
+          evidence: enrichedScan.evidence ?? [],
+          issues: enrichedScan.issues ?? [],
+        });
+
+        const storageKey = buildReportStorageKey(scanId, {
+          prefix: config.objectStorage.reportPrefix ?? 'reports/',
+        });
+
+        const stored = await objectStorage.uploadJson(storageKey, payload, {
+          metadata: {
+            'scan-id': scanId,
+            slug: enrichedScan.slug ?? '',
+            'stored-at': new Date().toISOString(),
+          },
+        });
+
+        if (stored) {
+          logger.debug({ scanId, storageKey }, 'Archived scan payload to object storage');
+        }
+      }
+    } catch (error) {
+      logger.warn({ error, scanId }, 'Failed to archive scan payload to object storage');
+    }
+  }
 }
-
-
 
 
 

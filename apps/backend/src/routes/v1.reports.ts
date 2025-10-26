@@ -2,25 +2,39 @@ import { Router } from "express";
 import { prisma } from "../prisma.js";
 import { problem } from "../problem.js";
 import { logger } from "../logger.js";
-import { etldPlusOne } from "@privacy-advisor/shared";
-import { buildReportPayload } from "./v2.reports.js";
+import { etldPlusOne, buildReportPayload, type ReportEvidence } from "@privacy-advisor/shared";
 
 export const reportV1Router = Router();
 
-const mapEvidenceToLegacy = (evidence: Array<{ kind: string } & Record<string, unknown>>) =>
-  evidence.map(({ kind, ...rest }) => ({ ...rest, type: kind || 'unknown' }));
+const mapEvidenceToLegacy = (evidence: ReportEvidence[]): Array<Record<string, unknown>> =>
+  evidence.map((item) => {
+    const { kind, ...rest } = item;
+    return {
+      ...rest,
+      type: kind ?? 'unknown',
+    } as Record<string, unknown>;
+  });
 
 reportV1Router.get(["/report/:slug", "/r/:slug"], async (req, res) => {
   try {
     const slug = req.params.slug;
-    const scan = await prisma.scan.findUnique({ where: { slug } });
+    const scan = await prisma.scan.findUnique({
+      where: { slug },
+      include: {
+        evidence: { orderBy: { createdAt: 'asc' } },
+        issues: { orderBy: [{ sortWeight: 'asc' }, { createdAt: 'asc' }] },
+      },
+    });
     if (!scan) {
       return problem(res, 404, "Report not found");
     }
 
-    const payload = await buildReportPayload(scan);
+    const payload = buildReportPayload(scan, {
+      evidence: scan.evidence ?? [],
+      issues: scan.issues ?? [],
+    });
     const legacyScan = { ...payload.scan, reportSlug: payload.scan.slug };
-    const legacyEvidence = mapEvidenceToLegacy(payload.evidence as Array<{ kind: string } & Record<string, unknown>>);
+    const legacyEvidence = mapEvidenceToLegacy(payload.evidence);
 
     res.json({
       scan: legacyScan,
@@ -35,16 +49,25 @@ reportV1Router.get(["/report/:slug", "/r/:slug"], async (req, res) => {
 
 reportV1Router.get("/scan/:id", async (req, res) => {
   try {
-    const scan = await prisma.scan.findUnique({ where: { id: req.params.id } });
+    const scan = await prisma.scan.findUnique({
+      where: { id: req.params.id },
+      include: {
+        evidence: { orderBy: { createdAt: 'asc' } },
+        issues: { orderBy: [{ sortWeight: 'asc' }, { createdAt: 'asc' }] },
+      },
+    });
     if (!scan) {
       return problem(res, 404, "Scan not found");
     }
 
-    const payload = await buildReportPayload(scan);
+    const payload = buildReportPayload(scan, {
+      evidence: scan.evidence ?? [],
+      issues: scan.issues ?? [],
+    });
 
     res.json({
       scan: { ...payload.scan, reportSlug: payload.scan.slug },
-      evidence: mapEvidenceToLegacy(payload.evidence as Array<{ kind: string } & Record<string, unknown>>),
+      evidence: mapEvidenceToLegacy(payload.evidence),
       meta: payload.meta,
     });
   } catch (error) {

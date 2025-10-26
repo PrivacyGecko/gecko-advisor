@@ -81,14 +81,18 @@ const EnhancedTrustIndicator = React.memo(function EnhancedTrustIndicator({
   return (
     <div
       className={`
-        relative overflow-hidden
+        relative overflow-hidden group
         flex items-start gap-3
         p-5 md:p-6
         rounded-xl
         border-2 ${config.border}
         ${config.gradient}
-        shadow-sm hover:shadow-lg
+        shadow-sm hover:shadow-xl
+        hover:transform hover:-translate-y-1
         transition-all duration-300 ease-out
+        before:absolute before:top-0 before:left-0 before:right-0 before:h-1
+        before:bg-gradient-to-r before:from-advisor-600 before:to-green-400
+        before:scale-x-0 hover:before:scale-x-100 before:transition-transform before:duration-300
         ${className}
       `}
     >
@@ -108,7 +112,7 @@ const EnhancedTrustIndicator = React.memo(function EnhancedTrustIndicator({
             ${config.iconShadow}
             flex items-center justify-center
             transition-transform duration-300 ease-out
-            group-hover:scale-105
+            group-hover:scale-110 group-hover:rotate-6
           `}
         >
           <div className="text-white w-6 h-6">

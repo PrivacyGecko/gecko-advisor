@@ -15,8 +15,6 @@
         "generate:openapi": "node ./scripts/generate-openapi.mjs"
     },
     "dependencies": {
-        "@lemonsqueezy/lemonsqueezy.js": "^4.0.0",
-        "@sendgrid/mail": "^7.7.0",
         "@paralleldrive/cuid2": "^2.2.2",
         "@prisma/client": "5.22.0",
         "@privacy-advisor/shared": "workspace:*",
@@ -37,7 +35,6 @@
         "nanoid": "^5.0.7",
         "pino": "^9.5.0",
         "pino-http": "^10.2.0",
-        "stripe": "^19.1.0",
         "tweetnacl": "^1.0.3",
         "yaml": "^2.8.1",
         "zod": "^3.23.8",
