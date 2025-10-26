@@ -26,6 +26,84 @@ type EvidenceType = EvidenceItem['type'];
 type SeverityFilter = 'all' | 'high' | 'medium' | 'low';
 
 /**
+ * Enhanced evidence categorization for better information architecture
+ */
+interface EvidenceCategory {
+  title: string;
+  icon: string;
+  items: EvidenceItem[];
+  description: string;
+}
+
+/**
+ * Categorizes evidence into semantic groups for better UX
+ */
+function categorizeEvidence(evidence: EvidenceItem[]): Record<string, EvidenceCategory> {
+  const categories: Record<string, EvidenceCategory> = {
+    tracking: {
+      title: 'Tracking & Privacy',
+      icon: '🎯',
+      items: [],
+      description: 'Data collection, tracking, and privacy concerns'
+    },
+    security: {
+      title: 'Security',
+      icon: '🔒',
+      items: [],
+      description: 'Security headers, encryption, and vulnerabilities'
+    },
+    other: {
+      title: 'Other Findings',
+      icon: '📋',
+      items: [],
+      description: 'Additional issues and recommendations'
+    }
+  };
+
+  evidence.forEach(item => {
+    const lowerTitle = item.title?.toLowerCase() || '';
+    const lowerType = item.type?.toLowerCase() || '';
+
+    // Tracking & Privacy category
+    if (
+      lowerType === 'tracker' ||
+      lowerType === 'cookie' ||
+      lowerType === 'thirdparty' ||
+      lowerType === 'fingerprint' ||
+      lowerType === 'policy' ||
+      lowerTitle.includes('tracker') ||
+      lowerTitle.includes('cookie') ||
+      lowerTitle.includes('third-party') ||
+      lowerTitle.includes('data sharing') ||
+      lowerTitle.includes('fingerprint')
+    ) {
+      if (categories.tracking) categories.tracking.items.push(item);
+    }
+    // Security category
+    else if (
+      lowerType === 'tls' ||
+      lowerType === 'header' ||
+      lowerType === 'insecure' ||
+      lowerType === 'mixed-content' ||
+      lowerTitle.includes('tls') ||
+      lowerTitle.includes('https') ||
+      lowerTitle.includes('security') ||
+      lowerTitle.includes('header') ||
+      lowerTitle.includes('mixed content') ||
+      lowerTitle.includes('encryption')
+    ) {
+      if (categories.security) categories.security.items.push(item);
+    }
+    // Other
+    else {
+      if (categories.other) categories.other.items.push(item);
+    }
+  });
+
+  return categories;
+}
+
+/**
  * Maps evidence type to human-readable category label
  */
 const getCategoryLabel = (type: string | undefined): string => {
@@ -146,6 +224,30 @@ const safeStringify = (value: unknown): string => {
 };
 
 /**
+ * Generates a human-readable summary of the scan results
+ * Based on score, tracker count, and evidence count
+ */
+const generateSummary = (scan: LegacyReportResponse['scan'], evidence: EvidenceItem[]): string => {
+  const score = scan.score ?? 0;
+  const evidenceCount = evidence.length;
+  const trackerCount = evidence.filter(e =>
+    e.type === 'tracker' || e.title?.toLowerCase().includes('tracker')
+  ).length;
+
+  if (score >= 90) {
+    return `This site has excellent privacy practices with ${trackerCount} tracker${trackerCount !== 1 ? 's' : ''} detected and strong security measures. ${evidenceCount} total finding${evidenceCount !== 1 ? 's' : ''} analyzed.`;
+  } else if (score >= 80) {
+    return `This site has good privacy practices with ${trackerCount} tracker${trackerCount !== 1 ? 's' : ''} detected. Some minor improvements possible. ${evidenceCount} total finding${evidenceCount !== 1 ? 's' : ''} analyzed.`;
+  } else if (score >= 70) {
+    return `This site has fair privacy practices with ${trackerCount} tracker${trackerCount !== 1 ? 's' : ''} detected. Several areas need attention. ${evidenceCount} total finding${evidenceCount !== 1 ? 's' : ''} analyzed.`;
+  } else if (score >= 60) {
+    return `This site has concerning privacy practices with ${trackerCount} tracker${trackerCount !== 1 ? 's' : ''} detected. Many improvements needed. ${evidenceCount} total finding${evidenceCount !== 1 ? 's' : ''} analyzed.`;
+  } else {
+    return `This site has poor privacy practices with ${trackerCount} tracker${trackerCount !== 1 ? 's' : ''} detected. Significant privacy risks found. ${evidenceCount} total finding${evidenceCount !== 1 ? 's' : ''} analyzed.`;
+  }
+};
+
+/**
  * Sanitizes evidence data before client exposure
  * Removes internal fields and sensitive information
  */
@@ -231,6 +333,143 @@ const copyCurrentUrl = async () => {
     toast.error('Failed to copy link');
   }
 };
+
+/**
+ * Enhanced evidence item component with complete color coding
+ */
+interface EvidenceItemDisplayProps {
+  evidence: EvidenceItem;
+}
+
+function EvidenceItemDisplay({ evidence }: EvidenceItemDisplayProps) {
+  const [showDetails, setShowDetails] = React.useState(false);
+
+  // Determine status based on severity
+  const getStatusClass = (severity: number): 'good' | 'warning' | 'bad' => {
+    if (severity >= 4) return 'bad';
+    if (severity >= 3) return 'warning';
+    return 'good';
+  };
+
+  const status = getStatusClass(evidence.severity);
+
+  const statusConfig = {
+    good: {
+      bg: 'bg-green-50',
+      border: 'border-l-4 border-green-500',
+      icon: '✅',
+      iconColor: 'text-green-600',
+      textColor: 'text-green-900'
+    },
+    warning: {
+      bg: 'bg-amber-50',
+      border: 'border-l-4 border-amber-500',
+      icon: '⚠️',
+      iconColor: 'text-amber-600',
+      textColor: 'text-amber-900'
+    },
+    bad: {
+      bg: 'bg-red-50',
+      border: 'border-l-4 border-red-500',
+      icon: '❌',
+      iconColor: 'text-red-600',
+      textColor: 'text-red-900'
+    }
+  };
+
+  const config = statusConfig[status];
+
+  // Generate "Why this matters" message based on type
+  const getWhyItMatters = (type: string): string | null => {
+    const messages: Record<string, string> = {
+      tracker: 'This tracker can follow your browsing across websites and build profiles about you.',
+      cookie: 'Cookies can store personal information and track your behavior across sessions.',
+      thirdparty: 'Third-party connections can share your data with external services without your explicit knowledge.',
+      fingerprint: 'Fingerprinting techniques can uniquely identify your device even without cookies.',
+      insecure: 'Security vulnerabilities can expose your data to attackers and compromise your privacy.',
+      header: 'Missing security headers can leave the site vulnerable to various attacks.',
+      tls: 'Weak encryption can allow attackers to intercept and read your data.',
+      'mixed-content': 'Mixed content warnings indicate resources loaded over insecure connections.',
+    };
+    return messages[type] || null;
+  };
+
+  const whyItMatters = getWhyItMatters(evidence.type);
+
+  return (
+    <div
+      className={`${config.bg} ${config.border} rounded-lg p-4 mb-3 transition-all duration-200 hover:shadow-md`}
+      data-testid="evidence-item"
+      role="article"
+      aria-label={`${evidence.title} - Severity ${evidence.severity}`}
+    >
+      <div className="flex items-start gap-3">
+        <span
+          className={`text-2xl ${config.iconColor} flex-shrink-0`}
+          aria-hidden="true"
+          role="img"
+        >
+          {config.icon}
+        </span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <h4 className={`font-semibold ${config.textColor} text-base`}>
+              {evidence.title}
+            </h4>
+            <span
+              className="text-xs text-gray-600 flex-shrink-0 px-2 py-1 bg-white bg-opacity-50 rounded"
+              aria-label={`Severity level ${evidence.severity} out of 5`}
+            >
+              Severity {evidence.severity}/5
+            </span>
+          </div>
+
+          {evidence.details && (
+            <>
+              <button
+                onClick={() => setShowDetails(!showDetails)}
+                className={`text-sm font-medium mt-2 focus:outline-none focus:ring-2 focus:ring-security-blue rounded px-2 py-1 transition-colors ${
+                  status === 'bad' ? 'text-red-700 hover:text-red-900 hover:bg-red-100' :
+                  status === 'warning' ? 'text-amber-700 hover:text-amber-900 hover:bg-amber-100' :
+                  'text-green-700 hover:text-green-900 hover:bg-green-100'
+                }`}
+                aria-expanded={showDetails}
+                aria-controls={`details-${evidence.id}`}
+              >
+                {showDetails ? '▼ Hide details' : '▶ Show details'}
+              </button>
+
+              {showDetails && (
+                <div
+                  id={`details-${evidence.id}`}
+                  className="mt-3 p-3 bg-white bg-opacity-70 rounded border border-gray-300 shadow-sm"
+                >
+                  <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono overflow-x-auto">
+                    {typeof evidence.details === 'string'
+                      ? evidence.details
+                      : safeStringify(sanitizeDetails(evidence.details))}
+                  </pre>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* "Why this matters" info box */}
+          {whyItMatters && (
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-900 flex items-start gap-2">
+                <span className="text-lg flex-shrink-0" aria-hidden="true">💡</span>
+                <span>
+                  <strong className="font-semibold">Why this matters:</strong> {whyItMatters}
+                </span>
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function ReportPage() {
   const { slug = '' } = useParams();
@@ -337,8 +576,121 @@ function ReportSkeleton() {
   );
 }
 
+type BreakdownItem = {
+  category: string;
+  finding: string;
+  points: number;
+  positive: boolean;
+};
+
+/**
+ * Calculates score breakdown based on evidence
+ * Shows how points were deducted or awarded
+ */
+const calculateBreakdown = (scan: LegacyReportResponse['scan'], evidence: EvidenceItem[]): BreakdownItem[] => {
+  const breakdown: BreakdownItem[] = [
+    {
+      category: 'Base Score',
+      finding: 'Starting point',
+      points: 100,
+      positive: true
+    }
+  ];
+
+  // Analyze evidence for deductions
+  const trackers = evidence.filter(e =>
+    e.type === 'tracker' || e.title?.toLowerCase().includes('tracker')
+  );
+
+  if (trackers.length > 0) {
+    breakdown.push({
+      category: 'Trackers',
+      finding: `${trackers.length} tracker${trackers.length !== 1 ? 's' : ''} found`,
+      points: -Math.min(trackers.length * 5, 30),
+      positive: false
+    });
+  } else {
+    breakdown.push({
+      category: 'Trackers',
+      finding: 'No trackers detected',
+      points: 0,
+      positive: true
+    });
+  }
+
+  // HTTPS/TLS check
+  const tlsEvidence = evidence.find(e => e.type === 'tls');
+  const hasValidTls = tlsEvidence && tlsEvidence.severity <= 2;
+  if (hasValidTls) {
+    breakdown.push({
+      category: 'HTTPS/TLS',
+      finding: 'Valid certificate',
+      points: 0,
+      positive: true
+    });
+  } else if (tlsEvidence) {
+    breakdown.push({
+      category: 'HTTPS/TLS',
+      finding: 'TLS configuration issues',
+      points: -10,
+      positive: false
+    });
+  }
+
+  // Mixed content
+  const hasMixedContent = evidence.some(e =>
+    e.type === 'mixed-content' || (e.title?.toLowerCase().includes('mixed content') && e.severity >= 3)
+  );
+  if (hasMixedContent) {
+    breakdown.push({
+      category: 'Mixed Content',
+      finding: 'Insecure resources found',
+      points: -10,
+      positive: false
+    });
+  }
+
+  // Security headers
+  const missingHeaders = evidence.filter(e =>
+    e.type === 'header' && e.severity >= 3
+  );
+  if (missingHeaders.length > 0) {
+    breakdown.push({
+      category: 'Security Headers',
+      finding: `${missingHeaders.length} missing or weak header${missingHeaders.length !== 1 ? 's' : ''}`,
+      points: -Math.min(missingHeaders.length * 3, 15),
+      positive: false
+    });
+  }
+
+  // Third-party connections
+  const thirdParty = evidence.filter(e => e.type === 'thirdparty');
+  if (thirdParty.length > 5) {
+    breakdown.push({
+      category: 'Third-Party',
+      finding: `${thirdParty.length} third-party connections`,
+      points: -Math.min((thirdParty.length - 5) * 2, 15),
+      positive: false
+    });
+  }
+
+  // Cookies
+  const cookies = evidence.filter(e => e.type === 'cookie' && e.severity >= 3);
+  if (cookies.length > 0) {
+    breakdown.push({
+      category: 'Cookies',
+      finding: `${cookies.length} cookie issue${cookies.length !== 1 ? 's' : ''}`,
+      points: -Math.min(cookies.length * 3, 12),
+      positive: false
+    });
+  }
+
+  return breakdown;
+};
+
 function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportResponse; isPro: boolean }) {
   const { scan, evidence, meta } = data;
+  const [showBreakdown, setShowBreakdown] = React.useState(false);
 
   const trackerDomains = React.useMemo(() => {
     const domains = new Set<string>();
@@ -543,6 +895,19 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
         </div>
       </header>
 
+      {/* Summary Box */}
+      <div className="bg-blue-50 border-2 border-blue-400 rounded-xl p-6">
+        <h3 className="text-blue-900 font-semibold text-lg mb-2 flex items-center gap-2">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Quick Summary
+        </h3>
+        <p className="text-blue-800 leading-relaxed">
+          {generateSummary(scan, evidence)}
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>
           <div className="text-xs text-slate-500 inline-flex items-center gap-2">
@@ -665,6 +1030,50 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
         })}
       </div>
 
+      {/* Categorized Evidence Overview - Priority 1 Task 1.2 */}
+      {evidence.length > 0 && (
+        <div className="space-y-6 bg-gradient-to-br from-slate-50 to-gray-50 rounded-xl p-6 border border-slate-200">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <span className="text-2xl" aria-hidden="true">📊</span>
+              Evidence Categories
+              <span className="text-sm font-normal text-gray-500">
+                ({evidence.length} total findings)
+              </span>
+            </h2>
+          </div>
+
+          <div className="space-y-4">
+            {Object.entries(categorizeEvidence(evidence)).map(([key, category]) => {
+              if (category.items.length === 0) return null;
+
+              const filteredCategoryItems = category.items.filter((item) => matchesFilter(item.severity));
+              if (filteredCategoryItems.length === 0) return null;
+
+              return (
+                <div key={key} className="bg-white rounded-lg p-5 shadow-sm border border-slate-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                      <span className="text-2xl" aria-hidden="true">{category.icon}</span>
+                      {category.title}
+                    </h3>
+                    <span className="text-sm text-gray-600 bg-slate-100 px-3 py-1 rounded-full font-medium">
+                      {filteredCategoryItems.length} {filteredCategoryItems.length === 1 ? 'item' : 'items'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-4">{category.description}</p>
+                  <div className="space-y-2">
+                    {filteredCategoryItems.map((item) => (
+                      <EvidenceItemDisplay key={`cat-${key}-${item.id}`} evidence={item} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Evidence section controls */}
       <div className="flex items-center justify-between py-3 px-4 bg-slate-50 rounded-lg border border-slate-200">
         <div className="text-sm text-slate-600">
@@ -675,7 +1084,7 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
           <span className="font-medium text-slate-900">
             {groupEntries.length}
           </span>
-          {' categories visible'}
+          {' technical categories visible'}
         </div>
 
         <div className="flex items-center gap-2">
@@ -705,6 +1114,11 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
             Collapse all
           </button>
         </div>
+      </div>
+
+      <div className="text-center">
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">Technical Details by Type</h3>
+        <p className="text-sm text-gray-500">Expand sections below for granular technical findings</p>
       </div>
 
       {groupEntries.length === 0 ? (
@@ -830,27 +1244,11 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
                           />
                         </div>
                       ) : (
-                        <ul id={sectionId(type)} className="text-sm text-slate-700 space-y-1 mt-2">
+                        <div id={sectionId(type)} className="mt-2 space-y-2">
                           {filteredItems.map((item) => (
-                            <li key={item.id} className="flex items-start gap-3">
-                              <SeverityIndicator severity={item.severity} />
-                              <div className="flex-1 min-w-0">
-                                <div className="font-medium text-gray-900">{item.title}</div>
-                                <details className="mt-1 group">
-                                  <summary className="cursor-pointer text-xs text-slate-500 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-security-blue focus:ring-offset-1 rounded py-3 min-h-[44px] inline-flex items-center">
-                                    <span className="group-open:hidden">Show details</span>
-                                    <span className="hidden group-open:inline">Hide details</span>
-                                  </summary>
-                                  <div className="mt-2 p-2 bg-slate-50 rounded text-xs text-slate-600 border">
-                                    <div className="font-mono text-2xs break-all">
-                                      {safeStringify(sanitizeDetails(item.details))}
-                                    </div>
-                                  </div>
-                                </details>
-                              </div>
-                            </li>
+                            <EvidenceItemDisplay key={item.id} evidence={item} />
                           ))}
-                        </ul>
+                        </div>
                       )}
                     </>
                   )}
@@ -878,6 +1276,68 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
           );
         })
       )}
+
+      {/* Score Breakdown Section */}
+      <div className="mt-8 mb-6 border-t pt-6">
+        <button
+          onClick={() => setShowBreakdown(!showBreakdown)}
+          className="flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-security-blue focus-visible:ring-offset-2 rounded px-1 py-1"
+          aria-expanded={showBreakdown}
+          aria-controls="score-breakdown-details"
+        >
+          <svg
+            className={`w-5 h-5 transition-transform ${showBreakdown ? 'rotate-90' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          How was this score calculated?
+        </button>
+
+        {showBreakdown && (
+          <div
+            id="score-breakdown-details"
+            className="mt-4 bg-gray-50 rounded-lg p-6 animate-fade-in"
+            role="region"
+            aria-label="Score breakdown details"
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-300">
+                    <th className="text-left py-2 px-3 font-semibold text-gray-700">Category</th>
+                    <th className="text-left py-2 px-3 font-semibold text-gray-700">Finding</th>
+                    <th className="text-right py-2 px-3 font-semibold text-gray-700">Impact</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {calculateBreakdown(scan, evidence).map((item, idx) => (
+                    <tr key={idx} className="border-b border-gray-200">
+                      <td className="py-2 px-3">{item.category}</td>
+                      <td className="py-2 px-3 text-gray-600">{item.finding}</td>
+                      <td className={`py-2 px-3 text-right font-semibold ${
+                        item.positive ? 'text-green-600' : item.points === 0 ? 'text-gray-600' : 'text-red-600'
+                      }`}>
+                        {item.points > 0 && '+'}{item.points}
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="border-t-2 border-gray-400 font-bold">
+                    <td colSpan={2} className="py-3 px-3">Final Score</td>
+                    <td className="py-3 px-3 text-right text-lg">{scan.score ?? 0}/100</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-4 text-sm text-gray-600">
+              <strong>Note:</strong> This is a simplified breakdown. The actual scoring algorithm considers additional factors including privacy policies, security headers, and data sharing patterns.
+            </p>
+          </div>
+        )}
+      </div>
 
       <footer className="text-xs text-slate-500 space-y-1">
         <div>Sources: EasyPrivacy (server-side; attribution), WhoTracks.me (CC BY 4.0), Public Suffix List</div>
