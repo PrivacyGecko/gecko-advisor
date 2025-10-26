@@ -18,9 +18,6 @@ import EnhancedTrustIndicator from '../components/EnhancedTrustIndicator';
 import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import type { RecentReportsResponse } from '@privacy-advisor/shared';
 
-const INPUT_MODES = ['url', 'app', 'address'] as const;
-type InputMode = (typeof INPUT_MODES)[number];
-
 type RecentItem = RecentReportsResponse['items'][number] & { evidenceCount: number };
 type RecentQueryResult = { items: RecentItem[] };
 
@@ -48,7 +45,6 @@ const fetchRecentReports = async (): Promise<RecentQueryResult> => {
 
 export default function Home() {
   const [input, setInput] = useState('https://example.com');
-  const [mode, setMode] = useState<InputMode>('url');
   const [loading, setLoading] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
@@ -121,88 +117,27 @@ export default function Home() {
 
       {/* Elevated Scan Input Box */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 md:p-8">
-        {/* Input Mode Tabs */}
-        <div className="flex gap-2 mb-4 border-b border-gray-200">
-          <button
-            onClick={() => setMode('url')}
-            className={`px-4 py-2 font-medium transition-colors ${
-              mode === 'url'
-                ? 'text-advisor-600 border-b-2 border-advisor-600'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-            aria-label="Scan website URL"
-          >
-            URL
-          </button>
-          <button
-            onClick={() => setMode('app')}
-            className={`px-4 py-2 font-medium transition-colors relative ${
-              mode === 'app'
-                ? 'text-advisor-600 border-b-2 border-advisor-600'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-            aria-label="Scan mobile app (coming soon)"
-          >
-            APP
-            <span className="ml-2 text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
-              Coming Soon
-            </span>
-          </button>
-          <button
-            onClick={() => setMode('address')}
-            className={`px-4 py-2 font-medium transition-colors relative ${
-              mode === 'address'
-                ? 'text-advisor-600 border-b-2 border-advisor-600'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-            aria-label="Scan wallet address (coming soon)"
-          >
-            ADDRESS
-            <span className="ml-2 text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
-              Coming Soon
-            </span>
-          </button>
+        {/* Simplified header - removed tabs for focused UX (Quick Win #2) */}
+        <div className="mb-4">
+          <label htmlFor="scan-input" className="block text-sm font-medium text-gray-700 mb-2">
+            Website URL
+          </label>
         </div>
 
-        {/* Input field with dynamic placeholder */}
+        {/* Input field for website scanning */}
         <div className="flex flex-col sm:flex-row gap-3">
-          <label htmlFor="scan-input" className="sr-only">
-            {mode === 'url'
-              ? 'Enter website URL to scan for privacy analysis'
-              : mode === 'app'
-                ? 'Enter app package name (coming soon)'
-                : 'Enter wallet address (coming soon)'}
-          </label>
           <input
             id="scan-input"
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-advisor-500 focus:border-advisor-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
-            placeholder={
-              mode === 'url'
-                ? 'Enter website URL (e.g., example.com)'
-                : mode === 'app'
-                  ? 'Enter app package name (e.g., com.example.app)'
-                  : 'Enter wallet address (e.g., 0x...)'
-            }
-            disabled={mode !== 'url'}
-            aria-label={
-              mode === 'url'
-                ? 'Website URL to scan for privacy analysis'
-                : mode === 'app'
-                  ? 'App package name (coming soon)'
-                  : 'Wallet address (coming soon)'
-            }
+            className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-advisor-500 focus:border-advisor-500 transition-colors"
+            placeholder="Enter website URL (e.g., example.com)"
+            aria-label="Website URL to scan for privacy analysis"
             aria-describedby="scan-help-text"
           />
-          <span id="scan-help-text" className="sr-only">
-            {mode === 'url'
-              ? 'Enter a valid website URL starting with https://'
-              : 'This feature is coming soon'}
-          </span>
           <button
             onClick={onScan}
-            disabled={loading || mode !== 'url'}
+            disabled={loading}
             className="w-full sm:w-auto px-8 py-4 min-h-[56px] rounded-lg bg-advisor-600 hover:bg-advisor-700 active:bg-advisor-800 text-white disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg shadow-md hover:shadow-lg transition-all duration-200"
             aria-label="Start privacy scan"
           >
@@ -226,10 +161,11 @@ export default function Home() {
             </span>
           </button>
         </div>
-        <p className="text-xs text-gray-500 mt-3">
-          {mode === 'url'
-            ? 'See trackers, cookies, and data collection in seconds—free and transparent'
-            : 'This feature is coming soon. Stay tuned!'}
+        <p className="text-xs text-gray-500 mt-3 flex items-center justify-center gap-1">
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span id="scan-help-text">Scan completes in 5-10 seconds • 100% free and transparent</span>
         </p>
       </div>
 
