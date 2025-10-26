@@ -17,6 +17,7 @@ import './styles.css';
 const Home = React.lazy(() => import('./pages/Home'));
 const Scan = React.lazy(() => import('./pages/Scan'));
 const Report = React.lazy(() => import('./pages/ReportPage'));
+const Reports = React.lazy(() => import('./pages/ReportsPage'));
 const Compare = React.lazy(() => import('./pages/Compare'));
 const Docs = React.lazy(() => import('./pages/Docs'));
 const About = React.lazy(() => import('./pages/About'));
@@ -55,6 +56,14 @@ const router = createBrowserRouter([
     element: (
       <React.Suspense fallback={<PageLoader />}>
         <Report />
+      </React.Suspense>
+    )
+  },
+  {
+    path: '/reports',
+    element: (
+      <React.Suspense fallback={<PageLoader />}>
+        <Reports />
       </React.Suspense>
     )
   },
