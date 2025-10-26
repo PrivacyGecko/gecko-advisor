@@ -130,7 +130,7 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
           <div className="flex items-center gap-8">
             <Link
               to="/"
-              className="flex items-center group hover:opacity-80 transition-opacity"
+              className="flex flex-col items-start group hover:opacity-80 transition-opacity"
               aria-label="Gecko Advisor Home"
             >
               {/* Gecko Logo */}
@@ -139,6 +139,7 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
                 alt={BRAND.logo.alt}
                 className="h-14 w-auto object-contain"
               />
+              <span className="text-xs text-gray-500 mt-0.5">by Privacy Gecko</span>
             </Link>
 
             {/* Navigation links */}
@@ -166,10 +167,12 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
 
           {/* Auth section */}
           <div className="flex items-center gap-3">
-            {/* Wallet Connection Button - Always visible */}
-            <div className="hidden sm:block">
-              <WalletButton />
-            </div>
+            {/* Wallet Connection Button - Only if enabled */}
+            {import.meta.env.VITE_WALLET_AUTH_ENABLED === 'true' && (
+              <div className="hidden sm:block">
+                <WalletButton />
+              </div>
+            )}
 
             {/* Mobile hamburger menu button */}
             <button

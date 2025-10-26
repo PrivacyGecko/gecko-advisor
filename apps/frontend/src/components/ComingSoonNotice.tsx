@@ -57,8 +57,8 @@ export default function ComingSoonNotice({
       icon: 'text-security-blue',
       title: 'text-blue-900',
       body: 'text-blue-700',
-      link: 'text-blue-600 hover:text-blue-800 focus:ring-blue-500',
-      dismissBtn: 'text-blue-400 hover:text-blue-600 focus:ring-blue-500'
+      link: 'text-trust-600 hover:text-trust-700 focus:ring-trust-500',
+      dismissBtn: 'text-blue-400 hover:text-blue-600 focus:ring-trust-500'
     },
     warning: {
       container: 'bg-amber-50 border-amber-200',

@@ -225,7 +225,7 @@ export default function Footer() {
               © {currentYear} {BRAND.companyName}. All rights reserved.
             </p>
 
-            {/* Additional Links */}
+            {/* Professional Trust Indicators */}
             <div className="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm text-gray-500 flex-wrap justify-center sm:justify-end">
               <span className="flex items-center gap-1">
                 <svg className="w-4 h-4 text-gecko-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -233,8 +233,8 @@ export default function Footer() {
                 </svg>
                 Open Source
               </span>
-              <span>100% Free Forever</span>
-              <span>No Limits</span>
+              <span>Transparent Methodology</span>
+              <span>Evidence-Based Analysis</span>
             </div>
           </div>
         </div>

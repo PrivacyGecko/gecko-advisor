@@ -220,7 +220,7 @@ export default function Dashboard() {
               </div>
               <p className="text-xs text-gray-500 mt-2">
                 Use this API key for automated scanning. See{' '}
-                <Link to="/docs" className="text-blue-600 hover:underline">
+                <Link to="/docs" className="text-trust-600 hover:text-trust-700 hover:underline">
                   documentation
                 </Link>{' '}
                 for details.

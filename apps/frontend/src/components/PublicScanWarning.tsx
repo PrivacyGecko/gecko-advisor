@@ -138,7 +138,7 @@ export default function PublicScanWarning({ className }: PublicScanWarningProps)
             <p className="text-sm font-medium text-amber-900">
               <span className="inline-flex items-center gap-1.5" aria-label="Info">
                 <span aria-hidden="true">ℹ️</span>
-                <span>All scans are public and visible in Recent Reports for transparency.</span>
+                <span>Scan results are publicly accessible to support privacy research and transparency.</span>
               </span>
             </p>
 
@@ -174,8 +174,8 @@ export default function PublicScanWarning({ className }: PublicScanWarningProps)
 
           {/* Additional Info */}
           <p className="text-xs text-amber-800 mt-2">
-            <span className="font-semibold">Privacy note:</span> Public scans appear in Recent Reports
-            for 24 hours. This helps the community discover privacy issues across the web.
+            <span className="font-semibold">Transparency note:</span> Scan results appear in Recent Reports
+            to enable privacy research and help identify widespread tracking practices across the web.
           </p>
         </div>
       </div>

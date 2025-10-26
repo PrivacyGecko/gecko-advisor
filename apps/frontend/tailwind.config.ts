@@ -15,32 +15,60 @@ export default {
   theme: {
     extend: {
       colors: {
-        // PrivacyGecko Brand Colors
-        'gecko': {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#2ecc71',  // Primary gecko green - use for backgrounds/borders
-          600: '#15803d',  // Darker green (5.02:1 contrast) - WCAG AA compliant for text
-          700: '#22c55e',
-          800: '#16a34a',
-          900: '#15803d',
+        // Privacy Gecko Master Brand (professional sky blue)
+        'privacy-gecko': {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9',  // Primary brand color (professional sky blue)
+          600: '#0284c7',
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c4a6e',
         },
 
-        // Trust Blue (secondary brand color)
+        // Gecko Advisor Product (refined professional green, not "free tier")
+        'advisor': {
+          50: '#ecfdf5',
+          100: '#d1fae5',
+          200: '#a7f3d0',
+          300: '#6ee7b7',
+          400: '#34d399',
+          500: '#10b981',  // Keep emerald for continuity
+          600: '#059669',  // Professional darker green (WCAG AA compliant)
+          700: '#047857',
+          800: '#065f46',
+          900: '#064e3b',
+        },
+
+        // Trust & Security (professional blue, not marketing)
         'trust': {
           50: '#eff6ff',
           100: '#dbeafe',
           200: '#bfdbfe',
           300: '#93c5fd',
           400: '#60a5fa',
-          500: '#3498db',  // Trust blue from branding.ts
-          600: '#2980b9',  // Darker blue
+          500: '#3b82f6',  // Professional blue for links and trust indicators
+          600: '#2563eb',  // Darker blue (WCAG AA compliant)
           700: '#1d4ed8',
           800: '#1e40af',
           900: '#1e3a8a',
+        },
+
+        // Professional Neutral (charcoal, not pure black)
+        'gecko': {
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#64748b',
+          600: '#475569',  // Professional body text
+          700: '#334155',  // Primary dark (professional charcoal)
+          800: '#1e293b',
+          900: '#0f172a',
         },
 
         // Brand colors (legacy support)

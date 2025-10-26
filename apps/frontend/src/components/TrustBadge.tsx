@@ -57,19 +57,19 @@ const TrustBadge = React.memo(function TrustBadge({
 }: TrustBadgeProps) {
   // Default text for each variant
   const defaultText = {
-    'free': '100% Free Forever',
-    'no-account': 'No Account Required',
-    'no-limits': 'No Limits',
-    'open-source': '100% Open Source',
-    'privacy-first': 'Privacy First'
+    'free': 'Open Source & Accessible',
+    'no-account': 'Start Analyzing Immediately',
+    'no-limits': 'Professional Grade',
+    'open-source': 'Open Source & Auditable',
+    'privacy-first': 'Privacy-First Analysis'
   };
 
   // Variant configurations with WCAG AA compliant colors
   const variantConfig = {
     'free': {
-      // Green: Freedom, openness, positive action
-      container: 'bg-emerald-600 text-white',
-      lightContainer: 'bg-emerald-100 text-emerald-800',
+      // Professional green: Analysis capability, not "free tier"
+      container: 'bg-advisor-600 text-white',
+      lightContainer: 'bg-advisor-100 text-advisor-800',
       icon: (
         <svg className="flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -77,9 +77,9 @@ const TrustBadge = React.memo(function TrustBadge({
       )
     },
     'no-account': {
-      // Blue: Trust, reliability, ease of use
-      container: 'bg-blue-600 text-white',
-      lightContainer: 'bg-blue-100 text-blue-800',
+      // Professional trust blue, not marketing
+      container: 'bg-trust-600 text-white',
+      lightContainer: 'bg-trust-100 text-trust-800',
       icon: (
         <svg className="flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -87,9 +87,9 @@ const TrustBadge = React.memo(function TrustBadge({
       )
     },
     'no-limits': {
-      // Purple: Premium quality, unlimited potential
-      container: 'bg-violet-600 text-white',
-      lightContainer: 'bg-violet-100 text-violet-800',
+      // Professional sky blue (Privacy Gecko brand), not marketing purple
+      container: 'bg-privacy-gecko-600 text-white',
+      lightContainer: 'bg-privacy-gecko-100 text-privacy-gecko-800',
       icon: (
         <svg className="flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -97,9 +97,9 @@ const TrustBadge = React.memo(function TrustBadge({
       )
     },
     'open-source': {
-      // Green: Transparency, community, openness
-      container: 'bg-emerald-600 text-white',
-      lightContainer: 'bg-emerald-100 text-emerald-800',
+      // Professional charcoal (neutral, not marketing)
+      container: 'bg-gecko-700 text-white',
+      lightContainer: 'bg-gecko-100 text-gecko-800',
       icon: (
         <svg className="flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
@@ -107,9 +107,9 @@ const TrustBadge = React.memo(function TrustBadge({
       )
     },
     'privacy-first': {
-      // Green: Safety, protection, security
-      container: 'bg-emerald-600 text-white',
-      lightContainer: 'bg-emerald-100 text-emerald-800',
+      // Professional advisor green (safety, analysis)
+      container: 'bg-advisor-600 text-white',
+      lightContainer: 'bg-advisor-100 text-advisor-800',
       icon: (
         <svg className="flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />

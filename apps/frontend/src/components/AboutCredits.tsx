@@ -9,26 +9,33 @@ export default function AboutCredits() {
     <div className="prose max-w-none p-6">
       <h1>About & Credits</h1>
 
-      <section className="mb-8 p-6 bg-emerald-50 border-l-4 border-emerald-600 rounded-r-lg">
-        <h2 className="text-2xl font-bold text-emerald-900 mt-0">Our Mission</h2>
-        <p className="text-lg text-gray-800">
-          Gecko Advisor exists to make website privacy transparent and accessible to everyone.
+      <section className="mb-8 p-6 bg-advisor-50 border-l-4 border-advisor-600 rounded-r-lg">
+        <h2 className="text-2xl font-bold text-advisor-900 mt-0">About Privacy Gecko</h2>
+        <p className="text-lg text-gray-800 leading-relaxed">
+          Privacy Gecko provides professional privacy analysis tools to help researchers, journalists, and privacy advocates understand how websites collect and use personal data.
         </p>
-        <p className="text-lg text-gray-800">
-          We believe you have a right to know what data websites collect—without paying subscription fees,
-          creating accounts, or installing invasive browser extensions.
+        <p className="text-lg text-gray-800 leading-relaxed">
+          Our open-source methodology ensures transparency and reproducibility. All scanning logic is public, deterministic, and auditable. We analyze privacy practices without collecting user data—our commitment to privacy extends to our own operations.
         </p>
-        <p className="text-lg text-gray-800 font-semibold">That's why Gecko Advisor is:</p>
+        <p className="text-lg text-gray-800 leading-relaxed">
+          Founded on the principle that privacy transparency benefits everyone, Privacy Gecko tools are designed for professional use while remaining accessible to all.
+        </p>
+
+        <h3 className="text-xl font-bold text-advisor-900 mt-6 mb-3">Our Approach</h3>
         <ul className="text-base text-gray-800 space-y-2 my-4">
-          <li><strong>100% Free Forever</strong> - No trials, no freemium tricks, genuinely free</li>
-          <li><strong>Open Source</strong> - All code public, scoring logic auditable</li>
-          <li><strong>Privacy-First</strong> - We don't track you while you scan others</li>
-          <li><strong>No Limits</strong> - Scan as much as you need, we trust you</li>
+          <li><strong>Open-source methodology</strong> for full auditability</li>
+          <li><strong>Deterministic scoring</strong> for reproducible results</li>
+          <li><strong>Evidence-based analysis</strong> backed by recognized privacy databases</li>
+          <li><strong>Professional-grade tools</strong> accessible to researchers and advocates</li>
         </ul>
-        <p className="text-base text-gray-700 italic">
-          <strong>Philosophy:</strong> Privacy transparency should be a right, not a privilege.
-          We're building the tool we wish existed—free, open, and trustworthy.
-        </p>
+
+        <h3 className="text-xl font-bold text-advisor-900 mt-6 mb-3">Our Values</h3>
+        <ul className="text-base text-gray-800 space-y-2 my-4">
+          <li><strong>Transparency:</strong> Our code, data sources, and methodology are public</li>
+          <li><strong>Accuracy:</strong> We cite sources and provide evidence for every finding</li>
+          <li><strong>Privacy:</strong> We don't track users while analyzing tracking</li>
+          <li><strong>Professionalism:</strong> Built for researchers, journalists, and compliance teams</li>
+        </ul>
       </section>
 
       <h2>What We Do</h2>
@@ -37,7 +44,10 @@ export default function AboutCredits() {
         It uses bundled, offline lists for deterministic scans in tests and production.
       </p>
 
-      <h2>Data Sources</h2>
+      <h2>Data Sources & Attribution</h2>
+      <p className="text-base text-gray-700 mb-4">
+        Gecko Advisor's privacy analysis is powered by industry-recognized privacy databases and our own proprietary scanning engine. We transparently disclose all data sources:
+      </p>
       <ul>
         <li>
           <strong>EasyPrivacy</strong> — Dual licensed (GPL v3 + Creative Commons BY-SA 3.0). Used server-side for tracker detection.

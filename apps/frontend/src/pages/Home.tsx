@@ -14,7 +14,7 @@ import Footer from '../components/Footer';
 import Header from '../components/Header';
 import LoginModal from '../components/LoginModal';
 import SignupModal from '../components/SignupModal';
-import TrustBadge from '../components/TrustBadge';
+import ProfessionalBadge from '../components/ProfessionalBadge';
 import EnhancedTrustIndicator from '../components/EnhancedTrustIndicator';
 import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import type { RecentReportsResponse } from '@privacy-advisor/shared';
@@ -98,7 +98,7 @@ export default function Home() {
         onShowSignup={() => setShowSignupModal(true)}
       />
       <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
-      {/* Hero Section - Free Forever Focus */}
+      {/* Hero Section - Professional Privacy Analysis */}
       <header className="text-center space-y-6 py-8 md:py-16">
         {/* Logo */}
         <div className="flex items-center justify-center mb-4 animate-fade-in">
@@ -111,19 +111,19 @@ export default function Home() {
 
         {/* Main Headline */}
         <h1 className="text-4xl md:text-6xl font-bold text-gray-900 leading-tight max-w-4xl mx-auto px-4">
-          Scan Any Website for Privacy Issues
+          Professional Website Privacy Analysis
         </h1>
 
-        {/* Trust Badges - Dominant Visual Element */}
+        {/* Professional Capability Indicators */}
         <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 mt-6">
-          <TrustBadge variant="free" size="lg" />
-          <TrustBadge variant="no-account" size="lg" />
-          <TrustBadge variant="no-limits" size="lg" />
+          <ProfessionalBadge variant="open-source" size="md" />
+          <ProfessionalBadge variant="transparent" size="md" />
+          <ProfessionalBadge variant="evidence-based" size="md" />
         </div>
 
         {/* Subheadline */}
         <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed px-4">
-          Free, open-source privacy scanner. No signup, no limits, no tracking.
+          Trusted by privacy researchers, journalists, and compliance teams to analyze website tracking, cookies, and data collection practices.
         </p>
       </header>
 
@@ -137,8 +137,8 @@ export default function Home() {
             id="scan-input"
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-            placeholder={mode === 'url' ? 'Try: facebook.com, google.com, or any website' : mode === 'app' ? 'app id' : '0x... or address'}
+            className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-advisor-500 focus:border-advisor-500 transition-colors"
+            placeholder={mode === 'url' ? 'Enter website URL (e.g., example.com)' : mode === 'app' ? 'app id' : '0x... or address'}
             aria-label="Website URL to scan for privacy analysis"
             aria-describedby="scan-help-text"
           />
@@ -148,7 +148,7 @@ export default function Home() {
           <button
             onClick={onScan}
             disabled={loading || mode !== 'url'}
-            className="w-full sm:w-auto px-8 py-4 min-h-[56px] rounded-lg bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg shadow-md hover:shadow-lg transition-all duration-200"
+            className="w-full sm:w-auto px-8 py-4 min-h-[56px] rounded-lg bg-advisor-600 hover:bg-advisor-700 active:bg-advisor-800 text-white disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg shadow-md hover:shadow-lg transition-all duration-200"
             aria-label="Start privacy scan"
           >
             <span className="inline-flex items-center justify-center gap-2">
@@ -171,7 +171,7 @@ export default function Home() {
             </span>
           </button>
         </div>
-        <p className="text-xs text-gray-500 mt-3">Instant analysis • No account required • Completely free</p>
+        <p className="text-xs text-gray-500 mt-3">Instant analysis • Evidence-based results • Open-source methodology</p>
       </div>
 
       {/* Trust Indicators - Premium enhanced version */}
@@ -183,8 +183,8 @@ export default function Home() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           }
-          title="Open source & transparent"
-          description="All scoring logic is public and auditable"
+          title="Open Source & Auditable"
+          description="All scanning methodology is public on GitHub. Verify our approach and contribute improvements."
         />
 
         <EnhancedTrustIndicator
@@ -194,8 +194,8 @@ export default function Home() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           }
-          title="No personal data collected"
-          description="We don't track you while scanning others"
+          title="Privacy-First Analysis"
+          description="We analyze privacy practices without tracking users. No cookies, no analytics, no data collection."
         />
 
         <EnhancedTrustIndicator
@@ -205,8 +205,8 @@ export default function Home() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           }
-          title="Results in seconds"
-          description="Fast scanning with instant privacy scores"
+          title="Evidence-Based Results"
+          description="Every finding is backed by evidence from recognized privacy databases and scanning results."
         />
       </div>
 
@@ -326,7 +326,7 @@ function RecentReports() {
               <span className="text-xs text-slate-600 hidden sm:inline" title="Evidence count">
                 {report.evidenceCount} items
               </span>
-              <a href={`/r/${report.slug}`} className="text-gecko-600 underline text-sm">
+              <a href={`/r/${report.slug}`} className="text-trust-600 hover:text-trust-700 underline text-sm">
                 View
               </a>
             </div>
