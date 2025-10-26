@@ -29,9 +29,21 @@ interface ScanResponse {
   resultsUrl: string;
 }
 
-const formatCreatedAt = (value: RecentItem['createdAt']): string => {
+// TASK 3: Helper function for relative time
+const getRelativeTime = (value: RecentItem['createdAt']): string => {
   const date = typeof value === 'string' ? new Date(value) : value;
-  return Number.isNaN(date.getTime()) ? '' : date.toLocaleString();
+  if (Number.isNaN(date.getTime())) return '';
+
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) return 'Just now';
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+  if (diffInSeconds < 172800) return 'Yesterday';
+  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
 const fetchRecentReports = async (): Promise<RecentQueryResult> => {
@@ -87,6 +99,15 @@ export default function Home() {
     }
   }
 
+  // Handler for quick scan buttons
+  function handleQuickScan(url: string) {
+    setInput(url);
+    // Use setTimeout to ensure state update completes before scan
+    setTimeout(() => {
+      onScan();
+    }, 0);
+  }
+
   return (
     <>
       <Header
@@ -114,6 +135,26 @@ export default function Home() {
         <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed px-4">
           Scan any website to uncover trackers, cookies, and hidden data collection. Open-source and free for everyone.
         </p>
+
+        {/* TASK 2: Trust Badges */}
+        <div className="flex flex-wrap justify-center gap-4 md:gap-6 mt-6 px-4">
+          <div className="flex items-center gap-2 text-sm md:text-base text-gray-600 font-medium">
+            <span className="text-advisor-600 text-lg font-bold">✓</span>
+            <span>100% Free</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm md:text-base text-gray-600 font-medium">
+            <span className="text-advisor-600 text-lg font-bold">✓</span>
+            <span>No Account Required</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm md:text-base text-gray-600 font-medium">
+            <span className="text-advisor-600 text-lg font-bold">✓</span>
+            <span>Open Source</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm md:text-base text-gray-600 font-medium">
+            <span className="text-advisor-600 text-lg font-bold">✓</span>
+            <span>Privacy Respecting</span>
+          </div>
+        </div>
       </header>
 
       {/* Elevated Scan Input Box */}
@@ -168,6 +209,57 @@ export default function Home() {
           </svg>
           <span id="scan-help-text">Scan completes in 5-10 seconds • 100% free and transparent</span>
         </p>
+
+        {/* TASK 1: Quick Scan Buttons */}
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600 mb-3">
+            Or try scanning these popular sites:
+          </p>
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => handleQuickScan('https://google.com')}
+              className="px-4 py-2 border-2 border-gray-200 rounded-lg bg-white hover:border-advisor-600 hover:bg-green-50 hover:text-advisor-600 transition-all font-medium text-sm"
+            >
+              Google
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickScan('https://facebook.com')}
+              className="px-4 py-2 border-2 border-gray-200 rounded-lg bg-white hover:border-advisor-600 hover:bg-green-50 hover:text-advisor-600 transition-all font-medium text-sm"
+            >
+              Facebook
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickScan('https://amazon.com')}
+              className="px-4 py-2 border-2 border-gray-200 rounded-lg bg-white hover:border-advisor-600 hover:bg-green-50 hover:text-advisor-600 transition-all font-medium text-sm"
+            >
+              Amazon
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickScan('https://tiktok.com')}
+              className="px-4 py-2 border-2 border-gray-200 rounded-lg bg-white hover:border-advisor-600 hover:bg-green-50 hover:text-advisor-600 transition-all font-medium text-sm"
+            >
+              TikTok
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickScan('https://twitter.com')}
+              className="px-4 py-2 border-2 border-gray-200 rounded-lg bg-white hover:border-advisor-600 hover:bg-green-50 hover:text-advisor-600 transition-all font-medium text-sm"
+            >
+              Twitter
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickScan('https://instagram.com')}
+              className="px-4 py-2 border-2 border-gray-200 rounded-lg bg-white hover:border-advisor-600 hover:bg-green-50 hover:text-advisor-600 transition-all font-medium text-sm"
+            >
+              Instagram
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Trust Indicators - Premium enhanced version */}
@@ -206,6 +298,63 @@ export default function Home() {
         />
       </div>
 
+      {/* TASK 4: How It Works Section */}
+      <section className="max-w-4xl mx-auto my-12 md:my-16">
+        <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-8 md:mb-12">
+          How GeckoAdvisor Works
+        </h2>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
+          {/* Step 1 */}
+          <div className="flex-1 max-w-xs text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-advisor-500 to-advisor-600 flex items-center justify-center shadow-lg shadow-advisor-500/30">
+              <span className="text-2xl font-bold text-white">1</span>
+            </div>
+            <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
+              Enter URL
+            </h3>
+            <p className="text-sm md:text-base text-gray-600 leading-relaxed">
+              Paste any website URL you want to check. We'll automatically find and analyze it.
+            </p>
+          </div>
+
+          {/* Arrow */}
+          <div className="text-3xl text-gray-300 rotate-90 md:rotate-0 flex-shrink-0" aria-hidden="true">
+            →
+          </div>
+
+          {/* Step 2 */}
+          <div className="flex-1 max-w-xs text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-advisor-500 to-advisor-600 flex items-center justify-center shadow-lg shadow-advisor-500/30">
+              <span className="text-2xl font-bold text-white">2</span>
+            </div>
+            <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
+              We Scan
+            </h3>
+            <p className="text-sm md:text-base text-gray-600 leading-relaxed">
+              Our engine detects trackers, cookies, and security issues using trusted databases.
+            </p>
+          </div>
+
+          {/* Arrow */}
+          <div className="text-3xl text-gray-300 rotate-90 md:rotate-0 flex-shrink-0" aria-hidden="true">
+            →
+          </div>
+
+          {/* Step 3 */}
+          <div className="flex-1 max-w-xs text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-advisor-500 to-advisor-600 flex items-center justify-center shadow-lg shadow-advisor-500/30">
+              <span className="text-2xl font-bold text-white">3</span>
+            </div>
+            <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
+              Get Report
+            </h3>
+            <p className="text-sm md:text-base text-gray-600 leading-relaxed">
+              Review a clear grade (A-F) with specific findings in plain English.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <RecentReports />
 
       <Card>
@@ -216,6 +365,89 @@ export default function Home() {
           <li>Privacy policy, basic fingerprinting signals</li>
         </ul>
       </Card>
+
+      {/* TASK 7: FAQ Section */}
+      <section className="bg-gray-50 rounded-xl p-6 md:p-8 my-8">
+        <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-8">
+          Frequently Asked Questions
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+          {/* FAQ 1 */}
+          <div className="bg-white p-5 rounded-lg border-2 border-gray-200 hover:border-advisor-600 hover:shadow-md transition-all">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Is GeckoAdvisor really free?
+            </h3>
+            <p className="text-sm md:text-base text-gray-600 leading-relaxed">
+              Yes! GeckoAdvisor is 100% free with no premium tiers, no hidden costs, and no account required.
+            </p>
+          </div>
+
+          {/* FAQ 2 */}
+          <div className="bg-white p-5 rounded-lg border-2 border-gray-200 hover:border-advisor-600 hover:shadow-md transition-all">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              What do you check?
+            </h3>
+            <p className="text-sm md:text-base text-gray-600 leading-relaxed">
+              We scan for third-party trackers, cookies, HTTPS/TLS security, mixed content, and data sharing practices.
+            </p>
+          </div>
+
+          {/* FAQ 3 */}
+          <div className="bg-white p-5 rounded-lg border-2 border-gray-200 hover:border-advisor-600 hover:shadow-md transition-all">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Do you track users?
+            </h3>
+            <p className="text-sm md:text-base text-gray-600 leading-relaxed">
+              No. We don't use analytics, cookies, or any tracking. We practice the privacy we preach.
+            </p>
+          </div>
+
+          {/* FAQ 4 */}
+          <div className="bg-white p-5 rounded-lg border-2 border-gray-200 hover:border-advisor-600 hover:shadow-md transition-all">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              How accurate are the results?
+            </h3>
+            <p className="text-sm md:text-base text-gray-600 leading-relaxed">
+              We use industry-standard databases (EasyPrivacy, WhoTracks.me) with ~95% accuracy for tracker detection.
+            </p>
+          </div>
+
+          {/* FAQ 5 */}
+          <div className="bg-white p-5 rounded-lg border-2 border-gray-200 hover:border-advisor-600 hover:shadow-md transition-all">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Can I scan my own website?
+            </h3>
+            <p className="text-sm md:text-base text-gray-600 leading-relaxed">
+              Absolutely! GeckoAdvisor is perfect for auditing your own site's privacy and security practices.
+            </p>
+          </div>
+
+          {/* FAQ 6 */}
+          <div className="bg-white p-5 rounded-lg border-2 border-gray-200 hover:border-advisor-600 hover:shadow-md transition-all">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Is the code open source?
+            </h3>
+            <p className="text-sm md:text-base text-gray-600 leading-relaxed">
+              Yes! Our code, methodology, and data sources are all public on GitHub for full transparency.
+            </p>
+          </div>
+        </div>
+
+        {/* FAQ Footer */}
+        <div className="text-center mt-6 pt-6 border-t border-gray-200">
+          <p className="text-gray-600">
+            More questions?{' '}
+            <a href="/docs" className="text-advisor-600 hover:text-advisor-700 font-medium hover:underline">
+              Check our documentation
+            </a>
+            {' '}or{' '}
+            <a href="mailto:hello@geckoadvisor.com" className="text-advisor-600 hover:text-advisor-700 font-medium hover:underline">
+              contact us
+            </a>
+          </p>
+        </div>
+      </section>
+
       <Footer />
     </div>
 
@@ -261,37 +493,63 @@ function RecentReports() {
   if (items.length === 0) return null;
   return (
     <Card>
-      <h2 className="font-semibold mb-2">Recent Reports</h2>
-      <ul className="divide-y">
-        {items.map((report) => (
-          <li key={report.slug} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 hover:bg-gray-50/50 transition-colors rounded px-2 -mx-2">
-            <div className="flex-1 min-w-0">
-              <div className="font-medium truncate text-gray-900">{report.domain}</div>
-              <div className="text-xs text-gray-500">
-                {formatCreatedAt(report.createdAt)}
+      <h2 className="text-xl font-bold mb-4 text-gray-900">Recent Privacy Scans</h2>
+      <ul className="divide-y divide-gray-100">
+        {items.map((report) => {
+          // Extract domain for favicon
+          const domain = report.domain;
+
+          return (
+            <li
+              key={report.slug}
+              className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50 hover:shadow-md hover:-translate-y-0.5 transition-all rounded-lg px-3 -mx-3 cursor-pointer"
+              onClick={() => window.location.href = `/r/${report.slug}`}
+            >
+              {/* Left side: Favicon + Domain + Meta */}
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                {/* Favicon */}
+                <div className="flex-shrink-0 w-8 h-8 rounded bg-gray-100 flex items-center justify-center overflow-hidden">
+                  <img
+                    src={`https://www.google.com/s2/favicons?domain=${domain}&sz=32`}
+                    alt=""
+                    width="24"
+                    height="24"
+                    className="rounded"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                </div>
+
+                {/* Domain info */}
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-gray-900 truncate">{domain}</div>
+                  <div className="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
+                    <span>{getRelativeTime(report.createdAt)}</span>
+                    <span className="text-gray-300">•</span>
+                    <span>{report.evidenceCount} checks</span>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-3 flex-shrink-0">
-              {/* Letter Grade Badge - Primary indicator */}
-              <GradeBadge score={report.score} size="md" showLabel={false} />
 
-              {/* Keep existing label as secondary info (optional) */}
-              <span className="text-xs text-gray-600 hidden md:inline">
-                {report.label}
-              </span>
+              {/* Right side: Grade + View Link */}
+              <div className="flex items-center gap-3 flex-shrink-0 sm:ml-4">
+                {/* Grade Badge */}
+                <GradeBadge score={report.score} size="md" showLabel={true} />
 
-              <span className="text-xs text-gray-600 hidden lg:inline min-w-[60px] text-right">
-                {report.evidenceCount} items
-              </span>
-              <a
-                href={`/r/${report.slug}`}
-                className="text-advisor-600 hover:text-advisor-700 hover:underline text-sm font-medium transition-colors"
-              >
-                View →
-              </a>
-            </div>
-          </li>
-        ))}
+                {/* View Link */}
+                <a
+                  href={`/r/${report.slug}`}
+                  className="text-advisor-600 hover:text-advisor-700 hover:underline text-sm font-semibold transition-colors whitespace-nowrap"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  View Report →
+                </a>
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </Card>
   );
