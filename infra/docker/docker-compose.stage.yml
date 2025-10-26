@@ -22,9 +22,8 @@ services:
     restart: unless-stopped
 
   backend:
-    build:
-      context: ../..
-      dockerfile: infra/docker/Dockerfile.backend
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-pothamsetty}/privacy-advisor-backend:stage-latest
+    pull_policy: always
     environment:
       NODE_ENV: production
       APP_ENV: stage
@@ -50,9 +49,8 @@ services:
       retries: 5
 
   worker:
-    build:
-      context: ../..
-      dockerfile: infra/docker/Dockerfile.worker
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-pothamsetty}/privacy-advisor-worker:stage-latest
+    pull_policy: always
     environment:
       NODE_ENV: production
       APP_ENV: stage
@@ -72,9 +70,8 @@ services:
       retries: 5
 
   frontend:
-    build:
-      context: ../..
-      dockerfile: infra/docker/Dockerfile.frontend
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-pothamsetty}/privacy-advisor-frontend:stage-latest
+    pull_policy: always
     environment:
       APP_ENV: stage
       FRONTEND_PUBLIC_URL: ${FRONTEND_PUBLIC_URL:-https://stage.geckoadvisor.com}
