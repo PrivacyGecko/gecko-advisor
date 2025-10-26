@@ -16,6 +16,7 @@ import LoginModal from '../components/LoginModal';
 import SignupModal from '../components/SignupModal';
 import EnhancedTrustIndicator from '../components/EnhancedTrustIndicator';
 import ForgotPasswordModal from '../components/ForgotPasswordModal';
+import GradeBadge from '../components/GradeBadge';
 import type { RecentReportsResponse } from '@privacy-advisor/shared';
 
 type RecentItem = RecentReportsResponse['items'][number] & { evidenceCount: number };
@@ -263,29 +264,30 @@ function RecentReports() {
       <h2 className="font-semibold mb-2">Recent Reports</h2>
       <ul className="divide-y">
         {items.map((report) => (
-          <li key={report.slug} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
+          <li key={report.slug} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 hover:bg-gray-50/50 transition-colors rounded px-2 -mx-2">
             <div className="flex-1 min-w-0">
-              <div className="font-medium truncate">{report.domain}</div>
-              <div className="text-xs text-slate-500">{formatCreatedAt(report.createdAt)}</div>
+              <div className="font-medium truncate text-gray-900">{report.domain}</div>
+              <div className="text-xs text-gray-500">
+                {formatCreatedAt(report.createdAt)}
+              </div>
             </div>
             <div className="flex items-center gap-3 flex-shrink-0">
-              <span
-                className={`px-2 py-0.5 rounded-full text-xs whitespace-nowrap ${
-                  report.label === 'Safe'
-                    ? 'bg-green-100 text-green-700'
-                    : report.label === 'High Risk'
-                    ? 'bg-red-100 text-red-700'
-                    : 'bg-yellow-100 text-yellow-700'
-                }`}
-                title={`${report.score}%`}
-              >
+              {/* Letter Grade Badge - Primary indicator */}
+              <GradeBadge score={report.score} size="md" showLabel={false} />
+
+              {/* Keep existing label as secondary info (optional) */}
+              <span className="text-xs text-gray-600 hidden md:inline">
                 {report.label}
               </span>
-              <span className="text-xs text-slate-600 hidden sm:inline" title="Evidence count">
+
+              <span className="text-xs text-gray-600 hidden lg:inline min-w-[60px] text-right">
                 {report.evidenceCount} items
               </span>
-              <a href={`/r/${report.slug}`} className="text-trust-600 hover:text-trust-700 underline text-sm">
-                View
+              <a
+                href={`/r/${report.slug}`}
+                className="text-advisor-600 hover:text-advisor-700 hover:underline text-sm font-medium transition-colors"
+              >
+                View →
               </a>
             </div>
           </li>

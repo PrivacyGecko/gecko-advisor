@@ -16,6 +16,7 @@ import VirtualizedEvidenceList from '../components/VirtualizedEvidenceList';
 import { ScoreDialSkeleton, CardSkeleton, EvidenceCardSkeleton } from '../components/Skeleton';
 import { ErrorState } from '../components/ErrorBoundary';
 import Footer from '../components/Footer';
+import GradeBadge from '../components/GradeBadge';
 import type { LegacyReportResponse } from '@privacy-advisor/shared';
 import { computeDataSharingLevel, type DataSharingLevel } from '../lib/dataSharing';
 import { useAuth } from '../contexts/AuthContext';
@@ -519,9 +520,12 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
           <EnhancedScoreDial score={scan.score ?? 0} size="lg" label={scan.label ?? undefined} />
         </div>
         <div className="flex-1 text-center md:text-left">
-          <h1 className="text-2xl md:text-3xl font-bold">
-            {scan.label} ({scan.score ?? 'n/a'})
-          </h1>
+          <div className="flex flex-col md:flex-row md:items-center gap-3 justify-center md:justify-start mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+              {scan.label} ({scan.score ?? 'n/a'})
+            </h1>
+            <GradeBadge score={scan.score ?? 0} size="lg" showLabel={true} />
+          </div>
           <p className="text-slate-600 break-all">{scan.input}</p>
           <div className="mt-1 text-xs text-slate-600">
             Score legend: <span className="text-green-700 font-medium">Safe &gt;= 70</span> • <span className="text-amber-700 font-medium">Caution 40-69</span> • <span className="text-red-700 font-medium">High Risk &lt; 40</span>{' '}
