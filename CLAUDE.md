@@ -84,11 +84,18 @@ pnpm test                   # Run vitest tests
 - **CachedList**: Cached privacy/tracker lists (EasyPrivacy, WhoTracks.me)
 
 ### API Endpoints
-- `POST /api/scan/url` - Submit URL for scanning
-- `GET /api/scan/:id/status` - Check scan progress
-- `GET /api/report/:slug` - Get scan report
-- `GET /api/reports/recent` - Recent public reports
-- `POST /api/admin/refresh-lists` - Refresh privacy lists (requires admin key)
+**V2 API (Current)**
+- `POST /api/v2/scan` or `POST /api/v2/scan/url` - Submit URL for scanning (requires Turnstile token)
+- `GET /api/v2/scan/:id/status` - Check scan progress
+- `GET /api/v2/report/:slug` - Get scan report with optional archived payload
+- `GET /api/v2/reports/recent` - Recent public reports
+
+**V1 API (Legacy)**
+- `POST /api/v1/scan/url` - Legacy scan endpoint
+- Other V1 endpoints available for backward compatibility
+
+**Admin Endpoints**
+- `POST /api/admin/refresh-lists` - Refresh privacy lists (requires `X-Admin-Key` header)
 
 ## Development Workflow
 
@@ -97,6 +104,8 @@ pnpm test                   # Run vitest tests
 2. Set `APP_ENV` (development/stage/production)
 3. Configure database and Redis URLs
 4. Set `ADMIN_API_KEY` for admin endpoints
+5. Optional: Configure `TURNSTILE_SECRET_KEY` and `TURNSTILE_SITE_KEY` for bot protection
+6. Optional: Configure `OBJECT_STORAGE_*` variables for report archival
 
 ### Running Locally
 **Recommended**: Use Docker with `make dev`
@@ -137,16 +146,22 @@ pnpm test                   # Run vitest tests
 - Run `pnpm lint` and `pnpm typecheck` before committing
 
 ### Documentation
-- All project documentation (.md files) should be placed in `/Project-Docs/` folder
+- All project documentation (.md files) should be placed in `/assets/docs/` folder
 - Keep code documentation inline and API docs in respective packages
-- Technical decisions, deployment guides, and project reports go in Project-Docs
+- Technical decisions, deployment guides, and project reports go in assets/docs
+- Phase-specific operational checklists are in `assets/docs/operations/`
 
 ## Security Considerations
 
 ### Backend Security
 - Helmet middleware for security headers
 - CORS with allowlist configuration
-- Rate limiting on scan endpoints
+- **Intelligent rate limiting** with queue-aware backpressure (`intelligent-rate-limit.ts`)
+  - Dynamic adjustment based on scan complexity and system load
+  - Separate limits for scan (10/min), report (30/min), and status (30/min) endpoints
+- **Cloudflare Turnstile** bot protection on `/api/v2/scan` endpoints
+  - Gracefully disabled if `TURNSTILE_SECRET_KEY` not configured
+  - Validates tokens via Cloudflare API
 - Admin endpoints require `X-Admin-Key` header
 - Input validation with Zod schemas
 
@@ -168,6 +183,47 @@ pnpm test                   # Run vitest tests
 - Collects evidence: headers, cookies, trackers, third-party requests
 - Deterministic scoring with category-based deductions
 
+## Object Storage & Report Archival
+
+### Configuration
+- Supports Hetzner Object Storage and S3-compatible services
+- Configuration via `OBJECT_STORAGE_*` environment variables
+- Gracefully degrades when disabled or misconfigured (falls back to database)
+
+### Report Archival Flow
+- Worker stores full scan payload (evidence, metadata) to object storage after completion
+- Backend retrieves archived reports via signed URLs or CDN
+- 30-day TTL managed via bucket lifecycle policies
+- Implementation in `packages/shared/src/objectStorage.ts`
+
+### Environment Variables
+```bash
+OBJECT_STORAGE_ENABLED=true
+OBJECT_STORAGE_ENDPOINT=https://{project}.s3.eu-central-1.hetzner.com
+OBJECT_STORAGE_REGION=eu-central-1
+OBJECT_STORAGE_BUCKET=geckoadvisor-archive
+OBJECT_STORAGE_ACCESS_KEY=...
+OBJECT_STORAGE_SECRET_KEY=...
+OBJECT_STORAGE_REPORT_PREFIX=reports/
+OBJECT_STORAGE_PUBLIC_URL=https://{cdn-domain}
+OBJECT_STORAGE_FORCE_PATH_STYLE=true
+OBJECT_STORAGE_SIGNED_URL_SECONDS=3600
+```
+
+## Monitoring & Observability
+
+### Local Monitoring Stack
+- **Prometheus** scrapes backend metrics at `/api/metrics` (port 9090)
+- **Grafana** for visualization and dashboards (port 3001, default credentials: `admin`/`admin`)
+- **cAdvisor** for container-level CPU/memory metrics (port 8085)
+- Configuration in `infra/docker/monitoring/prometheus.yml`
+- All services included in `docker-compose.yml` and auto-start with `make dev`
+
+### External Monitoring (Production)
+- **UptimeRobot Pro** for uptime monitoring (3 monitors: frontend, API, worker)
+- Alert escalation via Telegram + email
+- Health check endpoints: `/healthz` (frontend), `/api/health` (backend), `/health` (worker)
+
 ## Known Limitations & Gotchas
 
 - BullMQ queue names cannot contain `:` characters
@@ -175,6 +231,7 @@ pnpm test                   # Run vitest tests
 - Data Sharing calculation is client-side in MVP (to be moved server-side)
 - Nginx CSP headers must be properly quoted to avoid container restarts
 - Worker uses HTML fixtures for `.test` domains when `USE_FIXTURES=1`
+- Turnstile middleware gracefully passes through when `TURNSTILE_SECRET_KEY` is not set
 
 ## Deployment
 

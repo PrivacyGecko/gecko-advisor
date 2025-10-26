@@ -14,6 +14,7 @@ import { createScanWithSlug } from "../services/slug.js";
 import { findReusableScan } from "../services/dedupe.js";
 import { logger } from "../logger.js";
 import { config } from "../config.js";
+import { requireTurnstile } from "../middleware/turnstile.js";
 
 const UrlScanBodySchema = UrlScanRequestSchema.extend({
   force: z.boolean().optional(),
@@ -30,7 +31,7 @@ const mapToLegacyQueued = (payload: z.infer<typeof ScanQueuedResponseSchema>) =>
 
 export const scanV1Router = Router();
 
-scanV1Router.post(['/', '/url'], async (req, res) => {
+scanV1Router.post(['/', '/url'], requireTurnstile, async (req, res) => {
   const parsed = UrlScanBodySchema.safeParse(req.body);
   if (!parsed.success) {
     return problem(res, 400, 'Invalid Request', parsed.error.flatten());
