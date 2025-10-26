@@ -46,9 +46,6 @@ export default function Footer() {
                 className="h-10 w-auto object-contain"
               />
             </Link>
-            <p className="text-sm text-gecko-600 font-semibold mb-2">
-              {BRAND.tagline}
-            </p>
             <p className="text-sm text-gray-600 leading-relaxed">
               {BRAND.shortDescription}
             </p>
@@ -225,7 +222,7 @@ export default function Footer() {
               © {currentYear} {BRAND.companyName}. All rights reserved.
             </p>
 
-            {/* Professional Trust Indicators */}
+            {/* Trust Indicators */}
             <div className="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm text-gray-500 flex-wrap justify-center sm:justify-end">
               <span className="flex items-center gap-1">
                 <svg className="w-4 h-4 text-gecko-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -233,8 +230,8 @@ export default function Footer() {
                 </svg>
                 Open Source
               </span>
-              <span>Transparent Methodology</span>
-              <span>Evidence-Based Analysis</span>
+              <span>Transparent</span>
+              <span>Free for Everyone</span>
             </div>
           </div>
         </div>

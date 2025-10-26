@@ -137,7 +137,7 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
               <img
                 src={BRAND.logo.src}
                 alt={BRAND.logo.alt}
-                className="h-14 w-auto object-contain"
+                className="h-16 w-auto object-contain"
               />
             </Link>
 

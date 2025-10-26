@@ -14,7 +14,6 @@ import Footer from '../components/Footer';
 import Header from '../components/Header';
 import LoginModal from '../components/LoginModal';
 import SignupModal from '../components/SignupModal';
-import ProfessionalBadge from '../components/ProfessionalBadge';
 import EnhancedTrustIndicator from '../components/EnhancedTrustIndicator';
 import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import type { RecentReportsResponse } from '@privacy-advisor/shared';
@@ -98,7 +97,7 @@ export default function Home() {
         onShowSignup={() => setShowSignupModal(true)}
       />
       <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
-      {/* Hero Section - Professional Privacy Analysis */}
+      {/* Hero Section - Privacy Scanner */}
       <header className="text-center space-y-6 py-8 md:py-16">
         {/* Logo */}
         <div className="flex items-center justify-center mb-4 animate-fade-in">
@@ -110,20 +109,13 @@ export default function Home() {
         </div>
 
         {/* Main Headline */}
-        <h1 className="text-4xl md:text-6xl font-bold text-gray-900 leading-tight max-w-4xl mx-auto px-4">
-          Professional Website Privacy Analysis
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight max-w-4xl mx-auto px-4">
+          See What's Tracking You Online
         </h1>
-
-        {/* Professional Capability Indicators */}
-        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 mt-6">
-          <ProfessionalBadge variant="open-source" size="md" />
-          <ProfessionalBadge variant="transparent" size="md" />
-          <ProfessionalBadge variant="evidence-based" size="md" />
-        </div>
 
         {/* Subheadline */}
         <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed px-4">
-          Trusted by privacy researchers, journalists, and compliance teams to analyze website tracking, cookies, and data collection practices.
+          Scan any website to uncover trackers, cookies, and hidden data collection. Open-source and free for everyone.
         </p>
       </header>
 
@@ -236,7 +228,7 @@ export default function Home() {
         </div>
         <p className="text-xs text-gray-500 mt-3">
           {mode === 'url'
-            ? 'Instant analysis • Evidence-based results • Open-source methodology'
+            ? 'See trackers, cookies, and data collection in seconds—free and transparent'
             : 'This feature is coming soon. Stay tuned!'}
         </p>
       </div>
