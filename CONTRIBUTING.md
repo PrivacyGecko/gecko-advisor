@@ -69,7 +69,6 @@ Documentation improvements are always welcome!
 **Documentation lives in**:
 - `/README.md` - Main project documentation
 - `/assets/docs/` - Technical documentation and guides
-- `/CLAUDE.md` - Development guidance for AI assistants
 - Inline code comments and JSDoc
 
 ### Contributing Code
@@ -296,7 +295,6 @@ BREAKING CHANGE: The /api/v2/scan endpoint now returns scanId and slug instead o
 2. **Update documentation**:
    - Update README if you changed public APIs or features
    - Add/update code comments for complex logic
-   - Update CLAUDE.md if you changed development workflows
 
 3. **Test thoroughly**:
    - Test your changes manually
@@ -400,7 +398,6 @@ Before submitting a PR, manually test:
 ### Resources
 
 - **README.md**: Quick start and overview
-- **CLAUDE.md**: Detailed development guide
 - **assets/docs/**: Technical documentation and architecture guides
 - **Code comments**: Inline documentation in the codebase
 
@@ -429,7 +426,3 @@ Contributors are recognized in:
 Every contribution, no matter how small, makes Gecko Advisor better for everyone. We appreciate your time, effort, and commitment to web privacy.
 
 **Happy coding, and welcome to the Gecko Advisor community!**
-
----
-
-*For more detailed development information, see [CLAUDE.md](./CLAUDE.md).*

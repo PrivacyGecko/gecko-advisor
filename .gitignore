@@ -36,6 +36,8 @@ test-results/
 # Internal development files (NOT for public release)
 .claude/
 .playwright-mcp/
+CLAUDE.md
+playwright.config.ts
 assets/dlogs/
 assets/ss/
 assets/prompts/

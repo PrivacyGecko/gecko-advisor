@@ -229,7 +229,7 @@ pnpm seed                   # Seed database with demo data
 - **Conventional Commits**: Structured commit messages
 - **WCAG AA Compliance**: Accessibility-first frontend development
 
-For detailed development guidelines, see [CLAUDE.md](./CLAUDE.md).
+For detailed development guidelines, see the code comments and inline documentation.
 
 ---
 

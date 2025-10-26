@@ -75,7 +75,6 @@ Relates to #
 - [ ] I have updated the documentation to reflect my changes
 - [ ] I have updated comments in the code where necessary
 - [ ] I have added JSDoc/TSDoc comments for new functions
-- [ ] I have updated the CLAUDE.md file if workflow changes were made
 
 ### Accessibility & Security
 - [ ] My changes are accessible (WCAG AA compliant where applicable)

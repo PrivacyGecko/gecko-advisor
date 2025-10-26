@@ -115,11 +115,7 @@ Privacy-first website scanner with deterministic scoring.
 - BullMQ worker for scan processing
 - PostgreSQL database with full schema
 - Docker deployment configuration
-- Comprehensive documentation
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
+- Comprehensive documentation"
 
 # 6. Create GitHub repository and push
 # (Follow instructions in PRE_RELEASE_CHECKLIST.md)
