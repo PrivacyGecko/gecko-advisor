@@ -206,6 +206,8 @@ export default function Home() {
         />
       </div>
 
+      <RecentReports />
+
       <Card>
         <h2 className="font-semibold mb-2">What do we check?</h2>
         <ul className="list-disc pl-6 text-slate-700 text-sm">
@@ -215,8 +217,6 @@ export default function Home() {
         </ul>
       </Card>
       <Footer />
-
-      <RecentReports />
     </div>
 
     {/* Auth modals */}

@@ -110,6 +110,36 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
     callback?.();
   };
 
+  /**
+   * Handle "New Scan" button click
+   * - If on home page, scroll to scan input
+   * - If on different page, navigate to home first, then scroll
+   */
+  const handleNewScan = () => {
+    setMobileMenuOpen(false);
+
+    if (location.pathname === '/') {
+      // Already on home page, just scroll to input
+      const scanInput = document.getElementById('scan-input');
+      if (scanInput) {
+        scanInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Focus the input for immediate user interaction
+        setTimeout(() => scanInput.focus(), 300);
+      }
+    } else {
+      // Navigate to home page first, then scroll
+      navigate('/');
+      // Wait for navigation to complete, then scroll
+      setTimeout(() => {
+        const scanInput = document.getElementById('scan-input');
+        if (scanInput) {
+          scanInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => scanInput.focus(), 300);
+        }
+      }, 100);
+    }
+  };
+
   const isPro = user?.subscription === 'PRO' || user?.subscription === 'TEAM';
 
   /**
@@ -161,6 +191,29 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
               >
                 About
               </Link>
+
+              {/* New Scan Button - Prominent CTA */}
+              <button
+                onClick={handleNewScan}
+                className="px-4 py-2 bg-advisor-600 hover:bg-advisor-700 active:bg-advisor-800 text-white rounded-lg font-medium flex items-center gap-2 transition-all duration-200 shadow-sm hover:shadow-md"
+                aria-label="Start a new privacy scan"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                New Scan
+              </button>
             </div>
           </div>
 
@@ -346,6 +399,31 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
 
         {/* Drawer Content */}
         <div className="flex flex-col h-full overflow-y-auto pb-20">
+          {/* New Scan Button - Mobile (Prominent) */}
+          <div className="p-4">
+            <button
+              onClick={handleNewScan}
+              className="w-full px-4 py-3 bg-advisor-600 hover:bg-advisor-700 active:bg-advisor-800 text-white rounded-lg font-medium flex items-center justify-center gap-2 transition-all duration-200 shadow-sm"
+              aria-label="Start a new privacy scan"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              New Scan
+            </button>
+          </div>
+
           {/* Navigation Links */}
           <nav className="flex flex-col py-2">
             <Link
