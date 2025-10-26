@@ -29,7 +29,7 @@ export default function Compare() {
 
   return (
     <>
-      <Header onLoginClick={() => setShowLogin(true)} onSignupClick={() => setShowSignup(true)} />
+      <Header onShowLogin={() => setShowLogin(true)} onShowSignup={() => setShowSignup(true)} />
       <div className="max-w-5xl mx-auto p-6 space-y-4">
         <h1 className="text-2xl font-bold">Compare Reports (beta)</h1>
       <div className="flex gap-4">

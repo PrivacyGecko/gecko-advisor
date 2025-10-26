@@ -161,12 +161,6 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
               >
                 About
               </Link>
-              <Link
-                to="/pricing"
-                className="text-gray-600 hover:text-gecko-600 transition-colors font-medium"
-              >
-                Pricing
-              </Link>
             </div>
           </div>
 
@@ -281,19 +275,6 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
                       Settings
                     </Link>
 
-                    {!isPro && (
-                      <Link
-                        to="/pricing"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                        Upgrade to Pro
-                      </Link>
-                    )}
-
                     <hr className="my-1 border-gray-100" />
 
                     <button
@@ -308,34 +289,7 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
                   </div>
                 )}
               </div>
-            ) : (
-              // Guest user buttons
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={onShowLogin}
-                  className={clsx(
-                    'px-4 py-2 rounded-lg text-sm font-medium',
-                    'text-gray-700 hover:bg-gray-100',
-                    'transition-colors border border-gray-300'
-                  )}
-                  aria-label="Log in to your account"
-                >
-                  Log In
-                </button>
-                <button
-                  onClick={onShowSignup}
-                  className={clsx(
-                    'px-4 py-2 rounded-lg text-sm font-semibold',
-                    'bg-gecko-600 text-white',
-                    'hover:bg-gecko-700 active:bg-gecko-800',
-                    'transition-colors shadow-sm hover:shadow-md'
-                  )}
-                  aria-label="Create a free account"
-                >
-                  Sign Up
-                </button>
-              </div>
-            )}
+            ) : null}
           </div>
         </div>
       </nav>
@@ -417,18 +371,6 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
               Docs
             </Link>
             <Link
-              to="/pricing"
-              onClick={handleMobileNavClick}
-              className={clsx(
-                'py-3 px-4 text-base font-medium transition-colors',
-                isActiveRoute('/pricing')
-                  ? 'text-gecko-600 bg-gecko-50 border-l-4 border-gecko-600'
-                  : 'text-gray-700 hover:bg-gecko-50 hover:text-gecko-600'
-              )}
-            >
-              Pricing
-            </Link>
-            <Link
               to="/about"
               onClick={handleMobileNavClick}
               className={clsx(
@@ -498,32 +440,7 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
                 Log Out
               </button>
             </div>
-          ) : (
-            // Guest User
-            <div className="flex flex-col gap-3 p-4">
-              <button
-                onClick={() => handleMobileAuthClick(onShowLogin)}
-                className={clsx(
-                  'w-full py-3 px-4 rounded-lg text-base font-medium',
-                  'text-gray-700 bg-white border-2 border-gray-300',
-                  'hover:bg-gray-50 transition-colors'
-                )}
-              >
-                Log In
-              </button>
-              <button
-                onClick={() => handleMobileAuthClick(onShowSignup)}
-                className={clsx(
-                  'w-full py-3 px-4 rounded-lg text-base font-semibold',
-                  'bg-gecko-600 text-white',
-                  'hover:bg-gecko-700 active:bg-gecko-800',
-                  'transition-colors shadow-sm'
-                )}
-              >
-                Sign Up
-              </button>
-            </div>
-          )}
+          ) : null}
         </div>
       </div>
     </header>

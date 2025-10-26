@@ -14,15 +14,12 @@ import { addScanJob, SCAN_PRIORITY, scanQueue } from "../queue.js";
 import { createScanWithSlug } from "../services/slug.js";
 import { findReusableScan } from "../services/dedupe.js";
 import { logger } from "../logger.js";
-import { config } from "../config.js";
 import { CacheService, CACHE_KEYS, CACHE_TTL } from "../cache.js";
 import { optionalAuth } from "../middleware/auth.js";
-import { scanRateLimiter, rateLimitService, type RequestWithRateLimit } from "../middleware/scanRateLimit.js";
 import { requireTurnstile } from "../middleware/turnstile.js";
 
 const UrlScanBodySchema = UrlScanRequestSchema.extend({
   force: z.boolean().optional(),
-  isPrivate: z.boolean().optional(), // Pro users can make scans private
 });
 
 const CachedResponseSchema = ScanQueuedResponseSchema.extend({
@@ -31,20 +28,14 @@ const CachedResponseSchema = ScanQueuedResponseSchema.extend({
 
 export const scanV2Router = Router();
 
-scanV2Router.post(['/', '/url'], optionalAuth, scanRateLimiter, requireTurnstile, async (req, res) => {
+scanV2Router.post(['/', '/url'], optionalAuth, requireTurnstile, async (req, res) => {
   const parsed = UrlScanBodySchema.safeParse(req.body);
   if (!parsed.success) {
     return problem(res, 400, 'Invalid Request', parsed.error.flatten());
   }
 
-  const { url, force, isPrivate } = parsed.data;
+  const { url, force } = parsed.data;
   const user = (req as Request & { user?: SafeUser }).user;
-
-  // Determine if user is Pro with active subscription
-  const isPro =
-    user &&
-    (user.subscription === 'PRO' || user.subscription === 'TEAM') &&
-    (user.subscriptionStatus === 'ACTIVE' || user.subscriptionStatus === 'TRIALING');
 
   let normalized: URL;
   try {
@@ -69,7 +60,8 @@ scanV2Router.post(['/', '/url'], optionalAuth, scanRateLimiter, requireTurnstile
   }
 
   try {
-    // Prepare scan data with user tracking and privacy settings
+    // Prepare scan data with optional user tracking
+    // All scans are public and free - no PRO tier
     const scanData = {
       targetType: 'url',
       input: url,
@@ -77,12 +69,12 @@ scanV2Router.post(['/', '/url'], optionalAuth, scanRateLimiter, requireTurnstile
       status: 'queued',
       progress: 0,
       source: force ? 'manual-force' : 'manual',
-      // User tracking
+      // Optional user tracking for scan history
       userId: user?.id || null,
       scannerIp: req.ip || null,
-      // Privacy settings: Pro users can choose, Free users are always public
-      isPublic: isPro ? !(isPrivate ?? false) : true,
-      isProScan: isPro ?? false,
+      // All scans are public (100% free, no PRO tier)
+      isPublic: true,
+      isProScan: false,
     };
 
     const scan = await createScanWithSlug(prisma, scanData);
@@ -96,51 +88,19 @@ scanV2Router.post(['/', '/url'], optionalAuth, scanRateLimiter, requireTurnstile
         requestId: res.locals.requestId,
       },
       {
-        // Pro users get higher priority in queue
-        priority: isPro ? SCAN_PRIORITY.URGENT : (force ? SCAN_PRIORITY.URGENT : SCAN_PRIORITY.NORMAL),
-        scanComplexity: 'simple', // Could be determined based on URL complexity
+        priority: force ? SCAN_PRIORITY.URGENT : SCAN_PRIORITY.NORMAL,
+        scanComplexity: 'simple',
         isRetry: false,
         requestId: res.locals.requestId,
       }
     );
-
-    // Increment rate limit for free users AFTER successful scan creation
-    if (!isPro) {
-      const identifier = user?.id || req.ip || 'unknown';
-      try {
-        await rateLimitService.incrementScan(identifier);
-        logger.debug({ identifier, scanId: scan.id }, 'Rate limit incremented');
-      } catch (error) {
-        // Log error but don't fail the request - scan is already queued
-        logger.error({ error, identifier, scanId: scan.id }, 'Failed to increment rate limit');
-      }
-    }
-
-    // Get updated rate limit info for response
-    let rateLimitInfo = null;
-    if (!isPro) {
-      const identifier = user?.id || req.ip || 'unknown';
-      try {
-        const rateLimit = await rateLimitService.getRateLimitStatus(identifier);
-        rateLimitInfo = {
-          scansUsed: rateLimit.scansUsed,
-          scansRemaining: rateLimit.scansRemaining,
-          resetAt: rateLimit.resetAt,
-        };
-      } catch (error) {
-        logger.error({ error, identifier }, 'Failed to get rate limit status');
-      }
-    }
 
     const response = ScanQueuedResponseSchema.parse({
       scanId: scan.id,
       slug: scan.slug,
     });
 
-    res.status(202).json({
-      ...response,
-      rateLimit: rateLimitInfo,
-    });
+    res.status(202).json(response);
   } catch (error) {
     logger.error({ error, requestId: res.locals.requestId }, 'Failed to enqueue scan');
     return problem(res, 500, 'Unable to queue scan');
@@ -281,10 +241,9 @@ scanV2Router.post('/address', async (req, res) => {
  *
  * GET /api/scans/history
  * Requires: Authentication
- * Returns: { scans, daysBack, isPro, total }
+ * Returns: { scans, daysBack, total }
  *
- * Free users: last 7 days
- * Pro users: last 90 days
+ * All users: last 90 days (no tier restrictions)
  */
 scanV2Router.get('/history', async (req, res) => {
   // Import auth middleware dynamically to avoid circular dependency
@@ -305,12 +264,8 @@ scanV2Router.get('/history', async (req, res) => {
   }
 
   try {
-    // Determine history period based on subscription tier
-    const isPro =
-      (user.subscription === 'PRO' || user.subscription === 'TEAM') &&
-      (user.subscriptionStatus === 'ACTIVE' || user.subscriptionStatus === 'TRIALING');
-
-    const daysBack = isPro ? 90 : 7;
+    // All users get 90 days of history (no tier restrictions)
+    const daysBack = 90;
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysBack);
 
@@ -347,7 +302,6 @@ scanV2Router.get('/history', async (req, res) => {
     logger.debug(
       {
         userId: user.id,
-        isPro,
         daysBack,
         scanCount: scans.length,
       },
@@ -367,13 +321,12 @@ scanV2Router.get('/history', async (req, res) => {
         isPublic: scan.isPublic,
         isProScan: scan.isProScan,
         source: scan.source,
-        batchId: (scan.meta as any)?.batchId ?? undefined,
+        batchId: (scan.meta as Record<string, unknown> | null)?.batchId as string | undefined ?? undefined,
         createdAt: scan.createdAt,
         finishedAt: scan.finishedAt ?? undefined,
       })),
       total: scans.length,
       daysBack,
-      isPro,
       cutoffDate,
     });
   } catch (error) {

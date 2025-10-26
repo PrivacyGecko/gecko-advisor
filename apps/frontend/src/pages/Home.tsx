@@ -14,13 +14,12 @@ import Footer from '../components/Footer';
 import Header from '../components/Header';
 import LoginModal from '../components/LoginModal';
 import SignupModal from '../components/SignupModal';
-import RateLimitBanner, { type RateLimitInfo } from '../components/RateLimitBanner';
-import PublicScanWarning from '../components/PublicScanWarning';
+import TrustBadge from '../components/TrustBadge';
 import EnhancedTrustIndicator from '../components/EnhancedTrustIndicator';
 import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import type { RecentReportsResponse } from '@privacy-advisor/shared';
 
-const INPUT_MODES = ['url', 'app', 'address'] as const;
+const INPUT_MODES = ['url'] as const;
 type InputMode = (typeof INPUT_MODES)[number];
 
 type RecentItem = RecentReportsResponse['items'][number] & { evidenceCount: number };
@@ -31,7 +30,6 @@ interface ScanResponse {
   slug: string;
   statusUrl: string;
   resultsUrl: string;
-  rateLimit?: RateLimitInfo | null;
 }
 
 const formatCreatedAt = (value: RecentItem['createdAt']): string => {
@@ -53,21 +51,18 @@ export default function Home() {
   const [input, setInput] = useState('https://example.com');
   const [mode, setMode] = useState<InputMode>('url');
   const [loading, setLoading] = useState(false);
-  const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const navigate = useNavigate();
-  const { user, token } = useAuth();
-
-  const isPro = user?.subscription === 'PRO' || user?.subscription === 'TEAM';
+  const { token } = useAuth();
 
   async function onScan() {
     try {
       setLoading(true);
 
-      // Call the new v2 API endpoint
+      // Call the v2 API endpoint
       const response = await fetch('/api/v2/scan', {
         method: 'POST',
         headers: {
@@ -78,29 +73,12 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        // Handle rate limit error
-        if (response.status === 429) {
-          const error = await response.json();
-          toast.error('Daily scan limit reached. Please try again tomorrow or upgrade to Pro.');
-
-          // Update rate limit info from error response
-          if (error.rateLimit) {
-            setRateLimit(error.rateLimit);
-          }
-          return;
-        }
-
-        // Handle other errors
+        // Handle errors
         const error = await response.json();
         throw new Error(error.detail || 'Failed to start scan');
       }
 
       const data: ScanResponse = await response.json();
-
-      // Update rate limit info from successful response
-      if (data.rateLimit) {
-        setRateLimit(data.rateLimit);
-      }
 
       toast.success('Scan started successfully!');
       navigate(`/scan/${data.scanId}?slug=${encodeURIComponent(data.slug)}`);
@@ -120,73 +98,38 @@ export default function Home() {
         onShowSignup={() => setShowSignupModal(true)}
       />
       <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
-      {/* Hero Section - PrivacyGecko Branding */}
-      <header className="text-center space-y-4 py-8 md:py-12">
+      {/* Hero Section - Free Forever Focus */}
+      <header className="text-center space-y-6 py-8 md:py-16">
         {/* Logo */}
-        <div className="flex items-center justify-center mb-6 animate-fade-in">
+        <div className="flex items-center justify-center mb-4 animate-fade-in">
           <img
             src={BRAND.logo.src}
             alt={BRAND.logo.alt}
-            className="h-24 md:h-32 w-auto object-contain"
+            className="h-20 md:h-28 w-auto object-contain"
           />
         </div>
 
-        {/* Tagline */}
-        <div className="space-y-2">
-          <p className="text-2xl md:text-3xl text-gecko-600 font-bold">
-            {BRAND.tagline}
-          </p>
+        {/* Main Headline */}
+        <h1 className="text-4xl md:text-6xl font-bold text-gray-900 leading-tight max-w-4xl mx-auto px-4">
+          Scan Any Website for Privacy Issues
+        </h1>
+
+        {/* Trust Badges - Dominant Visual Element */}
+        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 mt-6">
+          <TrustBadge variant="free" size="lg" />
+          <TrustBadge variant="no-account" size="lg" />
+          <TrustBadge variant="no-limits" size="lg" />
         </div>
 
-        {/* Value Proposition */}
-        <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed mt-6">
-          Scan and monitor privacy policies instantly. Get actionable privacy scores,
-          track changes over time, and protect your data with our rule-based scanner.
+        {/* Subheadline */}
+        <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed px-4">
+          Free, open-source privacy scanner. No signup, no limits, no tracking.
         </p>
-
-        {/* Trust Badge */}
-        <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-sm text-gray-600">
-          <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-gecko-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-            </svg>
-            <span className="font-medium">10,000+ Scans Completed</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-gecko-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            <span className="font-medium">Results in Seconds</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-gecko-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-            <span className="font-medium">Privacy First</span>
-          </div>
-        </div>
       </header>
 
-      {/* Rate limit banner */}
-      {(rateLimit || isPro) && (
-        <RateLimitBanner rateLimit={rateLimit} isPro={isPro} />
-      )}
-
-      <Card>
-        <div className="flex flex-wrap gap-2 mb-3" role="tablist" aria-label="Input type">
-          {INPUT_MODES.map((modeKey) => (
-            <button
-              key={modeKey}
-              role="tab"
-              aria-selected={mode === modeKey}
-              className={`px-3 py-3 min-h-[44px] rounded-full border text-sm ${mode === modeKey ? 'bg-gecko-600 text-white' : 'bg-white'}`}
-              onClick={() => setMode(modeKey)}
-            >
-              {modeKey.toUpperCase()}
-            </button>
-          ))}
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2">
+      {/* Elevated Scan Input Box */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 md:p-8">
+        <div className="flex flex-col sm:flex-row gap-3">
           <label htmlFor="scan-input" className="sr-only">
             Enter website URL to scan for privacy analysis
           </label>
@@ -194,8 +137,8 @@ export default function Home() {
             id="scan-input"
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            className="flex-1 border rounded-lg px-3 py-3 sm:py-2 text-base focus:outline-none focus:ring-2 focus:ring-gecko-600"
-            placeholder={mode === 'url' ? 'https://example.com' : mode === 'app' ? 'app id' : '0x... or address'}
+            className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+            placeholder={mode === 'url' ? 'Try: facebook.com, google.com, or any website' : mode === 'app' ? 'app id' : '0x... or address'}
             aria-label="Website URL to scan for privacy analysis"
             aria-describedby="scan-help-text"
           />
@@ -204,14 +147,14 @@ export default function Home() {
           </span>
           <button
             onClick={onScan}
-            disabled={loading || mode !== 'url' || (rateLimit?.scansRemaining === 0 && !isPro)}
-            className="px-6 py-3 min-h-[48px] rounded-lg bg-gecko-600 hover:bg-gecko-700 active:bg-gecko-800 text-white disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+            disabled={loading || mode !== 'url'}
+            className="w-full sm:w-auto px-8 py-4 min-h-[56px] rounded-lg bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg shadow-md hover:shadow-lg transition-all duration-200"
             aria-label="Start privacy scan"
           >
             <span className="inline-flex items-center justify-center gap-2">
               {loading ? (
                 <>
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <svg className="animate-spin h-6 w-6" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                   </svg>
@@ -219,7 +162,7 @@ export default function Home() {
                 </>
               ) : (
                 <>
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                   Scan Now
@@ -228,13 +171,8 @@ export default function Home() {
             </span>
           </button>
         </div>
-        {mode !== 'url' && (
-          <div className="mt-2 p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm" role="status">
-            <span className="font-semibold">Coming Soon:</span> {mode === 'app' ? 'App' : 'Address'} privacy scanning is currently in development. Only URL scanning is available at this time.
-          </div>
-        )}
-        <p className="text-xs text-slate-500 mt-2">Example: example.com, app id, or Solana wallet address</p>
-      </Card>
+        <p className="text-xs text-gray-500 mt-3">Instant analysis • No account required • Completely free</p>
+      </div>
 
       {/* Trust Indicators - Premium enhanced version */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -318,9 +256,6 @@ export default function Home() {
         </ul>
       </Card>
       <Footer />
-
-      {/* Public Scan Warning - appears above Recent Reports */}
-      <PublicScanWarning />
 
       <RecentReports />
     </div>

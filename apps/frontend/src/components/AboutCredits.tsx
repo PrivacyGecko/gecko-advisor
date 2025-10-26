@@ -8,6 +8,30 @@ export default function AboutCredits() {
   return (
     <div className="prose max-w-none p-6">
       <h1>About & Credits</h1>
+
+      <section className="mb-8 p-6 bg-emerald-50 border-l-4 border-emerald-600 rounded-r-lg">
+        <h2 className="text-2xl font-bold text-emerald-900 mt-0">Our Mission</h2>
+        <p className="text-lg text-gray-800">
+          Gecko Advisor exists to make website privacy transparent and accessible to everyone.
+        </p>
+        <p className="text-lg text-gray-800">
+          We believe you have a right to know what data websites collect—without paying subscription fees,
+          creating accounts, or installing invasive browser extensions.
+        </p>
+        <p className="text-lg text-gray-800 font-semibold">That's why Gecko Advisor is:</p>
+        <ul className="text-base text-gray-800 space-y-2 my-4">
+          <li><strong>100% Free Forever</strong> - No trials, no freemium tricks, genuinely free</li>
+          <li><strong>Open Source</strong> - All code public, scoring logic auditable</li>
+          <li><strong>Privacy-First</strong> - We don't track you while you scan others</li>
+          <li><strong>No Limits</strong> - Scan as much as you need, we trust you</li>
+        </ul>
+        <p className="text-base text-gray-700 italic">
+          <strong>Philosophy:</strong> Privacy transparency should be a right, not a privilege.
+          We're building the tool we wish existed—free, open, and trustworthy.
+        </p>
+      </section>
+
+      <h2>What We Do</h2>
       <p>
         Gecko Advisor provides explainable privacy checks for user-submitted URLs.
         It uses bundled, offline lists for deterministic scans in tests and production.

@@ -136,20 +136,10 @@ export default function PublicScanWarning({ className }: PublicScanWarningProps)
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <p className="text-sm font-medium text-amber-900">
-              <span className="inline-flex items-center gap-1.5" aria-label="Warning">
-                <span aria-hidden="true">⚠️</span>
-                <span>FREE tier scans are public and visible in Recent Reports.</span>
+              <span className="inline-flex items-center gap-1.5" aria-label="Info">
+                <span aria-hidden="true">ℹ️</span>
+                <span>All scans are public and visible in Recent Reports for transparency.</span>
               </span>
-              {' '}
-              <Link
-                to="/pricing"
-                className="text-amber-700 hover:text-amber-800 underline font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-offset-2 rounded"
-                aria-label="Upgrade to PRO for private scans"
-              >
-                Upgrade to PRO
-              </Link>
-              {' '}
-              <span>for private scans.</span>
             </p>
 
             {/* Dismiss Button */}
@@ -184,8 +174,8 @@ export default function PublicScanWarning({ className }: PublicScanWarningProps)
 
           {/* Additional Info */}
           <p className="text-xs text-amber-800 mt-2">
-            <span className="font-semibold">Privacy tip:</span> Public scans appear in Recent Reports
-            for 24 hours. PRO users get private scans, unlimited usage, and scan history.
+            <span className="font-semibold">Privacy note:</span> Public scans appear in Recent Reports
+            for 24 hours. This helps the community discover privacy issues across the web.
           </p>
         </div>
       </div>

@@ -49,12 +49,6 @@ const extraOrigins = parseOrigins(process.env.CORS_EXTRA_ORIGINS);
 
 const isLocalEnv = nodeEnv === 'development' || appEnv === 'development' || nodeEnv === 'test' || appEnv === 'test';
 
-const rateLimitPerMinute = parseNumber(process.env.RATE_LIMIT_PER_MINUTE, 30);
-const rateLimitScanPerMinute = parseNumber(process.env.RATE_LIMIT_SCAN_PER_MINUTE, rateLimitPerMinute);
-const rateLimitReportPerMinute = parseNumber(process.env.RATE_LIMIT_REPORT_PER_MINUTE, rateLimitPerMinute * 4);
-const rateLimitWindowMs = parseNumber(process.env.RATE_LIMIT_WINDOW_MS, 60_000);
-const rateLimitScanWindowMs = parseNumber(process.env.RATE_LIMIT_SCAN_WINDOW_MS, rateLimitWindowMs);
-const rateLimitReportWindowMs = parseNumber(process.env.RATE_LIMIT_REPORT_WINDOW_MS, rateLimitWindowMs);
 const cacheTtlMs = parseNumber(process.env.CACHE_TTL_MS, 15 * 60 * 1000);
 const allowedOrigins = (() => {
   if (isLocalEnv) {
@@ -110,12 +104,6 @@ export const config = {
   sentryDsn: process.env.SENTRY_DSN_BE,
   sentryTracesSampleRate: Number.parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE ?? '0.05'),
   allowedOrigins,
-  rateLimitPerMinute,
-  rateLimitScanPerMinute,
-  rateLimitReportPerMinute,
-  rateLimitWindowMs,
-  rateLimitScanWindowMs,
-  rateLimitReportWindowMs,
   cacheTtlMs,
   logLevel,
   stageOrigin,
@@ -125,6 +113,8 @@ export const config = {
   cspReportUri,
   workerAttempts: parseNumber(process.env.WORKER_JOB_ATTEMPTS, 3),
   workerBackoffMs: parseNumber(process.env.WORKER_BACKOFF_MS, 5000),
+  // Worker concurrency is an infrastructure constraint, not a user limit
+  workerConcurrency: parseNumber(process.env.WORKER_CONCURRENCY, 2),
   csp: {
     connectSources,
     imageSources,
@@ -137,18 +127,17 @@ export const config = {
       resetUrl: process.env.PASSWORD_RESET_URL ?? (frontendOrigin ? `${frontendOrigin}/reset-password` : undefined),
     },
   },
-  // Payment Provider Configuration
-  // NOTE: Stripe code is preserved but disabled via feature flag
-  // LemonSqueezy integration is in progress
+  // Payment Provider Configuration - DISABLED for 100% free launch
+  // All payment integrations are disabled to provide unlimited free scanning
   payments: {
     stripe: {
-      enabled: process.env.STRIPE_ENABLED === 'true' && !!process.env.STRIPE_SECRET_KEY,
+      enabled: false, // Disabled for 100% free launch
       secretKey: process.env.STRIPE_SECRET_KEY,
       webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
       priceId: process.env.STRIPE_PRICE_ID,
     },
     lemonsqueezy: {
-      enabled: process.env.LEMONSQUEEZY_ENABLED === 'true',
+      enabled: false, // Disabled for 100% free launch
       apiKey: process.env.LEMONSQUEEZY_API_KEY,
       storeId: process.env.LEMONSQUEEZY_STORE_ID,
       variantId: process.env.LEMONSQUEEZY_VARIANT_ID,
@@ -156,7 +145,7 @@ export const config = {
       checkoutRedirectUrl: process.env.LEMONSQUEEZY_CHECKOUT_REDIRECT_URL,
     },
     wallet: {
-      enabled: process.env.WALLET_AUTH_ENABLED !== 'false', // Default true
+      enabled: false, // Disabled for 100% free launch
       requiredTokens: parseNumber(process.env.WALLET_PRO_TOKEN_THRESHOLD, 10000),
     },
   },

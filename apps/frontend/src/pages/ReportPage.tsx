@@ -16,7 +16,6 @@ import VirtualizedEvidenceList from '../components/VirtualizedEvidenceList';
 import { ScoreDialSkeleton, CardSkeleton, EvidenceCardSkeleton } from '../components/Skeleton';
 import { ErrorState } from '../components/ErrorBoundary';
 import Footer from '../components/Footer';
-import ProUpgradeCTA from '../components/ProUpgradeCTA';
 import type { LegacyReportResponse } from '@privacy-advisor/shared';
 import { computeDataSharingLevel, type DataSharingLevel } from '../lib/dataSharing';
 import { useAuth } from '../contexts/AuthContext';
@@ -585,9 +584,6 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
           </div>
         </Card>
       </div>
-
-      {/* PRO Upgrade CTA - positioned after summary cards, before evidence sections */}
-      <ProUpgradeCTA isPro={isPro} />
 
       <div className="flex flex-wrap items-center gap-2 text-sm" role="tablist" aria-label="Severity filter (1 All, 2 High, 3 Med, 4 Low)">
         {severityOptions.map((option) => (
