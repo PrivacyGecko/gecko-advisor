@@ -19,7 +19,7 @@ import EnhancedTrustIndicator from '../components/EnhancedTrustIndicator';
 import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import type { RecentReportsResponse } from '@privacy-advisor/shared';
 
-const INPUT_MODES = ['url'] as const;
+const INPUT_MODES = ['url', 'app', 'address'] as const;
 type InputMode = (typeof INPUT_MODES)[number];
 
 type RecentItem = RecentReportsResponse['items'][number] & { evidenceCount: number };
@@ -129,21 +129,84 @@ export default function Home() {
 
       {/* Elevated Scan Input Box */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 md:p-8">
+        {/* Input Mode Tabs */}
+        <div className="flex gap-2 mb-4 border-b border-gray-200">
+          <button
+            onClick={() => setMode('url')}
+            className={`px-4 py-2 font-medium transition-colors ${
+              mode === 'url'
+                ? 'text-advisor-600 border-b-2 border-advisor-600'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+            aria-label="Scan website URL"
+          >
+            URL
+          </button>
+          <button
+            onClick={() => setMode('app')}
+            className={`px-4 py-2 font-medium transition-colors relative ${
+              mode === 'app'
+                ? 'text-advisor-600 border-b-2 border-advisor-600'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+            aria-label="Scan mobile app (coming soon)"
+          >
+            APP
+            <span className="ml-2 text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
+              Coming Soon
+            </span>
+          </button>
+          <button
+            onClick={() => setMode('address')}
+            className={`px-4 py-2 font-medium transition-colors relative ${
+              mode === 'address'
+                ? 'text-advisor-600 border-b-2 border-advisor-600'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+            aria-label="Scan wallet address (coming soon)"
+          >
+            ADDRESS
+            <span className="ml-2 text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
+              Coming Soon
+            </span>
+          </button>
+        </div>
+
+        {/* Input field with dynamic placeholder */}
         <div className="flex flex-col sm:flex-row gap-3">
           <label htmlFor="scan-input" className="sr-only">
-            Enter website URL to scan for privacy analysis
+            {mode === 'url'
+              ? 'Enter website URL to scan for privacy analysis'
+              : mode === 'app'
+                ? 'Enter app package name (coming soon)'
+                : 'Enter wallet address (coming soon)'}
           </label>
           <input
             id="scan-input"
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-advisor-500 focus:border-advisor-500 transition-colors"
-            placeholder={mode === 'url' ? 'Enter website URL (e.g., example.com)' : mode === 'app' ? 'app id' : '0x... or address'}
-            aria-label="Website URL to scan for privacy analysis"
+            className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-advisor-500 focus:border-advisor-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+            placeholder={
+              mode === 'url'
+                ? 'Enter website URL (e.g., example.com)'
+                : mode === 'app'
+                  ? 'Enter app package name (e.g., com.example.app)'
+                  : 'Enter wallet address (e.g., 0x...)'
+            }
+            disabled={mode !== 'url'}
+            aria-label={
+              mode === 'url'
+                ? 'Website URL to scan for privacy analysis'
+                : mode === 'app'
+                  ? 'App package name (coming soon)'
+                  : 'Wallet address (coming soon)'
+            }
             aria-describedby="scan-help-text"
           />
           <span id="scan-help-text" className="sr-only">
-            Enter a valid website URL starting with https://
+            {mode === 'url'
+              ? 'Enter a valid website URL starting with https://'
+              : 'This feature is coming soon'}
           </span>
           <button
             onClick={onScan}
@@ -171,7 +234,11 @@ export default function Home() {
             </span>
           </button>
         </div>
-        <p className="text-xs text-gray-500 mt-3">Instant analysis • Evidence-based results • Open-source methodology</p>
+        <p className="text-xs text-gray-500 mt-3">
+          {mode === 'url'
+            ? 'Instant analysis • Evidence-based results • Open-source methodology'
+            : 'This feature is coming soon. Stay tuned!'}
+        </p>
       </div>
 
       {/* Trust Indicators - Premium enhanced version */}
@@ -210,43 +277,6 @@ export default function Home() {
         />
       </div>
 
-      <Card>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h2 className="font-semibold mb-2">Preview</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="border rounded-lg p-3">
-                <div className="text-xs text-slate-500">Privacy Score</div>
-                <div className="mt-2 inline-flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center font-bold text-green-700">72</div>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">SAFE</span>
-                </div>
-              </div>
-              <div className="border rounded-lg p-3">
-                <div className="text-xs text-slate-500">Trackers Found</div>
-                <div className="text-2xl font-bold">3</div>
-                <div className="text-xs text-slate-600">Google, Facebook...</div>
-              </div>
-              <div className="border rounded-lg p-3">
-                <div className="text-xs text-slate-500">SSL/HTTPS</div>
-                <div className="text-2xl font-bold text-green-700">Valid</div>
-              </div>
-              <div className="border rounded-lg p-3">
-                <div className="text-xs text-slate-500">Data Sharing</div>
-                <div className="text-2xl font-bold text-amber-700">Medium</div>
-              </div>
-            </div>
-          </div>
-          <div className="self-center text-slate-700">
-            Instant privacy scan with:
-            <ul className="list-disc pl-6 mt-2 text-sm">
-              <li>Trackers and third-party requests</li>
-              <li>Security headers, mixed content, TLS</li>
-              <li>Policy link and fingerprinting signals</li>
-            </ul>
-          </div>
-        </div>
-      </Card>
       <Card>
         <h2 className="font-semibold mb-2">What do we check?</h2>
         <ul className="list-disc pl-6 text-slate-700 text-sm">

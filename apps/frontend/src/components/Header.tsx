@@ -130,7 +130,7 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
           <div className="flex items-center gap-8">
             <Link
               to="/"
-              className="flex flex-col items-start group hover:opacity-80 transition-opacity"
+              className="flex items-center group hover:opacity-80 transition-opacity"
               aria-label="Gecko Advisor Home"
             >
               {/* Gecko Logo */}
@@ -139,7 +139,6 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
                 alt={BRAND.logo.alt}
                 className="h-14 w-auto object-contain"
               />
-              <span className="text-xs text-gray-500 mt-0.5">by Privacy Gecko</span>
             </Link>
 
             {/* Navigation links */}
