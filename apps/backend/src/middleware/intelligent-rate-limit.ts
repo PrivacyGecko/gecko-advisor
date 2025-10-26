@@ -198,6 +198,7 @@ async function calculateLoadAdjustment(queueThreshold: number): Promise<number> 
  * Pre-configured rate limiters for different endpoints
  */
 export const scanRateLimit = createIntelligentRateLimit({
+  windowMs: config.rateLimitScanWindowMs,
   baseLimit: config.rateLimitScanPerMinute,
   complexityMultiplier: {
     simple: 1.0,
@@ -209,6 +210,7 @@ export const scanRateLimit = createIntelligentRateLimit({
 });
 
 export const reportRateLimit = createIntelligentRateLimit({
+  windowMs: config.rateLimitReportWindowMs,
   baseLimit: config.rateLimitReportPerMinute,
   complexityMultiplier: {
     simple: 1.0,
@@ -220,6 +222,7 @@ export const reportRateLimit = createIntelligentRateLimit({
 });
 
 export const generalRateLimit = createIntelligentRateLimit({
+  windowMs: config.rateLimitWindowMs,
   baseLimit: config.rateLimitPerMinute,
   complexityMultiplier: {
     simple: 1.0,

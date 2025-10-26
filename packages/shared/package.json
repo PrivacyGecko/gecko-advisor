@@ -20,6 +20,8 @@
     "vitest": "^2.0.5"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.666.0",
+    "@aws-sdk/s3-request-presigner": "^3.666.0",
     "zod": "^3.23.8"
   },
   "module": "dist/index.js"

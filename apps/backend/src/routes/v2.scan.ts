@@ -18,6 +18,7 @@ import { config } from "../config.js";
 import { CacheService, CACHE_KEYS, CACHE_TTL } from "../cache.js";
 import { optionalAuth } from "../middleware/auth.js";
 import { scanRateLimiter, rateLimitService, type RequestWithRateLimit } from "../middleware/scanRateLimit.js";
+import { requireTurnstile } from "../middleware/turnstile.js";
 
 const UrlScanBodySchema = UrlScanRequestSchema.extend({
   force: z.boolean().optional(),
@@ -30,7 +31,7 @@ const CachedResponseSchema = ScanQueuedResponseSchema.extend({
 
 export const scanV2Router = Router();
 
-scanV2Router.post(['/', '/url'], optionalAuth, scanRateLimiter, async (req, res) => {
+scanV2Router.post(['/', '/url'], optionalAuth, scanRateLimiter, requireTurnstile, async (req, res) => {
   const parsed = UrlScanBodySchema.safeParse(req.body);
   if (!parsed.success) {
     return problem(res, 400, 'Invalid Request', parsed.error.flatten());
