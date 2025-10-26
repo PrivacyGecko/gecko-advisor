@@ -399,9 +399,9 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
 
       groupEntries.forEach(([type, items]) => {
         if (next[type] === undefined) {
-          // Smart default: Only expand sections with high-severity items (severity >= 4)
-          const hasHighSeverity = items.some(item => item.severity >= 4);
-          next[type] = hasHighSeverity;
+          // QUICK WIN #1: Expand all sections by default for better UX
+          // Users come to see findings, not hunt for expand buttons
+          next[type] = true; // Old: next[type] = hasHighSeverity;
         }
       });
 
@@ -553,15 +553,28 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
               Indicates the level of data sharing based on trackers, third-party connections, and cookies. Lower is better.
             </InfoPopover>
           </div>
-          <div className={`mt-2 text-2xl font-semibold ${
-            dataSharingLevel === 'None' ? 'text-green-700' :
-            dataSharingLevel === 'Low' ? 'text-green-600' :
-            dataSharingLevel === 'Medium' ? 'text-amber-600' :
-            'text-red-600'
+          {/* QUICK WIN #3: Enhanced color coding with background colors and status icons */}
+          <div className={`mt-2 px-3 py-1.5 rounded-lg inline-flex items-center gap-2 ${
+            dataSharingLevel === 'None' ? 'bg-green-100 text-green-800' :
+            dataSharingLevel === 'Low' ? 'bg-green-50 text-green-700' :
+            dataSharingLevel === 'Medium' ? 'bg-amber-100 text-amber-800' :
+            'bg-red-100 text-red-800'
           }`}>
-            {dataSharingLevel}
+            {/* Add status icons for visual clarity and accessibility */}
+            {dataSharingLevel === 'None' && <span className="text-xl" aria-hidden="true">✅</span>}
+            {dataSharingLevel === 'Low' && <span className="text-xl" aria-hidden="true">✓</span>}
+            {dataSharingLevel === 'Medium' && <span className="text-xl" aria-hidden="true">⚠️</span>}
+            {dataSharingLevel === 'High' && <span className="text-xl" aria-hidden="true">⛔</span>}
+            <span className="text-2xl font-bold">{dataSharingLevel}</span>
           </div>
-          <div className="text-xs text-slate-600">
+          {/* Helpful description for each level */}
+          <p className="text-xs text-gray-600 mt-1.5">
+            {dataSharingLevel === 'None' && 'No trackers or third-party data sharing detected'}
+            {dataSharingLevel === 'Low' && 'Minimal data sharing with limited third parties'}
+            {dataSharingLevel === 'Medium' && 'Moderate data sharing with several third parties'}
+            {dataSharingLevel === 'High' && 'Extensive data sharing with many third parties'}
+          </p>
+          <div className="text-xs text-slate-600 mt-1">
             <span className="sr-only">Breakdown: </span>
             Trackers: {trackerDomains.length}
             <span className="mx-1 text-slate-400" aria-hidden="true">•</span>
