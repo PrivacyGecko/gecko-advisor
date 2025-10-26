@@ -119,7 +119,7 @@ services:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
       GF_SERVER_DOMAIN: grafana.local
-      GF_SERVER_ROOT_URL: %(protocol)s://%(domain)s:%(http_port)s/
+      GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s:%(http_port)s/"
     volumes:
       - grafana-data:/var/lib/grafana
     ports:

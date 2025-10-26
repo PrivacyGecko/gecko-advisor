@@ -4,8 +4,6 @@ services:
     extends:
       file: ./docker-compose.yml
       service: backend
-    env_file:
-      - ./env/stage.env
     environment:
       APP_ENV: stage
       BASE_URL: ${BASE_URL:-https://stage.geckoadvisor.com}
@@ -16,8 +14,6 @@ services:
     extends:
       file: ./docker-compose.yml
       service: worker
-    env_file:
-      - ./env/stage.env
     environment:
       APP_ENV: stage
       WORKER_PUBLIC_URL: ${WORKER_PUBLIC_URL:-https://sworker.geckoadvisor.com}
@@ -25,13 +21,10 @@ services:
     extends:
       file: ./docker-compose.yml
       service: frontend
-    env_file:
-      - ./env/stage.env
     environment:
       APP_ENV: stage
       FRONTEND_PUBLIC_URL: ${FRONTEND_PUBLIC_URL:-https://stage.geckoadvisor.com}
       BACKEND_PUBLIC_URL: ${BACKEND_PUBLIC_URL:-https://stageapi.geckoadvisor.com}
-      # CSP is read from env_file (stage.env), no need to override here
 volumes:
   privacy-postgres:
   privacy-redis:
