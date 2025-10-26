@@ -119,36 +119,6 @@ export const config = {
     connectSources,
     imageSources,
   },
-  email: {
-    sendgrid: {
-      enabled: process.env.SENDGRID_API_KEY ? process.env.SENDGRID_ENABLED !== 'false' : false,
-      apiKey: process.env.SENDGRID_API_KEY,
-      fromEmail: process.env.SENDGRID_FROM_EMAIL,
-      resetUrl: process.env.PASSWORD_RESET_URL ?? (frontendOrigin ? `${frontendOrigin}/reset-password` : undefined),
-    },
-  },
-  // Payment Provider Configuration - DISABLED for 100% free launch
-  // All payment integrations are disabled to provide unlimited free scanning
-  payments: {
-    stripe: {
-      enabled: false, // Disabled for 100% free launch
-      secretKey: process.env.STRIPE_SECRET_KEY,
-      webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
-      priceId: process.env.STRIPE_PRICE_ID,
-    },
-    lemonsqueezy: {
-      enabled: false, // Disabled for 100% free launch
-      apiKey: process.env.LEMONSQUEEZY_API_KEY,
-      storeId: process.env.LEMONSQUEEZY_STORE_ID,
-      variantId: process.env.LEMONSQUEEZY_VARIANT_ID,
-      webhookSecret: process.env.LEMONSQUEEZY_WEBHOOK_SECRET,
-      checkoutRedirectUrl: process.env.LEMONSQUEEZY_CHECKOUT_REDIRECT_URL,
-    },
-    wallet: {
-      enabled: false, // Disabled for 100% free launch
-      requiredTokens: parseNumber(process.env.WALLET_PRO_TOKEN_THRESHOLD, 10000),
-    },
-  },
   objectStorage: objectStorageConfiguration,
   turnstile: turnstileConfiguration,
 };

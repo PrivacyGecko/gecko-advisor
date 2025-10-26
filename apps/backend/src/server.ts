@@ -13,12 +13,6 @@ import { apiV1Router, apiV2Router } from "./routes/index.js";
 import { adminRouter } from "./routes/admin.js";
 import { docsRouter } from "./routes/docs.js";
 import { authRouter } from "./routes/auth.js";
-// Payment routes disabled for 100% free launch
-// import { stripeRouter } from "./routes/stripe.js";
-// import { lemonsqueezyRouter } from "./routes/lemonsqueezy.js";
-// import { walletRouter } from "./routes/wallet.js";
-// import { batchRouter } from "./routes/batch.js";
-// import { apiRouter } from "./routes/api.js";
 import { healthRouter } from "./health.js";
 import { initSentry, Sentry } from "./sentry.js";
 import { problem } from "./problem.js";
@@ -70,22 +64,6 @@ export function createServer() {
     }) as unknown as express.RequestHandler
   );
 
-  // Stripe webhook needs raw body for signature verification
-  // Apply raw body parser BEFORE JSON parser for webhook endpoint
-  app.use('/api/stripe/webhook', express.raw({ type: 'application/json', limit: '1mb' }), (req, _res, next) => {
-    // Store raw body for signature verification
-    (req as Request & { rawBody?: Buffer }).rawBody = req.body;
-    next();
-  });
-
-  // LemonSqueezy webhook needs raw body for signature verification
-  // Apply raw body parser BEFORE JSON parser for webhook endpoint
-  app.use('/api/lemonsqueezy/webhook', express.raw({ type: 'application/json', limit: '1mb' }), (req, _res, next) => {
-    // Store raw body for signature verification
-    (req as Request & { rawBody?: Buffer }).rawBody = req.body;
-    next();
-  });
-
   app.use(express.json({ limit: '200kb' }));
 
   app.use(
@@ -113,8 +91,6 @@ export function createServer() {
         'X-Request-ID',
         'Authorization',
         'X-API-Key',
-        'Stripe-Signature',
-        'X-Signature', // LemonSqueezy webhook signature
       ],
       maxAge: 600,
       credentials: false,
@@ -135,19 +111,6 @@ export function createServer() {
   app.use('/api/v2', apiV2Router);
   app.use('/api', apiV2Router);
 
-  // Payment routes - DISABLED for 100% free launch
-  // All payment integrations are disabled to provide unlimited free scanning
-  // if (config.payments.stripe.enabled) {
-  //   app.use('/api/stripe', stripeRouter);
-  // }
-  // if (config.payments.lemonsqueezy.enabled) {
-  //   app.use('/api/lemonsqueezy', lemonsqueezyRouter);
-  // }
-  // if (config.payments.wallet.enabled) {
-  //   app.use('/api/wallet', walletRouter);
-  // }
-
-  // Other routes
   app.use('/api', adminRouter);
   app.use('/api/auth', authRouter);
   app.use('/docs', docsRouter);

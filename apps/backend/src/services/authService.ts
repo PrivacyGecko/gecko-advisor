@@ -6,7 +6,6 @@ import { nanoid } from 'nanoid';
 import crypto from 'node:crypto';
 import { logger } from '../logger.js';
 import { config } from '../config.js';
-import { sendPasswordResetEmail } from '../email/sendgrid.js';
 
 const SALT_ROUNDS = 10;
 const JWT_EXPIRATION = '7d';
@@ -243,25 +242,13 @@ export class AuthService {
       }),
     ]);
 
-    const baseResetUrl =
-      config.email.sendgrid.resetUrl ??
-      (config.frontendOrigin ? `${config.frontendOrigin.replace(/\/$/, '')}/reset-password` : null);
-
-    if (!baseResetUrl) {
-      logger.warn('Password reset URL not configured; skipping email send');
-      return;
-    }
-
-    let resetLink: string;
-    try {
-      const url = new URL(baseResetUrl);
-      url.searchParams.set('token', token);
-      resetLink = url.toString();
-    } catch {
-      resetLink = `${baseResetUrl}${baseResetUrl.includes('?') ? '&' : '?'}token=${token}`;
-    }
-
-    await sendPasswordResetEmail(user.email, resetLink);
+    // Email service removed for 100% free open source release
+    // Password reset tokens are generated but emails are not sent
+    // Future implementations can add their own email service here
+    logger.warn(
+      { userId: user.id, email: user.email },
+      'Password reset token generated but email service is not configured'
+    );
   }
 
   /**

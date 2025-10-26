@@ -1,97 +1,332 @@
-# Gecko Advisor (MVP)
+# Gecko Advisor
 
-Opinionated, fast, privacy-respecting site scanner that outputs a deterministic privacy score and explainable evidence. Built as a monorepo (React/Vite + Node/Express + Prisma + BullMQ) and Dockerized for Coolify v4.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
+[![pnpm](https://img.shields.io/badge/pnpm-10.14.0-orange.svg)](https://pnpm.io/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 
-## Getting Started
+**A privacy-first website scanner that provides transparent, deterministic privacy scores with explainable evidence.**
 
-- Prereqs: Node 22+, pnpm 9, Docker Desktop
-- Copy `.env.example` to `.env` and set `APP_ENV` (`development`, `stage`, or `production`) plus credentials before building
+Built by [Privacy Gecko](https://geckoadvisor.com), Gecko Advisor is a fast, opinionated tool that helps users understand the privacy implications of any website. 100% free, open source, and privacy-respecting—no tracking, no limits, no compromises.
 
-### Make targets
+---
 
-- `make dev` - bring up the local stack (dev overrides), apply Prisma migrations, and seed demo fixtures
-- `make stage` - run the stack locally with stage configuration and apply migrations (no seed)
-- `make prod` - build and run the production stack locally using the base compose file
-- `make up ENV=<dev|stage|production>` - custom entry point if you only need containers
-- `make down ENV=<dev|stage|production>` - stop and remove containers/volumes for the selected environment (defaults to `dev`)
-- `make logs ENV=<dev|stage|production>` - tail logs for the selected environment
-- `make test` - run workspace tests (unit/integration/e2e smoke)
-- `make seed` - reseed the running backend container (uses Prisma seed script)
+## Features
 
-Frontend is reachable at `http://localhost:8080` when the dev stack is running (served by Nginx). Vite dev server lives at `http://localhost:5173` if you run it separately.
+- **Privacy-First Scanning**: Analyzes cookies, trackers, third-party requests, and security headers without collecting user data
+- **Transparent Scoring**: Deterministic privacy score (0-100) with full explanation of deductions
+- **Explainable Evidence**: Every finding is backed by detailed evidence—see exactly what was detected and why it matters
+- **Fast & Efficient**: Shallow crawl engine scans up to 10 pages in seconds
+- **Community-Driven**: Uses trusted privacy lists from [EasyPrivacy](https://easylist.to/) and [WhoTracks.me](https://whotracks.me/)
+- **100% Free & Open Source**: No paywalls, no usage limits, no data collection—forever
+- **Self-Hostable**: Full Docker support for deployment on your own infrastructure
+- **Modern Stack**: React + TypeScript + Express + BullMQ + PostgreSQL
 
-### Environments
+---
 
-- **Development (local):** Base compose + `docker-compose.dev.yml` override. Exposes Postgres, Redis, API, and frontend on localhost for rapid iteration.
-- **Stage:** Use the base file together with `infra/docker/docker-compose.stage.yml`. Load `infra/docker/env/stage.env` for domain defaults (`https://stage.geckoadvisor.com`, `https://stageapi.geckoadvisor.com`, `https://sworker.geckoadvisor.com`) and keep secrets in Coolify.
-- **Production:** Use the base file together with `infra/docker/docker-compose.prod.yml`. Load `infra/docker/env/production.env` (maps to `https://geckoadvisor.com`, `https://api.geckoadvisor.com`, `https://worker.geckoadvisor.com`) and manage secrets via Coolify or your secret store.
+## Quick Start
 
-### Monorepo Layout
+### Prerequisites
 
-See `privacy-advisor/` structure in the PRD. Key dirs:
-- `apps/frontend` - Vite React TypeScript + Tailwind
-- `apps/backend` - Express TypeScript API, Zod validation, RFC7807 errors
-- `apps/worker` - BullMQ worker, scanner, scoring engine
-- `packages/shared` - Zod schemas, types, utils (PSL helpers)
-- `infra/prisma` - Prisma schema and seed
-- `infra/docker` - Dockerfiles, compose, Nginx config
-- `tests/` - fixtures and e2e
+- **Node.js** 20.x or higher
+- **pnpm** 10.14.0 (pinned version)
+- **Docker** and **Docker Compose** (recommended for local development)
+- **PostgreSQL** 15.x and **Redis** 7.x (if running without Docker)
 
-## API
+### Installation
 
-OpenAPI: `infra/openapi.yaml`
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/yourusername/gecko-advisor.git
+   cd gecko-advisor
+   ```
 
-- `POST /api/scan/url` -> `{ scanId, reportSlug }`
-- `GET /api/scan/:id/status` -> `{ status, score?, label? }`
-- `GET /api/report/:slug` -> `{ scan, evidence[] }`
-- `POST /api/scan/app` - stub
-- `POST /api/scan/address` - stub
-- `POST /api/admin/refresh-lists` - requires header `X-Admin-Key`
+2. **Install dependencies**:
+   ```bash
+   pnpm install
+   ```
 
-## Scoring
+3. **Configure environment**:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration (see Configuration section)
+   ```
 
-Deterministic deductions from 100 with caps per category. See `apps/worker/src/scoring.ts` for implementation.
+4. **Start with Docker** (recommended):
+   ```bash
+   make dev
+   ```
+   This will:
+   - Start all services (frontend, backend, worker, PostgreSQL, Redis)
+   - Apply Prisma migrations automatically
+   - Seed the database with demo data
+   - Frontend available at `http://localhost:8080`
+   - API available at `http://localhost:5000`
 
-## Dev Notes
+5. **Or run services individually**:
+   ```bash
+   pnpm dev
+   ```
 
-- Lists come from fixtures (`packages/shared/data/*`). Admin refresh seeds them to DB.
-- Worker uses Node fetch and Cheerio. For `.test` domains with `USE_FIXTURES=1`, it loads HTML fixtures from `tests/fixtures` to stay offline/deterministic.
-- Security: Helmet, CORS allowlist, rate-limits on `/api/scan/*`, admin key required on refresh.
+### Configuration
 
-## Coolify v4
+Key environment variables in `.env`:
 
-- Stage/production deployments use `infra/docker/docker-compose.yml` as the base file
-- Add `infra/docker/docker-compose.stage.yml` when creating a stage stack (Coolify > Docker Compose > Additional Compose files)
-- Provide environment variables (`APP_ENV`, `BASE_URL`, `BACKEND_PUBLIC_URL`, `FRONTEND_PUBLIC_URL`, `WORKER_PUBLIC_URL`, `DATABASE_URL`, `REDIS_URL`, `ADMIN_API_KEY`, `CSP`) via Coolify secrets
-- Persistent volumes are declared for Postgres and Redis (`privacy-postgres`, `privacy-redis`) and will be created automatically
+```bash
+# Application
+APP_ENV=development              # development | stage | production
+NODE_ENV=development
+PORT=5000
 
-## CI
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/geckoadvisor
 
-GitHub Actions workflow `.github/workflows/ci.yml` runs lint, typecheck, test, build, and Prisma steps (generate, migrate deploy, and a migration diff check) on Node 22 with Postgres/Redis services.
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
 
-## Migrations
+# Security (optional)
+ADMIN_API_KEY=your-secret-admin-key
+TURNSTILE_SECRET_KEY=your-cloudflare-turnstile-key  # Bot protection
+TURNSTILE_SITE_KEY=your-cloudflare-site-key
 
-- Develop: edit `infra/prisma/schema.prisma` then run `npx prisma migrate dev --name <change> --schema=infra/prisma/schema.prisma`
-- Deploy: CI/compose runs `prisma migrate deploy` to apply versioned migration files under `infra/prisma/migrations`.
+# Object Storage (optional - for report archival)
+OBJECT_STORAGE_ENABLED=false
+OBJECT_STORAGE_ENDPOINT=https://your-bucket.s3.region.provider.com
+OBJECT_STORAGE_BUCKET=gecko-reports
+OBJECT_STORAGE_ACCESS_KEY=your-access-key
+OBJECT_STORAGE_SECRET_KEY=your-secret-key
+```
 
-## Screenshots / GIF
+---
 
-- Placeholder: `docs/demo.gif`
+## Usage
 
-## Attributions
+### Scanning a Website
 
-- EasyPrivacy (server-side; attribution)
-- WhoTracks.me (CC BY 4.0; attribution)
-- Public Suffix List
+**Via Web Interface**:
+1. Navigate to `http://localhost:8080`
+2. Enter a URL and submit
+3. View real-time scan progress
+4. Review the privacy report with detailed evidence
 
-## Scanning Policy (MVP)
+**Via API**:
+```bash
+# Submit scan (requires Turnstile token in production)
+curl -X POST http://localhost:5000/api/v2/scan \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com"}'
 
-- We only scan URLs explicitly submitted by the user.
-- Shallow crawl: 10 pages or 10s total.
-- Rate-limited background jobs.
-- For takedown/concerns, contact: contact@example.com.
+# Response: {"scanId": "abc123", "slug": "example-com-abc123"}
 
+# Check status
+curl http://localhost:5000/api/v2/scan/abc123/status
 
+# Get report
+curl http://localhost:5000/api/v2/report/example-com-abc123
+```
 
+### Understanding Privacy Scores
 
+Gecko Advisor uses a **100-point scoring system** where privacy violations result in deductions:
 
+- **Tracking & Analytics** (-5 to -15 per tracker)
+- **Third-Party Cookies** (-8 per cookie)
+- **Data Sharing** (-10 to -30 based on number of third parties)
+- **Security Issues** (-5 to -20 for missing headers, insecure cookies)
+
+Every deduction is explained with:
+- **What was detected** (specific tracker, cookie, or issue)
+- **Why it matters** (privacy/security implication)
+- **Category** (tracking, data sharing, security)
+- **Severity** (low, medium, high, critical)
+
+---
+
+## Architecture
+
+Gecko Advisor is built as a **monorepo** with clearly separated concerns:
+
+```
+gecko-advisor/
+├── apps/
+│   ├── frontend/          # React + Vite + TypeScript + Tailwind CSS
+│   ├── backend/           # Express API with Zod validation
+│   └── worker/            # BullMQ worker for scanning & scoring
+├── packages/
+│   └── shared/            # Shared schemas, types, and utilities
+├── infra/
+│   ├── docker/            # Docker Compose configurations
+│   └── prisma/            # Database schema, migrations, seeds
+└── assets/
+    └── docs/              # Project documentation
+```
+
+### Technology Stack
+
+**Frontend**:
+- React 18 with TypeScript
+- Vite for blazing-fast builds
+- TanStack Query for data fetching
+- React Router for navigation
+- Tailwind CSS for styling
+
+**Backend**:
+- Express.js with TypeScript
+- Zod for runtime validation
+- Prisma ORM for database access
+- RFC 7807 error responses
+- Security middleware (Helmet, CORS, rate limiting)
+
+**Worker**:
+- BullMQ for job queue management
+- Cheerio for HTML parsing
+- Custom scoring engine
+- Privacy list integration
+
+**Infrastructure**:
+- PostgreSQL 15 for data persistence
+- Redis 7 for queue management
+- Docker + Docker Compose for deployment
+- Nginx for frontend serving with security headers
+
+---
+
+## Development
+
+### Common Commands
+
+```bash
+# Development
+pnpm dev                    # Start all services in development mode
+make dev                    # Docker: start dev stack + migrate + seed
+
+# Building & Testing
+pnpm build                  # Build all packages
+pnpm lint                   # Lint all packages
+pnpm typecheck              # Type check all packages
+pnpm test                   # Run all tests
+
+# Database
+pnpm prisma:generate        # Generate Prisma client
+pnpm prisma:migrate         # Deploy migrations
+pnpm seed                   # Seed database with demo data
+```
+
+### Project Structure
+
+- **Monorepo**: Uses pnpm workspaces for package management
+- **Shared Package**: Common schemas and utilities in `packages/shared`
+- **Type Safety**: Strict TypeScript throughout the project
+- **Validation**: Zod schemas for runtime type safety
+- **Testing**: Vitest for unit and integration tests
+
+### Code Standards
+
+- **TypeScript Strict Mode**: All code must pass strict type checking
+- **ESLint**: Enforces consistent code style and best practices
+- **Prettier**: Automatic code formatting
+- **Conventional Commits**: Structured commit messages
+- **WCAG AA Compliance**: Accessibility-first frontend development
+
+For detailed development guidelines, see [CLAUDE.md](./CLAUDE.md).
+
+---
+
+## Contributing
+
+We welcome contributions from the community! Whether you're fixing bugs, adding features, improving documentation, or suggesting ideas, your help makes Gecko Advisor better for everyone.
+
+**Before contributing**:
+1. Read our [Contributing Guidelines](./CONTRIBUTING.md)
+2. Review our [Code of Conduct](./CODE_OF_CONDUCT.md)
+3. Check existing [Issues](https://github.com/yourusername/gecko-advisor/issues) and [Pull Requests](https://github.com/yourusername/gecko-advisor/pulls)
+
+**Quick Start for Contributors**:
+```bash
+# Fork the repository and clone your fork
+git clone https://github.com/yourusername/gecko-advisor.git
+cd gecko-advisor
+
+# Create a feature branch
+git checkout -b feature/your-feature-name
+
+# Make changes, test thoroughly
+pnpm typecheck && pnpm lint && pnpm test
+
+# Commit with conventional commit format
+git commit -m "feat: add new privacy detection rule"
+
+# Push and create a pull request
+git push origin feature/your-feature-name
+```
+
+---
+
+## Responsible Use Guidelines
+
+Gecko Advisor is designed to **educate users about web privacy** and help website owners improve their privacy practices. When using this tool:
+
+**Do**:
+- Use it to audit your own websites
+- Use it for educational and research purposes
+- Use it to understand privacy implications of public websites
+- Respect rate limits and server resources
+- Report vulnerabilities responsibly (see [SECURITY.md](./SECURITY.md))
+
+**Don't**:
+- Use it to attack, harm, or disrupt websites
+- Bypass authentication or access unauthorized content
+- Scan websites at excessive rates that could impact availability
+- Use scan results to harass or defame website owners
+- Violate any applicable laws or regulations
+
+**Privacy Commitment**:
+- Gecko Advisor does **not collect or store user data** during scans
+- All scans are performed server-side with no user tracking
+- Scan results are public by default (by design for transparency)
+- Self-hosted instances give you full control over data retention
+
+By using Gecko Advisor, you agree to use it ethically and responsibly. Abuse may result in rate limiting or blocking.
+
+---
+
+## License
+
+This project is licensed under the **MIT License**. See [LICENSE](./LICENSE) for details.
+
+### Third-Party Licenses & Attributions
+
+Gecko Advisor uses the following privacy lists and resources:
+
+- **EasyPrivacy** by [EasyList](https://easylist.to/) - Used under [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)
+- **WhoTracks.me Tracker Database** by [Ghostery](https://whotracks.me/) - Used under [MIT License](https://github.com/ghostery/whotracks.me/blob/master/LICENSE)
+- **Privacy Icons** from [Lucide](https://lucide.dev/) - Licensed under [ISC License](https://github.com/lucide-icons/lucide/blob/main/LICENSE)
+
+We are grateful to the privacy community for maintaining these essential resources.
+
+---
+
+## Support & Contact
+
+- **Documentation**: [assets/docs/](./assets/docs/)
+- **Issues**: [GitHub Issues](https://github.com/yourusername/gecko-advisor/issues)
+- **Security Vulnerabilities**: security@geckoadvisor.com (see [SECURITY.md](./SECURITY.md))
+- **General Inquiries**: hello@geckoadvisor.com
+- **Website**: [geckoadvisor.com](https://geckoadvisor.com)
+
+---
+
+## Acknowledgments
+
+Built with care by the Privacy Gecko team. Special thanks to:
+- The open source community for invaluable tools and libraries
+- EasyList and Ghostery for maintaining privacy lists
+- Contributors who help improve Gecko Advisor
+- Users who trust us to help them understand web privacy
+
+**Privacy matters. Keep it simple. Keep it free.**
+
+---
+
+*Gecko Advisor - Transparent privacy scanning for everyone.*
