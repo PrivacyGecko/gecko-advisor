@@ -60,9 +60,6 @@ importers:
 
   apps/backend:
     dependencies:
-      '@lemonsqueezy/lemonsqueezy.js':
-        specifier: ^4.0.0
-        version: 4.0.0
       '@paralleldrive/cuid2':
         specifier: ^2.2.2
         version: 2.2.2
@@ -72,9 +69,6 @@ importers:
       '@privacy-advisor/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@sendgrid/mail':
-        specifier: ^7.7.0
-        version: 7.7.0
       '@sentry/node':
         specifier: ^8.22.0
         version: 8.55.0
@@ -126,9 +120,6 @@ importers:
       pino-http:
         specifier: ^10.2.0
         version: 10.5.0
-      stripe:
-        specifier: ^19.1.0
-        version: 19.1.0(@types/node@20.19.14)
       tweetnacl:
         specifier: ^1.0.3
         version: 1.0.3
@@ -1306,10 +1297,6 @@ packages:
   '@ledgerhq/logs@6.13.0':
     resolution: {integrity: sha512-4+qRW2Pc8V+btL0QEmdB2X+uyx0kOWMWE1/LWsq5sZy3Q5tpi4eItJS6mB0XL3wGW59RQ+8bchNQQ1OW/va8Og==}
 
-  '@lemonsqueezy/lemonsqueezy.js@4.0.0':
-    resolution: {integrity: sha512-xcY1/lDrY7CpIF98WKiL1ElsfoVhddP7FT0fw7ssOzrFqQsr44HgolKrQZxd9SywsCPn12OTOUieqDIokI3mFg==}
-    engines: {node: '>=20'}
-
   '@lit-labs/ssr-dom-shim@1.4.0':
     resolution: {integrity: sha512-ficsEARKnmmW5njugNYKipTm4SFnbik7CXtoencDZzmzo/dQ+2Q0bgkzJuoJP20Aj0F+izzJjOqsnkd6F/o1bw==}
 
@@ -1967,18 +1954,6 @@ packages:
 
   '@scure/bip39@1.6.0':
     resolution: {integrity: sha512-+lF0BbLiJNwVlev4eKelw1WWLaiKXw7sSl8T6FvBlWkdX+94aGJ4o8XjUdlyhTCjd8c+B3KT3JfS8P0bLRNU6A==}
-
-  '@sendgrid/client@7.7.0':
-    resolution: {integrity: sha512-SxH+y8jeAQSnDavrTD0uGDXYIIkFylCo+eDofVmZLQ0f862nnqbC3Vd1ej6b7Le7lboyzQF6F7Fodv02rYspuA==}
-    engines: {node: 6.* || 8.* || >=10.*}
-
-  '@sendgrid/helpers@7.7.0':
-    resolution: {integrity: sha512-3AsAxfN3GDBcXoZ/y1mzAAbKzTtUZ5+ZrHOmWQ279AuaFXUNCh9bPnRpN504bgveTqoW+11IzPg3I0WVgDINpw==}
-    engines: {node: '>= 6.0.0'}
-
-  '@sendgrid/mail@7.7.0':
-    resolution: {integrity: sha512-5+nApPE9wINBvHSUxwOxkkQqM/IAAaBYoP9hw7WwgDNQPxraruVqHizeTitVtKGiqWCKm2mnjh4XGN3fvFLqaw==}
-    engines: {node: 6.* || 8.* || >=10.*}
 
   '@sentry-internal/browser-utils@10.17.0':
     resolution: {integrity: sha512-jXC7dtItZYNGP+K9Lo+3MWaWaGVI6uDIPGB9BAZkZntc/1lGfhMPm7Fo2qb1N1bUP0vOTJ2TmSUA8GNxyxgekQ==}
@@ -3536,9 +3511,6 @@ packages:
     resolution: {integrity: sha512-Xm7bpRXnDSX2YE2YFfBk2FnF0ep6tmG7xPh8iHee8MIcrgq762Nkce856dYtJYLkuIoYZvGfTs/PbZhideTcEg==}
     engines: {node: '>=4'}
 
-  axios@0.26.1:
-    resolution: {integrity: sha512-fPwcX4EvnSHuInCMItEhAGnaSEXRBjtzh9fOtsE6E1G6p7vl7edEeZe11QHf18+6+9gR5PbKV/sGKNaD8YaMeA==}
-
   axios@1.12.2:
     resolution: {integrity: sha512-vMJzPewAlRyOgxV2dU0Cuz2O8zzzx9VYtbJOaBgXFeLc4IV/Eg50n4LowmehOOR61S8ZMpc2K5Sa7g6A4jfkUw==}
 
@@ -4080,10 +4052,6 @@ packages:
 
   deep-is@0.1.4:
     resolution: {integrity: sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==}
-
-  deepmerge@4.3.1:
-    resolution: {integrity: sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==}
-    engines: {node: '>=0.10.0'}
 
   define-data-property@1.1.4:
     resolution: {integrity: sha512-rBMvIzlpA8v6E+SJZoo++HAYqsLrkg7MSfIinMPFhmkorw7X+dOXVJQs+QT69zGkzMyfDnIMN2Wid1+NbL3T+A==}
@@ -6270,15 +6238,6 @@ packages:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
 
-  stripe@19.1.0:
-    resolution: {integrity: sha512-FjgIiE98dMMTNssfdjMvFdD4eZyEzdWAOwPYqzhPRNZeg9ggFWlPXmX1iJKD5pPIwZBaPlC3SayQQkwsPo6/YQ==}
-    engines: {node: '>=16'}
-    peerDependencies:
-      '@types/node': '>=16'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-
   strnum@2.1.1:
     resolution: {integrity: sha512-7ZvoFTiCnGxBtDqJ//Cu6fWtZtc7Y3x+QOirG15wztbdngGSkht27o2pyGWrVy0b4WAy3jbKmnoK6g5VlVNUUw==}
 
@@ -8216,8 +8175,6 @@ snapshots:
 
   '@ledgerhq/logs@6.13.0': {}
 
-  '@lemonsqueezy/lemonsqueezy.js@4.0.0': {}
-
   '@lit-labs/ssr-dom-shim@1.4.0': {}
 
   '@lit/reactive-element@2.1.1':
@@ -9137,24 +9094,6 @@ snapshots:
     dependencies:
       '@noble/hashes': 1.8.0
       '@scure/base': 1.2.6
-
-  '@sendgrid/client@7.7.0':
-    dependencies:
-      '@sendgrid/helpers': 7.7.0
-      axios: 0.26.1
-    transitivePeerDependencies:
-      - debug
-
-  '@sendgrid/helpers@7.7.0':
-    dependencies:
-      deepmerge: 4.3.1
-
-  '@sendgrid/mail@7.7.0':
-    dependencies:
-      '@sendgrid/client': 7.7.0
-      '@sendgrid/helpers': 7.7.0
-    transitivePeerDependencies:
-      - debug
 
   '@sentry-internal/browser-utils@10.17.0':
     dependencies:
@@ -11977,12 +11916,6 @@ snapshots:
 
   axe-core@4.10.3: {}
 
-  axios@0.26.1:
-    dependencies:
-      follow-redirects: 1.15.11
-    transitivePeerDependencies:
-      - debug
-
   axios@1.12.2:
     dependencies:
       follow-redirects: 1.15.11
@@ -12634,8 +12567,6 @@ snapshots:
   deep-eql@5.0.2: {}
 
   deep-is@0.1.4: {}
-
-  deepmerge@4.3.1: {}
 
   define-data-property@1.1.4:
     dependencies:
@@ -15259,12 +15190,6 @@ snapshots:
       ansi-regex: 6.2.2
 
   strip-json-comments@3.1.1: {}
-
-  stripe@19.1.0(@types/node@20.19.14):
-    dependencies:
-      qs: 6.14.0
-    optionalDependencies:
-      '@types/node': 20.19.14
 
   strnum@2.1.1: {}
 
