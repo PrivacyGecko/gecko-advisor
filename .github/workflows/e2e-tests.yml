@@ -175,6 +175,7 @@ jobs:
           echo "Backend proxy OK!"
 
       - name: Run E2E tests
+        working-directory: tests/e2e
         run: |
           pnpm exec playwright test \
             --project="${{ matrix.browser }}" \
@@ -190,8 +191,8 @@ jobs:
         with:
           name: test-results-${{ matrix.browser }}-${{ matrix.test-suite }}
           path: |
-            test-results/
-            playwright-report/
+            tests/e2e/test-results/
+            tests/e2e/playwright-report/
           retention-days: 7
 
       - name: Upload application logs
