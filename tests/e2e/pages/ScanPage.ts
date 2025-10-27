@@ -36,9 +36,10 @@ export class ScanPage {
     this.homeLink = page.locator('a[href="/"]');
 
     // State indicators - scoped to scan progress container to avoid strict mode violations
-    this.queuedState = this.progressContainer.locator('text=Queued');
-    this.runningState = this.progressContainer.locator('text=Scanning');
-    this.completedState = this.progressContainer.locator('text=Complete');
+    // Note: These match the step status indicators in ScanProgress.tsx (line 237)
+    this.queuedState = this.progressContainer.locator('text=Pending');
+    this.runningState = this.progressContainer.locator('text=Processing');
+    this.completedState = this.progressContainer.locator('text=Done');
     this.failedState = this.progressContainer.locator('text=Failed');
   }
 
@@ -97,9 +98,12 @@ export class ScanPage {
 
   /**
    * Get current scan status
+   * Maps UI step indicators to test status names
    */
   async getScanStatus() {
-    // Try to determine current state
+    // Try to determine current state based on step indicators
+    // UI shows: Pending, Processing, Done, Failed
+    // Tests expect: queued, running, completed, failed
     if (await this.queuedState.isVisible()) return 'queued';
     if (await this.runningState.isVisible()) return 'running';
     if (await this.completedState.isVisible()) return 'completed';
