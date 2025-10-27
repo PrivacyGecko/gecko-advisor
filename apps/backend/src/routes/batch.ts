@@ -308,7 +308,7 @@ batchRouter.get('/history', requirePro, async (req: Request, res: Response) => {
     >();
 
     for (const scan of batchScans) {
-      const batchId = (scan.meta as any)?.batchId;
+      const batchId = (scan.meta as { batchId?: string } | null)?.batchId;
       if (!batchId) continue;
 
       if (!batches.has(batchId)) {

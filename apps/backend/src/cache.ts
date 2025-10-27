@@ -2,6 +2,7 @@ import Redis from 'ioredis';
 import { config } from './config.js';
 import { logger } from './logger.js';
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 const RedisConstructor = Redis as unknown as typeof import('ioredis').default;
 
 /**

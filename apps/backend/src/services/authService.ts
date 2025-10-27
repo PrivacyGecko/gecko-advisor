@@ -5,7 +5,6 @@ import jwt from 'jsonwebtoken';
 import { nanoid } from 'nanoid';
 import crypto from 'node:crypto';
 import { logger } from '../logger.js';
-import { config } from '../config.js';
 
 const SALT_ROUNDS = 10;
 const JWT_EXPIRATION = '7d';
