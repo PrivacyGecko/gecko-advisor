@@ -4,13 +4,13 @@ SPDX-License-Identifier: MIT
 */
 import React from 'react';
 
-export default function ProgressDial({ percent }: { percent: number }) {
+export default function ProgressDial({ percent, 'data-testid': dataTestId }: { percent: number; 'data-testid'?: string }) {
   const r = 40;
   const c = 2 * Math.PI * r;
   const pct = Math.max(0, Math.min(100, percent));
   const offset = c - (pct / 100) * c;
   return (
-    <svg width={120} height={120} viewBox="0 0 100 100" role="img" aria-label={`Progress ${pct}%`}>
+    <svg width={120} height={120} viewBox="0 0 100 100" role="img" aria-label={`Progress ${pct}%`} data-testid={dataTestId}>
       <circle cx="50" cy="50" r={r} stroke="#e5e7eb" strokeWidth={8} fill="none" />
       <circle
         cx="50"

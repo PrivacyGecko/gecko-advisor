@@ -106,10 +106,10 @@ const ScanProgress = React.memo(function ScanProgress({
   const statusInfo = getStatusInfo();
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`space-y-6 ${className}`} data-testid="scan-progress">
       {/* Main progress display */}
       <div className="flex flex-col items-center text-center space-y-4">
-        <ProgressDial percent={progress} />
+        <ProgressDial percent={progress} data-testid="progress-dial" />
 
         {/* Status and current step with elapsed time */}
         <div
