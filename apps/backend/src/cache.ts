@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import Redis from 'ioredis';
 import { config } from './config.js';
 import { logger } from './logger.js';
