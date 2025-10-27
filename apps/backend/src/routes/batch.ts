@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';

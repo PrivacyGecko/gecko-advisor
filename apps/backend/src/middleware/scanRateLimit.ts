@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { Request, Response, NextFunction } from 'express';
 import { RateLimitService, type RateLimitInfo } from '../services/rateLimitService.js';
 import { prisma } from '../prisma.js';

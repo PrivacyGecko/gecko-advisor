@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { Queue, QueueEvents } from 'bullmq';
 import Redis from 'ioredis';
 import { config } from './config.js';

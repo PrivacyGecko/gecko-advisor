@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { PrismaClient, User } from '@prisma/client';
 import { AuthMethod } from '@prisma/client';
 import bcrypt from 'bcryptjs';

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { Request, Response, NextFunction } from 'express';
 import { logger } from '../logger.js';
 
