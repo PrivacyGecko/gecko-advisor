@@ -1,10 +1,5 @@
 // SPDX-License-Identifier: MIT
 import { defineConfig, devices } from '@playwright/test';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 /**
  * @see https://playwright.dev/docs/test-configuration
@@ -57,8 +52,8 @@ export default defineConfig({
   },
 
   /* Global test setup */
-  globalSetup: resolve(__dirname, './global-setup.ts'),
-  globalTeardown: resolve(__dirname, './global-teardown.ts'),
+  globalSetup: './global-setup.ts',
+  globalTeardown: './global-teardown.ts',
 
   /* Configure projects for major browsers */
   projects: [
