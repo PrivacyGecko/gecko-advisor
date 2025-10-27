@@ -2,18 +2,17 @@ name: E2E Tests
 
 on:
   push:
-    branches: [main, dev, stage]
+    branches: [main]
   pull_request:
-    branches: [main, dev, stage]
+    branches: [main]
   schedule:
     # Run tests daily at 2 AM UTC
     - cron: '0 2 * * *'
 
 env:
-  NODE_VERSION: '18'
+  NODE_VERSION: '22'
   PNPM_VERSION: '10.14.0'
-  PAYMENT_TESTS_ENABLED: ${{ vars.PAYMENT_TESTS_ENABLED || 'false' }}
-  E2E_TARGET_ENV: ${{ (github.ref == 'refs/heads/stage' || github.base_ref == 'stage') && 'stage' || 'local' }}
+  E2E_TARGET_ENV: 'local'
 
 jobs:
   e2e-tests:
@@ -132,18 +131,14 @@ jobs:
 
       - name: Run E2E tests
         run: |
-          FILTER="--grep=${{ matrix.test-suite }}"
-          if [ "${{ env.PAYMENT_TESTS_ENABLED }}" != "true" ]; then
-            FILTER="$FILTER --grep-invert=@requires-payment"
-          fi
           pnpm exec playwright test \
             --project=${{ matrix.browser }} \
-            $FILTER \
+            --grep=${{ matrix.test-suite }} \
             --reporter=html,json,junit \
             --output-dir=test-results/${{ matrix.browser }}-${{ matrix.test-suite }}
         env:
           CI: true
-          E2E_BASE_URL: ${{ env.E2E_TARGET_ENV == 'stage' && 'https://stage.geckoadvisor.com' || 'http://localhost:8080' }}
+          E2E_BASE_URL: http://localhost:8080
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
