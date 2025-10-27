@@ -175,8 +175,8 @@ jobs:
           echo "Backend proxy OK!"
 
       - name: Run E2E tests
-        working-directory: tests/e2e
         run: |
+          cd tests/e2e
           pnpm exec playwright test \
             --project="${{ matrix.browser }}" \
             --grep="${{ matrix.test-suite }}" \
