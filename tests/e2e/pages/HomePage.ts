@@ -70,7 +70,7 @@ export class HomePage {
 
     // Assert page loaded correctly
     await expect(this.heading).toBeVisible();
-    await assertElementText(this.page, 'h1', 'Check how safe your site, app, or wallet is');
+    await assertElementText(this.page, 'h1', 'See What\'s Tracking You Online');
 
     return duration;
   }
