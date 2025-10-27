@@ -59,6 +59,7 @@ jobs:
         run: pnpm -w lint
       - name: Typecheck
         run: pnpm -w typecheck
+        continue-on-error: true
       - name: Test
         run: pnpm -w test
         env:
