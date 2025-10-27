@@ -37,10 +37,10 @@ export default {
           300: '#6ee7b7',
           400: '#34d399',
           500: '#10b981',  // Keep emerald for continuity
-          600: '#059669',  // Professional darker green (WCAG AA compliant)
-          700: '#047857',
-          800: '#065f46',
-          900: '#064e3b',
+          600: '#047857',  // Professional darker green (WCAG AA compliant - 4.5:1 contrast)
+          700: '#065f46',
+          800: '#064e3b',
+          900: '#053524',
         },
 
         // Trust & Security (professional blue, not marketing)
