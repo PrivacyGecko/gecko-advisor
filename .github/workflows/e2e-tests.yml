@@ -179,8 +179,7 @@ jobs:
           pnpm exec playwright test \
             --project=${{ matrix.browser }} \
             --grep=${{ matrix.test-suite }} \
-            --reporter=html,json,junit \
-            --output-dir=test-results/${{ matrix.browser }}-${{ matrix.test-suite }}
+            --reporter=html,json,junit
         env:
           CI: true
           E2E_BASE_URL: http://localhost:8080
