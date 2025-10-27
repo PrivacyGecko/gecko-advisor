@@ -3,28 +3,22 @@ SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
 SPDX-License-Identifier: MIT
 */
 import { test, expect } from '@playwright/test';
-import { injectAxe, checkA11y } from '@axe-core/playwright';
+import AxeBuilder from '@axe-core/playwright';
 import { HomePage } from '../pages/HomePage';
 import { ScanPage } from '../pages/ScanPage';
 import { ReportPage } from '../pages/ReportPage';
 import { TEST_URLS, A11Y_CONFIG } from '../utils/test-helpers';
 
 test.describe('Accessibility & Mobile Testing', () => {
-  test.beforeEach(async ({ page }) => {
-    // Inject axe-core for accessibility testing
-    await injectAxe(page);
-  });
-
   test('WCAG AA compliance - Home page', async ({ page }) => {
     const homePage = new HomePage(page);
     await homePage.goto();
 
     // Run comprehensive accessibility audit
-    await checkA11y(page, null, {
-      detailedReport: true,
-      detailedReportOptions: { html: true },
-      tags: A11Y_CONFIG.tags,
-    });
+    const results = await new AxeBuilder({ page })
+      .withTags(A11Y_CONFIG.tags)
+      .analyze();
+    expect(results.violations).toEqual([]);
 
     // Test specific accessibility features
     await homePage.verifyAccessibility();
@@ -38,17 +32,16 @@ test.describe('Accessibility & Mobile Testing', () => {
     await homePage.startScan(TEST_URLS.FIXTURE_SAFE);
 
     // Check accessibility during scan progress
-    await checkA11y(page, null, {
-      tags: A11Y_CONFIG.tags,
-      rules: {
-        // Allow progress indicators to have animated content
-        'no-autoplay-audio': { enabled: false },
-      },
-    });
+    const progressResults = await new AxeBuilder({ page })
+      .withTags(A11Y_CONFIG.tags)
+      .disableRules(['no-autoplay-audio']) // Allow progress indicators to have animated content
+      .analyze();
+    expect(progressResults.violations).toEqual([]);
 
     // Wait for completion and check final state
     await scanPage.waitForScanCompletion();
-    await checkA11y(page);
+    const completionResults = await new AxeBuilder({ page }).analyze();
+    expect(completionResults.violations).toEqual([]);
   });
 
   test('WCAG AA compliance - Report page', async ({ page }) => {
@@ -63,14 +56,10 @@ test.describe('Accessibility & Mobile Testing', () => {
     await reportPage.waitForReportLoad();
 
     // Comprehensive accessibility check for report page
-    await checkA11y(page, null, {
-      tags: A11Y_CONFIG.tags,
-      rules: {
-        // Custom rules for report-specific elements
-        'color-contrast': { enabled: true },
-        'landmark-unique': { enabled: true },
-      },
-    });
+    const results = await new AxeBuilder({ page })
+      .withTags(A11Y_CONFIG.tags)
+      .analyze();
+    expect(results.violations).toEqual([]);
 
     // Test ScoreDial accessibility specifically
     await reportPage.verifyScoreDialAccessibility();
@@ -182,12 +171,10 @@ test.describe('Accessibility & Mobile Testing', () => {
     await expect(page.locator('button:has-text("Scan Now")')).toBeVisible();
 
     // Run accessibility check with high contrast considerations
-    await checkA11y(page, null, {
-      tags: ['wcag2aa'],
-      rules: {
-        'color-contrast': { enabled: true },
-      },
-    });
+    const results = await new AxeBuilder({ page })
+      .withTags(['wcag2aa'])
+      .analyze();
+    expect(results.violations).toEqual([]);
   });
 
   test('Mobile responsiveness - iPhone', async ({ page }) => {
@@ -340,20 +327,18 @@ test.describe('Accessibility & Mobile Testing', () => {
     await reportPage.waitForReportLoad();
 
     // Check color contrast specifically for score dial
-    await checkA11y(page, '[data-testid="score-dial"]', {
-      rules: {
-        'color-contrast': { enabled: true },
-      },
-    });
+    const scoreDialResults = await new AxeBuilder({ page })
+      .include('[data-testid="score-dial"]')
+      .analyze();
+    expect(scoreDialResults.violations).toEqual([]);
 
     // Check severity badges have proper contrast
     const severityBadges = page.locator('[data-testid="severity-badge"]');
     if (await severityBadges.count() > 0) {
-      await checkA11y(page, '[data-testid="severity-badge"]', {
-        rules: {
-          'color-contrast': { enabled: true },
-        },
-      });
+      const badgeResults = await new AxeBuilder({ page })
+        .include('[data-testid="severity-badge"]')
+        .analyze();
+      expect(badgeResults.violations).toEqual([]);
     }
   });
 
@@ -416,12 +401,11 @@ test.describe('Accessibility & Mobile Testing', () => {
       }
 
       // Quick accessibility check
-      await checkA11y(page, null, {
-        tags: ['wcag2a'],
-        rules: {
-          'bypass': { enabled: false }, // Skip bypass rule for quick test
-        },
-      });
+      const results = await new AxeBuilder({ page })
+        .withTags(['wcag2a'])
+        .disableRules(['bypass']) // Skip bypass rule for quick test
+        .analyze();
+      expect(results.violations).toEqual([]);
     }
   });
 });
