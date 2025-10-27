@@ -38,8 +38,8 @@ export default defineConfig({
 
   /* Shared settings for all projects */
   use: {
-    /* Base URL for all tests */
-    baseURL: process.env.E2E_BASE_URL || 'http://localhost:5173',
+    /* Base URL for all tests - now using Nginx reverse proxy on port 8080 */
+    baseURL: process.env.E2E_BASE_URL || 'http://localhost:8080',
 
     /* Collect trace when retrying the failed test. */
     trace: 'on-first-retry',
@@ -97,9 +97,10 @@ export default defineConfig({
   /* Web server configuration for local development */
   webServer: process.env.CI ? undefined : {
     command: 'pnpm dev',
-    port: 5173,
+    port: 8080,
     timeout: 120 * 1000,
     reuseExistingServer: !process.env.CI,
+    url: 'http://localhost:8080/health',
   },
 });
 

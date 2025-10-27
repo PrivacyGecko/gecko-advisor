@@ -6,11 +6,36 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: Number(process.env.FRONTEND_PORT || 5173),
+    // Bind to 0.0.0.0 to make dev server accessible from Docker containers and CI
+    host: '0.0.0.0',
+    // Proxy API requests to backend in development
+    // In Docker/CI, backend runs on 'backend:5000' hostname
+    // In local dev, backend runs on 'localhost:5000'
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:5000',
         changeOrigin: true,
+        secure: false,
+        // Log proxy requests in development for debugging
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.error('[Vite Proxy] Error:', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            console.log('[Vite Proxy]', req.method, req.url, '→', proxyReq.path);
+          });
+        },
       },
+    },
+    // CORS configuration for dev server
+    cors: {
+      origin: true,
+      credentials: true,
+    },
+    // Ensure proper handling of WebSocket connections for HMR
+    hmr: {
+      host: process.env.VITE_HMR_HOST || 'localhost',
+      port: Number(process.env.FRONTEND_PORT || 5173),
     },
   },
   build: {
@@ -104,5 +129,11 @@ export default defineConfig({
       'zod'
     ],
     exclude: []
-  }
+  },
+  // Preview server configuration (for production build preview)
+  preview: {
+    port: Number(process.env.FRONTEND_PORT || 5173),
+    host: '0.0.0.0',
+    cors: true,
+  },
 });

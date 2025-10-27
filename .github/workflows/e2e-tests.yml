@@ -124,10 +124,38 @@ jobs:
           nohup pnpm dev > app.log 2>&1 &
           echo $! > app.pid
 
-      - name: Wait for application to be ready
+      - name: Wait for backend and frontend to start
         if: env.E2E_TARGET_ENV != 'stage'
         run: |
-          timeout 120 bash -c 'until curl -f http://localhost:8080/health || curl -f http://localhost:8080; do sleep 2; done'
+          echo "Waiting for backend on port 5000..."
+          timeout 60 bash -c 'until curl -f http://localhost:5000/api/health 2>/dev/null; do sleep 2; done'
+          echo "Backend is ready!"
+
+          echo "Waiting for frontend on port 5173..."
+          timeout 60 bash -c 'until curl -f http://localhost:5173 2>/dev/null; do sleep 2; done'
+          echo "Frontend is ready!"
+
+      - name: Start Nginx reverse proxy
+        if: env.E2E_TARGET_ENV != 'stage'
+        run: |
+          docker run -d \
+            --name nginx-e2e \
+            --network host \
+            -v ${{ github.workspace }}/tests/e2e/nginx.conf:/etc/nginx/nginx.conf:ro \
+            nginx:alpine
+          echo "Nginx started on port 8080"
+
+      - name: Wait for Nginx to be ready
+        if: env.E2E_TARGET_ENV != 'stage'
+        run: |
+          echo "Waiting for Nginx on port 8080..."
+          timeout 30 bash -c 'until curl -f http://localhost:8080/health; do sleep 1; done'
+          echo "Nginx is ready!"
+
+          # Verify proxy is working
+          echo "Testing backend proxy..."
+          curl -f http://localhost:8080/api/health
+          echo "Backend proxy OK!"
 
       - name: Run E2E tests
         run: |
@@ -158,9 +186,28 @@ jobs:
           path: app.log
           retention-days: 3
 
-      - name: Stop application
+      - name: Capture Nginx logs
+        if: env.E2E_TARGET_ENV != 'stage' && failure()
+        run: |
+          docker logs nginx-e2e > nginx.log 2>&1 || true
+        continue-on-error: true
+
+      - name: Upload Nginx logs
+        uses: actions/upload-artifact@v4
+        if: env.E2E_TARGET_ENV != 'stage' && failure()
+        with:
+          name: nginx-logs-${{ matrix.browser }}-${{ matrix.test-suite }}
+          path: nginx.log
+          retention-days: 3
+
+      - name: Stop application and cleanup
         if: always() && env.E2E_TARGET_ENV != 'stage'
         run: |
+          # Stop Nginx container
+          docker stop nginx-e2e || true
+          docker rm nginx-e2e || true
+
+          # Stop application
           if [ -f app.pid ]; then
             kill $(cat app.pid) || true
             rm app.pid
@@ -249,7 +296,24 @@ jobs:
           pnpm build
           nohup pnpm dev > app.log 2>&1 &
           echo $! > app.pid
-          timeout 120 bash -c 'until curl -f http://localhost:8080; do sleep 2; done'
+
+          # Wait for services
+          echo "Waiting for backend..."
+          timeout 60 bash -c 'until curl -f http://localhost:5000/api/health 2>/dev/null; do sleep 2; done'
+          echo "Waiting for frontend..."
+          timeout 60 bash -c 'until curl -f http://localhost:5173 2>/dev/null; do sleep 2; done'
+
+          # Start Nginx
+          docker run -d \
+            --name nginx-e2e \
+            --network host \
+            -v ${{ github.workspace }}/tests/e2e/nginx.conf:/etc/nginx/nginx.conf:ro \
+            nginx:alpine
+
+          # Wait for Nginx
+          echo "Waiting for Nginx..."
+          timeout 30 bash -c 'until curl -f http://localhost:8080/health; do sleep 1; done'
+          echo "All services ready!"
 
       - name: Run performance benchmarks
         if: env.E2E_TARGET_ENV != 'stage'
@@ -363,7 +427,24 @@ jobs:
           pnpm seed
           pnpm build
           nohup pnpm dev > app.log 2>&1 &
-          timeout 120 bash -c 'until curl -f http://localhost:8080; do sleep 2; done'
+
+          # Wait for services
+          echo "Waiting for backend..."
+          timeout 60 bash -c 'until curl -f http://localhost:5000/api/health 2>/dev/null; do sleep 2; done'
+          echo "Waiting for frontend..."
+          timeout 60 bash -c 'until curl -f http://localhost:5173 2>/dev/null; do sleep 2; done'
+
+          # Start Nginx
+          docker run -d \
+            --name nginx-e2e \
+            --network host \
+            -v ${{ github.workspace }}/tests/e2e/nginx.conf:/etc/nginx/nginx.conf:ro \
+            nginx:alpine
+
+          # Wait for Nginx
+          echo "Waiting for Nginx..."
+          timeout 30 bash -c 'until curl -f http://localhost:8080/health; do sleep 1; done'
+          echo "All services ready!"
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/privacy_advisor_test
 
