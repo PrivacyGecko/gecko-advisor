@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { test, expect } from '@playwright/test';
 
 /**

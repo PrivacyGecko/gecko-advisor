@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { test, expect, type Page } from '@playwright/test';
 import type { ConsoleMessage } from '@playwright/test';
 
