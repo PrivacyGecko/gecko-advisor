@@ -108,7 +108,7 @@ Ready to write code? Great!
 
 3. **Add upstream remote**:
    ```bash
-   git remote add upstream https://github.com/ORIGINAL_OWNER/gecko-advisor.git
+   git remote add upstream https://github.com/PrivacyGecko/gecko-advisor.git
    ```
 
 4. **Install dependencies**:

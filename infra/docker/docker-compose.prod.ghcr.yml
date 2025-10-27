@@ -10,16 +10,16 @@ version: '3.8'
 
 services:
   frontend:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-pothamsetty}/privacy-advisor-frontend:prod-latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-privacygecko}/gecko-advisor-frontend:prod-latest
     build: null  # Disable build, use pre-built image
     pull_policy: always
 
   backend:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-pothamsetty}/privacy-advisor-backend:prod-latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-privacygecko}/gecko-advisor-backend:prod-latest
     build: null  # Disable build, use pre-built image
     pull_policy: always
 
   worker:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-pothamsetty}/privacy-advisor-worker:prod-latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-privacygecko}/gecko-advisor-worker:prod-latest
     build: null  # Disable build, use pre-built image
     pull_policy: always

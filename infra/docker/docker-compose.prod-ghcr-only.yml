@@ -27,7 +27,7 @@ services:
     restart: unless-stopped
 
   backend:
-    image: ghcr.io/pothamsetty/privacy-advisor-backend:latest
+    image: ghcr.io/privacygecko/gecko-advisor-backend:latest
     pull_policy: always
     env_file:
       - ./env/production.env
@@ -56,7 +56,7 @@ services:
       retries: 5
 
   worker:
-    image: ghcr.io/pothamsetty/privacy-advisor-worker:latest
+    image: ghcr.io/privacygecko/gecko-advisor-worker:latest
     pull_policy: always
     env_file:
       - ./env/production.env
@@ -79,7 +79,7 @@ services:
       retries: 5
 
   frontend:
-    image: ghcr.io/pothamsetty/privacy-advisor-frontend:latest
+    image: ghcr.io/privacygecko/gecko-advisor-frontend:latest
     pull_policy: always
     env_file:
       - ./env/production.env

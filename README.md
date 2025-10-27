@@ -37,7 +37,7 @@ Built by [Privacy Gecko](https://geckoadvisor.com), Gecko Advisor is a fast, opi
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/gecko-advisor.git
+   git clone https://github.com/PrivacyGecko/gecko-advisor.git
    cd gecko-advisor
    ```
 
@@ -240,7 +240,7 @@ We welcome contributions from the community! Whether you're fixing bugs, adding 
 **Before contributing**:
 1. Read our [Contributing Guidelines](./CONTRIBUTING.md)
 2. Review our [Code of Conduct](./CODE_OF_CONDUCT.md)
-3. Check existing [Issues](https://github.com/yourusername/gecko-advisor/issues) and [Pull Requests](https://github.com/yourusername/gecko-advisor/pulls)
+3. Check existing [Issues](https://github.com/PrivacyGecko/gecko-advisor/issues) and [Pull Requests](https://github.com/PrivacyGecko/gecko-advisor/pulls)
 
 **Quick Start for Contributors**:
 ```bash
@@ -310,7 +310,7 @@ We are grateful to the privacy community for maintaining these essential resourc
 ## Support & Contact
 
 - **Documentation**: [assets/docs/](./assets/docs/)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/gecko-advisor/issues)
+- **Issues**: [GitHub Issues](https://github.com/PrivacyGecko/gecko-advisor/issues)
 - **Security Vulnerabilities**: security@geckoadvisor.com (see [SECURITY.md](./SECURITY.md))
 - **General Inquiries**: hello@geckoadvisor.com
 - **Website**: [geckoadvisor.com](https://geckoadvisor.com)
