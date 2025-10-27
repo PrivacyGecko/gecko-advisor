@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
 SPDX-License-Identifier: MIT
 */
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 
 interface TurnstileWidgetProps {
   onSuccess: (token: string) => void;
@@ -22,11 +22,16 @@ export default function TurnstileWidget({ onSuccess, onError, onExpire }: Turnst
 
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
+  // If Turnstile is disabled (no site key), call onSuccess with empty token
+  // Move this side effect to useEffect to avoid calling it during render
+  useEffect(() => {
+    if (!siteKey) {
+      onSuccess('');
+    }
+  }, [siteKey, onSuccess]);
+
   // If Turnstile is disabled (no site key), render nothing
-  // and immediately call onSuccess with empty token
   if (!siteKey) {
-    // Call onSuccess with empty token to indicate no Turnstile check
-    setTimeout(() => onSuccess(''), 0);
     return null;
   }
 

@@ -285,6 +285,9 @@ test.describe('Core Privacy Scanning Journey', () => {
     await homePage.goto();
     await homePage.startScan(TEST_URLS.FIXTURE_SAFE);
 
+    // Wait for scan page to load before monitoring progress
+    await scanPage.waitForScanPageLoad();
+
     // Monitor progress percentage changes
     const progressHistory: number[] = [];
     let lastProgress = 0;

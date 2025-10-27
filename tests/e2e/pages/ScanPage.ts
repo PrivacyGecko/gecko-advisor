@@ -43,6 +43,16 @@ export class ScanPage {
   }
 
   /**
+   * Wait for the scan page to finish loading and render the ScanProgress component
+   * This handles the initial loading state where ProgressSkeleton is shown
+   */
+  async waitForScanPageLoad(timeout = 10000) {
+    // Wait for the ScanProgress component to appear (replacing ProgressSkeleton)
+    await this.progressContainer.waitFor({ state: 'visible', timeout });
+    console.log('✅ Scan page loaded - ScanProgress component is visible');
+  }
+
+  /**
    * Wait for scan to complete and navigate to results
    */
   async waitForScanCompletion(timeout = PERFORMANCE_THRESHOLDS.SCAN_COMPLETION) {
@@ -128,6 +138,9 @@ export class ScanPage {
    * Verify scan progress indicators
    */
   async verifyProgressIndicators() {
+    // First wait for the page to finish loading and render ScanProgress
+    await this.waitForScanPageLoad();
+
     // Check progress container is visible
     await expect(this.progressContainer).toBeVisible();
 
@@ -144,6 +157,9 @@ export class ScanPage {
    * Verify scan status updates in real-time
    */
   async verifyRealtimeUpdates() {
+    // First wait for the page to finish loading
+    await this.waitForScanPageLoad();
+
     let previousStatus = await this.getScanStatus();
     let statusChangeCount = 0;
 
