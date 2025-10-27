@@ -37,10 +37,11 @@ export class ScanPage {
 
     // State indicators - scoped to scan progress container to avoid strict mode violations
     // Note: These match the step status indicators in ScanProgress.tsx (line 237)
-    this.queuedState = this.progressContainer.locator('text=Pending');
-    this.runningState = this.progressContainer.locator('text=Processing');
-    this.completedState = this.progressContainer.locator('text=Done');
-    this.failedState = this.progressContainer.locator('text=Failed');
+    // Using .first() to avoid strict mode violations when multiple steps show same status
+    this.queuedState = this.progressContainer.locator('text=Pending').first();
+    this.runningState = this.progressContainer.locator('text=Processing').first();
+    this.completedState = this.progressContainer.locator('text=Done').last(); // Use last() since scan completes in order
+    this.failedState = this.progressContainer.locator('text=Failed').first();
   }
 
   /**
