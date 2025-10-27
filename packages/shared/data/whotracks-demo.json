@@ -1,0 +1,11 @@
+{
+  "version": "demo-1",
+  "fingerprinting": [
+    "fingerprintjs.com",
+    "cdn.fingerprint.com"
+  ],
+  "trackers": [
+    { "domain": "doubleclick.net", "category": "ad" },
+    { "domain": "google-analytics.com", "category": "analytics" }
+  ]
+}

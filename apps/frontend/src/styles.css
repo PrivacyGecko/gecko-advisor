@@ -1,0 +1,14 @@
+/* Import brand variables */
+@import './styles/variables.css';
+
+/* Import self-hosted fonts */
+@import './styles/fonts.css';
+
+/* Import premium animations */
+@import './styles/animations.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { scroll-behavior: smooth; }

@@ -1,0 +1,25 @@
+# Docker Compose override for stage environment using pre-built GHCR images
+# This eliminates on-server builds and resolves disk space issues
+#
+# Usage in Coolify:
+# 1. Set COMPOSE_FILE=infra/docker/docker-compose.yml:infra/docker/docker-compose.stage.ghcr.yml
+# 2. Configure GitHub Container Registry authentication
+# 3. Deployments will pull pre-built images from GitHub Actions
+
+version: '3.8'
+
+services:
+  frontend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-privacygecko}/gecko-advisor-frontend:stage-latest
+    build: null  # Disable build, use pre-built image
+    pull_policy: always
+
+  backend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-privacygecko}/gecko-advisor-backend:stage-latest
+    build: null  # Disable build, use pre-built image
+    pull_policy: always
+
+  worker:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-privacygecko}/gecko-advisor-worker:stage-latest
+    build: null  # Disable build, use pre-built image
+    pull_policy: always

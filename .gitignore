@@ -1,0 +1,68 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.turbo/
+.vite/
+.vercel/
+packages/**/tsconfig.tsbuildinfo
+apps/**/tsconfig.tsbuildinfo
+
+# Environment files (keep .env.example)
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+.env.stage
+!/.env.example
+
+# Testing
+coverage/
+playwright-report/
+test-results/
+*.log
+
+# IDE and system files
+.DS_Store
+.idea/
+.vscode/
+**/.eslintcache
+**/.cache
+
+# Internal development files (NOT for public release)
+.claude/
+.playwright-mcp/
+CLAUDE.md
+playwright.config.ts
+assets/dlogs/
+assets/ss/
+assets/prompts/
+assets/docs/
+assets/project-docs/
+assets/test-summary/
+Project-Docs/
+tests/
+
+# Deployment-specific (NOT for public release)
+infra/docker/docker-compose.stage.yml
+infra/docker/docker-compose.stage.ghcr.yml
+infra/docker/env/
+scripts/manual-build-push.sh
+
+# Database
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*

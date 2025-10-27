@@ -1,0 +1,11 @@
+{
+  "name": "@privacy-advisor/prisma",
+  "private": true,
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "prisma": "5.22.0"
+  },
+  "dependencies": {
+    "@prisma/client": "5.22.0"
+  }
+}

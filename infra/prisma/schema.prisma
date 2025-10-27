@@ -1,0 +1,232 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../../node_modules/.prisma/client"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Existing enums
+enum IssueSeverity {
+  info
+  low
+  medium
+  high
+  critical
+}
+
+// New enums for Freemium model
+enum Subscription {
+  FREE
+  PRO
+  TEAM
+}
+
+enum SubscriptionStatus {
+  INACTIVE
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
+}
+
+enum AuthMethod {
+  EMAIL
+  WALLET
+  BOTH
+}
+
+enum CheckFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+// New User model for authentication and subscriptions
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  name          String?
+  passwordHash  String? // Optional for email-only accounts
+  emailVerified Boolean    @default(false)
+  authMethod    AuthMethod @default(EMAIL)
+
+  // Subscription
+  subscription         Subscription @default(FREE)
+  subscriptionProvider String? // 'STRIPE' | 'LEMONSQUEEZY' | 'WALLET'
+
+  // Stripe fields
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+
+  // LemonSqueezy fields
+  lsCustomerId     String? @unique
+  lsSubscriptionId String? @unique
+
+  subscriptionStatus SubscriptionStatus @default(INACTIVE)
+  subscriptionEndsAt DateTime?
+
+  // API Access
+  apiKey        String?   @unique
+  apiCallsMonth Int       @default(0)
+  apiResetAt    DateTime?
+
+  // Relations
+  scans                Scan[]
+  watchedUrls          WatchedUrl[]
+  walletLink           WalletLink?
+  passwordResetTokens  PasswordResetToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([apiKey])
+  @@index([stripeCustomerId])
+}
+
+// Enhanced Scan model with user relations and privacy controls
+model Scan {
+  id              String    @id @default(cuid())
+  targetType      String
+  input           String
+  normalizedInput String?
+  status          String
+  score           Int?
+  label           String?
+  progress        Int @default(0)
+  summary         String?
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  slug            String    @unique
+  source          String    @default("manual")
+  dedupeOfId      String?
+  shareMessage    String?
+  meta            Json?
+
+  // New Freemium fields
+  userId    String?
+  user      User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  isPublic  Boolean @default(true) // Pro users can make scans private
+  isProScan Boolean @default(false) // Track if scan was performed with Pro features
+  scannerIp String? // Track anonymous scans for rate limiting
+
+  evidence  Evidence[]
+  issues    Issue[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now()) @updatedAt
+
+  dedupeOf     Scan?  @relation("ScanDedupe", fields: [dedupeOfId], references: [id])
+  dedupedScans Scan[] @relation("ScanDedupe")
+
+  // Optimized indexes for critical performance paths
+  @@index([normalizedInput, status, finishedAt(sort: Desc)], map: "Scan_dedupe_lookup_idx")
+  @@index([status, createdAt(sort: Desc)], map: "Scan_recent_reports_idx")
+  // New indexes for Freemium features
+  @@index([userId, createdAt(sort: Desc)], map: "Scan_user_history_idx")
+  @@index([isPublic, createdAt(sort: Desc)], map: "Scan_public_reports_idx")
+  @@index([scannerIp, createdAt(sort: Desc)], map: "Scan_ip_ratelimit_idx")
+}
+
+model Evidence {
+  id        String   @id @default(cuid())
+  scanId    String
+  kind      String
+  severity  Int
+  title     String
+  details   Json
+  createdAt DateTime @default(now())
+  scan      Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  // Covering index for optimal evidence queries and counting
+  @@index([scanId, createdAt], map: "Evidence_scan_covering_idx")
+}
+
+model Issue {
+  id           String        @id @default(cuid())
+  scanId       String
+  key          String?
+  severity     IssueSeverity
+  category     String
+  title        String
+  summary      String?
+  howToFix     String?
+  whyItMatters String?
+  references   Json?
+  sortWeight   Int?          @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @default(now()) @updatedAt
+  scan         Scan          @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  // Covering index for optimal issue queries with proper sorting
+  @@index([scanId, sortWeight, createdAt], map: "Issue_scan_covering_idx")
+  @@index([severity, sortWeight], map: "Issue_severity_idx")
+}
+
+model CachedList {
+  id        String   @id @default(cuid())
+  source    String
+  version   String
+  fetchedAt DateTime @default(now())
+  data      Json
+}
+
+// Rate limiting for anonymous and free tier users
+model RateLimit {
+  id         String   @id @default(cuid())
+  identifier String // IP address or user ID
+  scansCount Int      @default(0)
+  date       String // YYYY-MM-DD format for daily tracking
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, date])
+  @@index([identifier, date], map: "RateLimit_lookup_idx")
+}
+
+// Watched URLs for Pro users (monitoring and alerts)
+model WatchedUrl {
+  id             String         @id @default(cuid())
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  url            String
+  lastScore      Int?
+  lastChecked    DateTime?
+  checkFrequency CheckFrequency @default(WEEKLY)
+  alertOnChange  Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+
+  @@unique([userId, url])
+  @@index([lastChecked, checkFrequency], map: "WatchedUrl_schedule_idx")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tokenHash])
+  @@index([userId, expiresAt], map: "PasswordResetToken_user_idx")
+}
+
+// Wallet authentication linking
+model WalletLink {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Store HASHED wallet address for linking only
+  walletAddressHash String   @unique
+  linkedAt          DateTime @default(now())
+  lastVerified      DateTime @default(now())
+
+  @@index([walletAddressHash])
+}
