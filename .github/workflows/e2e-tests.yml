@@ -177,8 +177,8 @@ jobs:
       - name: Run E2E tests
         run: |
           pnpm exec playwright test \
-            --project=${{ matrix.browser }} \
-            --grep=${{ matrix.test-suite }} \
+            --project="${{ matrix.browser }}" \
+            --grep="${{ matrix.test-suite }}" \
             --reporter=html,json,junit
         env:
           CI: true
