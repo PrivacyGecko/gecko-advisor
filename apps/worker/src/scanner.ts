@@ -456,6 +456,9 @@ export async function scanSiteJob(
         label: result.label,
         summary: result.summary,
         meta: result.meta as Prisma.InputJsonValue,
+        status: 'done',
+        finishedAt: new Date(),
+        progress: 100,
       },
     });
   });
