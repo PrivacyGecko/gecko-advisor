@@ -137,7 +137,8 @@ jobs:
         run: |
           cd apps/frontend
           VITE_API_PROXY_TARGET=http://localhost:5000 \
-          nohup pnpm preview --port 5173 > ../../frontend.log 2>&1 &
+          NODE_ENV=test \
+          nohup pnpm dev > ../../frontend.log 2>&1 &
           echo $! > ../../frontend.pid
           cd ../..
 
@@ -330,7 +331,8 @@ jobs:
         run: |
           cd apps/frontend
           VITE_API_PROXY_TARGET=http://localhost:5000 \
-          nohup pnpm preview --port 5173 > ../../frontend.log 2>&1 &
+          NODE_ENV=test \
+          nohup pnpm dev > ../../frontend.log 2>&1 &
           echo $! > ../../frontend.pid
           cd ../..
 
@@ -494,7 +496,8 @@ jobs:
         run: |
           cd apps/frontend
           VITE_API_PROXY_TARGET=http://localhost:5000 \
-          nohup pnpm preview --port 5173 > ../../frontend.log 2>&1 &
+          NODE_ENV=test \
+          nohup pnpm dev > ../../frontend.log 2>&1 &
           echo $! > ../../frontend.pid
           cd ../..
 
