@@ -118,16 +118,27 @@ jobs:
         if: env.E2E_TARGET_ENV != 'stage'
         run: pnpm build
 
-      - name: Start application in background
+      - name: Start backend in background
         if: env.E2E_TARGET_ENV != 'stage'
         run: |
-          export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/privacy_advisor_test
-          export REDIS_URL=redis://localhost:6379
-          export NODE_ENV=test
-          export JWT_SECRET=test-secret-key-for-e2e
-          export BACKEND_PORT=5000
-          nohup pnpm dev > app.log 2>&1 &
-          echo $! > app.pid
+          cd apps/backend
+          DATABASE_URL=postgresql://postgres:postgres@localhost:5432/privacy_advisor_test \
+          REDIS_URL=redis://localhost:6379 \
+          NODE_ENV=test \
+          JWT_SECRET=test-secret-key-for-e2e \
+          PORT=5000 \
+          nohup pnpm dev > ../../backend.log 2>&1 &
+          echo $! > ../../backend.pid
+          cd ../..
+
+      - name: Start frontend in background
+        if: env.E2E_TARGET_ENV != 'stage'
+        run: |
+          cd apps/frontend
+          nohup pnpm dev > ../../frontend.log 2>&1 &
+          echo $! > ../../frontend.pid
+          cd ../..
+
 
       - name: Wait for backend and frontend to start
         if: env.E2E_TARGET_ENV != 'stage'
@@ -295,32 +306,48 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/privacy_advisor_test
 
-      - name: Build and start application
+      - name: Build application
+        if: env.E2E_TARGET_ENV != 'stage'
+        run: pnpm build
+
+      - name: Start backend in background
         if: env.E2E_TARGET_ENV != 'stage'
         run: |
-          export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/privacy_advisor_test
-          export REDIS_URL=redis://localhost:6379
-          export NODE_ENV=test
-          export JWT_SECRET=test-secret-key-for-e2e
-          export BACKEND_PORT=5000
-          pnpm build
-          nohup pnpm dev > app.log 2>&1 &
-          echo $! > app.pid
+          cd apps/backend
+          DATABASE_URL=postgresql://postgres:postgres@localhost:5432/privacy_advisor_test \
+          REDIS_URL=redis://localhost:6379 \
+          NODE_ENV=test \
+          JWT_SECRET=test-secret-key-for-e2e \
+          PORT=5000 \
+          nohup pnpm dev > ../../backend.log 2>&1 &
+          echo $! > ../../backend.pid
+          cd ../..
 
-          # Wait for services
+      - name: Start frontend in background
+        if: env.E2E_TARGET_ENV != 'stage'
+        run: |
+          cd apps/frontend
+          nohup pnpm dev > ../../frontend.log 2>&1 &
+          echo $! > ../../frontend.pid
+          cd ../..
+
+      - name: Wait for services
+        if: env.E2E_TARGET_ENV != 'stage'
+        run: |
           echo "Waiting for backend..."
           timeout 60 bash -c 'until curl -f http://localhost:5000/api/health 2>/dev/null; do sleep 2; done'
           echo "Waiting for frontend..."
           timeout 60 bash -c 'until curl -f http://localhost:5173 2>/dev/null; do sleep 2; done'
 
-          # Start Nginx
+      - name: Start Nginx reverse proxy
+        if: env.E2E_TARGET_ENV != 'stage'
+        run: |
           docker run -d \
             --name nginx-e2e \
             --network host \
             -v ${{ github.workspace }}/tests/e2e/nginx.conf:/etc/nginx/nginx.conf:ro \
             nginx:alpine
 
-          # Wait for Nginx
           echo "Waiting for Nginx..."
           timeout 30 bash -c 'until curl -f http://localhost:8080/health; do sleep 1; done'
           echo "All services ready!"
@@ -426,30 +453,58 @@ jobs:
         if: env.E2E_TARGET_ENV != 'stage'
         run: pnpm exec playwright install chromium
 
-      - name: Setup and start application
+      - name: Setup test environment
         if: env.E2E_TARGET_ENV != 'stage'
         run: |
           cp .env.example .env.test
           echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/privacy_advisor_test" >> .env.test
           echo "REDIS_URL=redis://localhost:6379" >> .env.test
+
+      - name: Generate Prisma client and migrate
+        if: env.E2E_TARGET_ENV != 'stage'
+        run: |
           pnpm prisma:generate
           pnpm exec prisma migrate deploy --schema=infra/prisma/schema.prisma
           pnpm seed
-          pnpm build
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/privacy_advisor_test
 
-          export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/privacy_advisor_test
-          export REDIS_URL=redis://localhost:6379
-          export NODE_ENV=test
-          export JWT_SECRET=test-secret-key-for-e2e
-          export BACKEND_PORT=5000
-          nohup pnpm dev > app.log 2>&1 &
+      - name: Build application
+        if: env.E2E_TARGET_ENV != 'stage'
+        run: pnpm build
 
-          # Wait for services
+      - name: Start backend in background
+        if: env.E2E_TARGET_ENV != 'stage'
+        run: |
+          cd apps/backend
+          DATABASE_URL=postgresql://postgres:postgres@localhost:5432/privacy_advisor_test \
+          REDIS_URL=redis://localhost:6379 \
+          NODE_ENV=test \
+          JWT_SECRET=test-secret-key-for-e2e \
+          PORT=5000 \
+          nohup pnpm dev > ../../backend.log 2>&1 &
+          echo $! > ../../backend.pid
+          cd ../..
+
+      - name: Start frontend in background
+        if: env.E2E_TARGET_ENV != 'stage'
+        run: |
+          cd apps/frontend
+          nohup pnpm dev > ../../frontend.log 2>&1 &
+          echo $! > ../../frontend.pid
+          cd ../..
+
+      - name: Wait for services
+        if: env.E2E_TARGET_ENV != 'stage'
+        run: |
           echo "Waiting for backend..."
           timeout 60 bash -c 'until curl -f http://localhost:5000/api/health 2>/dev/null; do sleep 2; done'
           echo "Waiting for frontend..."
           timeout 60 bash -c 'until curl -f http://localhost:5173 2>/dev/null; do sleep 2; done'
 
+      - name: Start Nginx reverse proxy
+        if: env.E2E_TARGET_ENV != 'stage'
+        run: |
           # Start Nginx
           docker run -d \
             --name nginx-e2e \

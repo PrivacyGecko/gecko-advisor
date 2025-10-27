@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { expect, test } from '@playwright/test';
 
 test('home loads', async ({ page }) => {

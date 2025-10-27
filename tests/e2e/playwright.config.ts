@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { defineConfig, devices } from '@playwright/test';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
