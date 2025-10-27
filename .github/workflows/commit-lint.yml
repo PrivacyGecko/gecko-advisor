@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: MIT
+name: Commit Message Lint
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  commit-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for Claude references in commits
+        run: |
+          echo "Checking commit messages for Claude references..."
+
+          # Get all commits in the PR
+          git log --format=%B origin/${{ github.base_ref }}..HEAD > commits.txt
+
+          # Check for Claude references
+          if grep -iE "(🤖.*claude|claude code|co-authored-by.*claude|anthropic)" commits.txt; then
+            echo "❌ ERROR: Found Claude references in commit messages!"
+            echo ""
+            echo "Please remove these references from your commits:"
+            grep -iE "(🤖.*claude|claude code|co-authored-by.*claude|anthropic)" commits.txt | sed 's/^/  > /'
+            echo ""
+            echo "You can amend your commits with: git commit --amend"
+            exit 1
+          fi
+
+          echo "✅ No Claude references found in commit messages"
