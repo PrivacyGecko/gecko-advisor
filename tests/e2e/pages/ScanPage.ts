@@ -35,11 +35,11 @@ export class ScanPage {
     this.retryButton = page.locator('button:has-text("Retry")');
     this.homeLink = page.locator('a[href="/"]');
 
-    // State indicators
-    this.queuedState = page.locator('text=Queued');
-    this.runningState = page.locator('text=Scanning');
-    this.completedState = page.locator('text=Complete');
-    this.failedState = page.locator('text=Failed');
+    // State indicators - scoped to scan progress container to avoid strict mode violations
+    this.queuedState = this.progressContainer.locator('text=Queued');
+    this.runningState = this.progressContainer.locator('text=Scanning');
+    this.completedState = this.progressContainer.locator('text=Complete');
+    this.failedState = this.progressContainer.locator('text=Failed');
   }
 
   /**
