@@ -44,17 +44,7 @@ export const worker = new Worker<ScanJobData>(
       // Pass job for progress updates
       await scanSiteJob(prisma, scanId, url, job);
 
-      // Mark as done
-      await prisma.scan.update({
-        where: { id: scanId },
-        data: {
-          status: 'done',
-          finishedAt: new Date(),
-          progress: 100,
-        },
-      });
-
-      // Report 100% progress
+      // Report 100% progress (scan status is updated atomically in scanner.ts)
       await job.updateProgress(100);
 
       logger.info({ jobId: job.id, scanId }, 'Scan completed');
