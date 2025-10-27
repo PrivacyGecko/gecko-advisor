@@ -136,7 +136,8 @@ jobs:
         if: env.E2E_TARGET_ENV != 'stage'
         run: |
           cd apps/frontend
-          nohup pnpm dev > ../../frontend.log 2>&1 &
+          VITE_API_PROXY_TARGET=http://localhost:5000 \
+          nohup pnpm preview --port 5173 > ../../frontend.log 2>&1 &
           echo $! > ../../frontend.pid
           cd ../..
 
@@ -328,7 +329,8 @@ jobs:
         if: env.E2E_TARGET_ENV != 'stage'
         run: |
           cd apps/frontend
-          nohup pnpm dev > ../../frontend.log 2>&1 &
+          VITE_API_PROXY_TARGET=http://localhost:5000 \
+          nohup pnpm preview --port 5173 > ../../frontend.log 2>&1 &
           echo $! > ../../frontend.pid
           cd ../..
 
@@ -491,7 +493,8 @@ jobs:
         if: env.E2E_TARGET_ENV != 'stage'
         run: |
           cd apps/frontend
-          nohup pnpm dev > ../../frontend.log 2>&1 &
+          VITE_API_PROXY_TARGET=http://localhost:5000 \
+          nohup pnpm preview --port 5173 > ../../frontend.log 2>&1 &
           echo $! > ../../frontend.pid
           cd ../..
 
