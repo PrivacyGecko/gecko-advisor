@@ -287,7 +287,7 @@ jobs:
 
       - name: Install Playwright browsers
         if: env.E2E_TARGET_ENV != 'stage'
-        run: pnpm exec playwright install chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Setup test environment
         if: env.E2E_TARGET_ENV != 'stage'
@@ -452,7 +452,7 @@ jobs:
 
       - name: Install Playwright browsers
         if: env.E2E_TARGET_ENV != 'stage'
-        run: pnpm exec playwright install chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Setup test environment
         if: env.E2E_TARGET_ENV != 'stage'
