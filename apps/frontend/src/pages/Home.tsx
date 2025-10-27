@@ -201,7 +201,7 @@ export default function Home() {
             onChange={(event) => setInput(event.target.value)}
             className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-advisor-500 focus:border-advisor-500 transition-colors"
             placeholder="Enter website URL (e.g., example.com)"
-            aria-label="Website URL to scan for privacy analysis"
+            aria-label="Scan input"
             aria-describedby="scan-help-text"
           />
           <button
