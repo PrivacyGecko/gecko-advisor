@@ -96,7 +96,8 @@ async function globalSetup(config: FullConfig) {
 
         // Try multiple selectors as the app might render differently
         const selectors = [
-          'text=Privacy Advisor',
+          'text=Gecko Advisor',
+          'text=Privacy insights in seconds',
           '[data-testid="app-container"]',
           'main',
           'body'
