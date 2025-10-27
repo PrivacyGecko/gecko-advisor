@@ -121,6 +121,11 @@ jobs:
       - name: Start application in background
         if: env.E2E_TARGET_ENV != 'stage'
         run: |
+          export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/privacy_advisor_test
+          export REDIS_URL=redis://localhost:6379
+          export NODE_ENV=test
+          export JWT_SECRET=test-secret-key-for-e2e
+          export BACKEND_PORT=5000
           nohup pnpm dev > app.log 2>&1 &
           echo $! > app.pid
 
@@ -293,6 +298,11 @@ jobs:
       - name: Build and start application
         if: env.E2E_TARGET_ENV != 'stage'
         run: |
+          export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/privacy_advisor_test
+          export REDIS_URL=redis://localhost:6379
+          export NODE_ENV=test
+          export JWT_SECRET=test-secret-key-for-e2e
+          export BACKEND_PORT=5000
           pnpm build
           nohup pnpm dev > app.log 2>&1 &
           echo $! > app.pid
@@ -426,6 +436,12 @@ jobs:
           pnpm exec prisma migrate deploy --schema=infra/prisma/schema.prisma
           pnpm seed
           pnpm build
+
+          export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/privacy_advisor_test
+          export REDIS_URL=redis://localhost:6379
+          export NODE_ENV=test
+          export JWT_SECRET=test-secret-key-for-e2e
+          export BACKEND_PORT=5000
           nohup pnpm dev > app.log 2>&1 &
 
           # Wait for services
