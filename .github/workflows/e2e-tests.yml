@@ -523,11 +523,11 @@ jobs:
       - name: Run accessibility tests
         if: env.E2E_TARGET_ENV != 'stage'
         run: |
-          pnpm exec playwright test \
+          cd tests/e2e
+          npx playwright test \
             --project=chromium \
             --grep="accessibility" \
-            --reporter=html,json \
-            --output-dir=accessibility-results
+            --reporter=html,json
 
       - name: Generate accessibility report
         if: env.E2E_TARGET_ENV != 'stage'
