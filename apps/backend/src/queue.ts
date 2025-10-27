@@ -69,7 +69,7 @@ scanEvents.on('completed', ({ jobId, returnvalue, prev }) => {
   logger.debug({
     jobId,
     previousState: prev,
-    duration: typeof returnvalue === 'object' && returnvalue && 'duration' in returnvalue ? (returnvalue as any).duration : undefined,
+    duration: typeof returnvalue === 'object' && returnvalue && 'duration' in returnvalue ? (returnvalue as { duration?: number }).duration : undefined,
   }, 'Queue job completed');
 });
 
@@ -105,11 +105,20 @@ export const SCAN_PRIORITY = {
 } as const;
 
 /**
+ * Scan job data structure
+ */
+export interface ScanJobData {
+  scanId: string;
+  url?: string;
+  [key: string]: unknown;
+}
+
+/**
  * Add a scan job with priority and complexity-based configuration
  */
 export async function addScanJob(
   jobType: string,
-  data: any,
+  data: ScanJobData,
   options: {
     priority?: number;
     scanComplexity?: 'simple' | 'complex';
