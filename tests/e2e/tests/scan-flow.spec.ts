@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { expect, test } from '@playwright/test';
 
 test.describe('Stage functional flow', () => {

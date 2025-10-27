@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { test, expect, Page } from '@playwright/test';
 
 test.describe('Privacy Advisor - Comprehensive Validation', () => {
