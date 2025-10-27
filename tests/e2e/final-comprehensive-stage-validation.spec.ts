@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /**
  * FINAL COMPREHENSIVE E2E TEST - STAGE ENVIRONMENT
  *

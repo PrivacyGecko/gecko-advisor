@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /**
  * Comprehensive E2E Test Suite for Gecko Advisor Stage Environment
  * Test URL: https://stage.geckoadvisor.com

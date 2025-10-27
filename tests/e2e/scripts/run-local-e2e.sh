@@ -1,4 +1,5 @@
 #!/bin/bash
+# SPDX-License-Identifier: MIT
 
 # Run E2E tests locally with Docker Compose setup
 # This script mimics the GitHub Actions workflow environment

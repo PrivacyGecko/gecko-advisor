@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { Page, Locator, expect } from '@playwright/test';
 
 /**
