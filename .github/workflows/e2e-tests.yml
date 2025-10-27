@@ -177,7 +177,7 @@ jobs:
       - name: Run E2E tests
         run: |
           cd tests/e2e
-          pnpm exec playwright test \
+          npx playwright test \
             --project="${{ matrix.browser }}" \
             --grep="${{ matrix.test-suite }}" \
             --reporter=html,json,junit
