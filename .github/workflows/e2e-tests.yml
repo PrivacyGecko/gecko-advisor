@@ -396,6 +396,7 @@ jobs:
       - name: Run performance benchmarks
         if: env.E2E_TARGET_ENV != 'stage'
         run: |
+          cd tests/e2e
           pnpm exec playwright test \
             --project=chromium \
             --grep="performance-validation" \
