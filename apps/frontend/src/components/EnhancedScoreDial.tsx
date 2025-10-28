@@ -140,7 +140,7 @@ const EnhancedScoreDial = React.memo(function EnhancedScoreDial({
   const uniquePatternId = `${style.patternId}-${React.useId()}`;
 
   return (
-    <div className={`inline-flex flex-col items-center ${className}`}>
+    <div className={`inline-flex flex-col items-center ${className}`} data-testid="score-dial">
       {/* Outer glow container */}
       <div className="relative">
         {/* Background glow effect */}
