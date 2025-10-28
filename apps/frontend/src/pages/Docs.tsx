@@ -69,8 +69,8 @@ export default function Docs() {
           this derivation to the backend for transparency and consistency.
         </p>
       </Card>
-        <Footer />
       </main>
+      <Footer />
       <LoginModal
         isOpen={showLogin}
         onClose={() => setShowLogin(false)}

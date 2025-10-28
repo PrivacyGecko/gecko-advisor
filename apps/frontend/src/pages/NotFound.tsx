@@ -11,8 +11,8 @@ export default function NotFound() {
       <h1 className="text-2xl font-bold">Page not found</h1>
       <p className="text-slate-600">The page you're looking for doesn't exist.</p>
       <a href="/" className="text-security-blue underline">Go home</a>
-      <Footer />
     </main>
+    <Footer />
   );
 }
 
