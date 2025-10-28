@@ -399,8 +399,7 @@ jobs:
           cd tests/e2e
           npx playwright test \
             --project=chromium \
-            --grep="Performance Validation" \
-            --reporter=json,list
+            --grep="Performance Validation"
         env:
           CI: true
           E2E_BASE_URL: http://localhost:8080
@@ -432,7 +431,9 @@ jobs:
         with:
           name: performance-benchmarks
           path: |
-            benchmark-results/
+            tests/e2e/test-results/
+            tests/e2e/test-results.json
+            tests/e2e/playwright-report/
             performance-summary.md
           retention-days: 30
 
@@ -579,7 +580,7 @@ jobs:
           cd tests/e2e
           npx playwright test \
             --project=chromium \
-            --grep="accessibility" \
+            --grep="(?i)accessibility" \
             --reporter=html,json
 
       - name: Generate accessibility report
