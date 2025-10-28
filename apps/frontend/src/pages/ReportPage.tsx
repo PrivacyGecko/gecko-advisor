@@ -1056,7 +1056,7 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
               return (
                 <div key={key} className="bg-white rounded-lg p-5 shadow-sm border border-slate-200">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                       <span className="text-2xl" aria-hidden="true">{category.icon}</span>
                       {category.title}
                     </h2>
@@ -1120,7 +1120,7 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
       </div>
 
       <div className="text-center">
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">Technical Details by Type</h2>
+        <h2 className="text-lg font-semibold text-gray-700 mb-2">Technical Details by Type</h2>
         <p className="text-sm text-gray-500">Expand sections below for granular technical findings</p>
       </div>
 
