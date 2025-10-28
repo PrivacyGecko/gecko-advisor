@@ -47,7 +47,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium]  # TODO: Re-enable firefox and webkit after chromium tests pass
+        browser: [chromium, firefox, webkit]  # Cross-browser testing enabled
         test-suite:
           - "Smoke Tests"  # Semantic user-focused tests (no data-testid required)
           - "Core Privacy Scanning Journey"  # Complete scan flow with Page Object Model
