@@ -51,11 +51,10 @@ jobs:
         test-suite:
           - "Smoke Tests"  # Semantic user-focused tests (no data-testid required)
           - "Core Privacy Scanning Journey"  # Complete scan flow with Page Object Model
-          # TODO: Expand test coverage organically based on user journeys
-          # - "Performance Validation"
-          # - "Accessibility & Mobile Testing"
-          # - "Security & Error Handling"
-          # - "License Compliance Display"
+          - "Performance Validation"
+          - "Accessibility & Mobile Testing"
+          - "Security & Error Handling"
+          - "License Compliance Display"
 
     steps:
       - name: Checkout code
