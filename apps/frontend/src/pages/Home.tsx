@@ -475,8 +475,8 @@ export default function Home() {
         </div>
       </section>
 
-      <Footer />
     </main>
+    <Footer />
 
     {/* Auth modals */}
     <LoginModal

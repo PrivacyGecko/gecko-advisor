@@ -88,7 +88,7 @@ export function GradeBadge({
       </span>
       <span className={fontSizes[size]}>Grade {gradeInfo.letter}</span>
       {showLabel && size !== 'sm' && (
-        <span className={`${fontSizes[size]} font-normal opacity-80`}>
+        <span className={`${fontSizes[size]} font-normal`}>
           ({gradeInfo.label})
         </span>
       )}
