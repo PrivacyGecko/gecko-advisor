@@ -80,6 +80,7 @@ jobs:
         run: pnpm -w test
         env:
           RUN_DB_TESTS: '1'
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/privacy
       - name: Build
         run: pnpm -w build
 
