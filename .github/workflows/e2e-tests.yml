@@ -47,14 +47,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium]  # TODO: Re-enable firefox and webkit after chromium tests pass
+        browser: [chromium, firefox, webkit]  # Cross-browser testing enabled
         test-suite:
           - "Smoke Tests"  # Semantic user-focused tests (no data-testid required)
           - "Core Privacy Scanning Journey"  # Complete scan flow with Page Object Model
-          # TODO: Expand test coverage organically based on user journeys
-          # - "Performance Validation"
-          # - "Accessibility & Mobile Testing"
+          - "Performance Validation"
+          - "Accessibility & Mobile Testing"
+          # TODO: Enable when security features are implemented (rate limiting, CSRF protection, session security, admin auth)
           # - "Security & Error Handling"
+          # TODO: Enable when license attribution UI is implemented (EasyPrivacy, WhoTracks.me, AboutCredits component)
           # - "License Compliance Display"
 
     steps:
@@ -199,6 +200,7 @@ jobs:
         env:
           CI: true
           E2E_BASE_URL: http://localhost:8080
+          E2E_BROWSER: ${{ matrix.browser }}
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -397,11 +399,9 @@ jobs:
         if: env.E2E_TARGET_ENV != 'stage'
         run: |
           cd tests/e2e
-          pnpm exec playwright test \
+          npx playwright test \
             --project=chromium \
-            --grep="performance-validation" \
-            --reporter=json \
-            --output=benchmark-results
+            --grep="Performance Validation"
         env:
           CI: true
           E2E_BASE_URL: http://localhost:8080
@@ -433,7 +433,9 @@ jobs:
         with:
           name: performance-benchmarks
           path: |
-            benchmark-results/
+            tests/e2e/test-results/
+            tests/e2e/test-results.json
+            tests/e2e/playwright-report/
             performance-summary.md
           retention-days: 30
 
@@ -580,8 +582,11 @@ jobs:
           cd tests/e2e
           npx playwright test \
             --project=chromium \
-            --grep="accessibility" \
+            --grep="[Aa]ccessibility" \
             --reporter=html,json
+        env:
+          CI: true
+          E2E_BASE_URL: http://localhost:8080
 
       - name: Generate accessibility report
         if: env.E2E_TARGET_ENV != 'stage'

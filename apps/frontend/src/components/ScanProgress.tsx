@@ -95,7 +95,7 @@ const ScanProgress = React.memo(function ScanProgress({
       case 'processing':
         return { color: 'text-blue-600', bgColor: 'bg-blue-50', message: 'Scanning in progress...' };
       case 'done':
-        return { color: 'text-green-600', bgColor: 'bg-green-50', message: 'Scan completed!' };
+        return { color: 'text-green-700', bgColor: 'bg-green-50', message: 'Scan completed!' };
       case 'error':
         return { color: 'text-red-600', bgColor: 'bg-red-50', message: 'Scan failed' };
       default:
