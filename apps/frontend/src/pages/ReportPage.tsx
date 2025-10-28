@@ -499,7 +499,7 @@ export default function ReportPage() {
       : `There was an error loading the report "${slug}". This might be a temporary issue. Please try again.`;
 
     return (
-      <div className="max-w-4xl mx-auto p-6">
+      <main className="max-w-4xl mx-auto p-6">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
           <Link
             to="/"
@@ -519,7 +519,7 @@ export default function ReportPage() {
           onGoHome={() => window.location.href = '/'}
           showDetails={process.env.NODE_ENV === 'development'}
         />
-      </div>
+      </main>
     );
   }
 
@@ -856,7 +856,7 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
+      <main className="max-w-4xl mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Link
             to="/"
@@ -874,9 +874,12 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
         <div className="flex-1 text-center md:text-left">
           <div className="flex flex-col md:flex-row md:items-center gap-3 justify-center md:justify-start mb-2">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-              {scan.label} ({scan.score ?? 'n/a'})
+              Privacy Report: {scan.label}
             </h1>
             <GradeBadge score={scan.score ?? 0} size="lg" showLabel={true} />
+          </div>
+          <div className="text-lg font-semibold text-gray-700">
+            Score: {scan.score ?? 'n/a'}/100
           </div>
           <p className="text-slate-600 break-all">{scan.input}</p>
           <div className="mt-1 text-xs text-slate-600">
@@ -1350,7 +1353,7 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
         </div>
       </footer>
       <Footer />
-      </div>
+      </main>
     </>
   );
 }

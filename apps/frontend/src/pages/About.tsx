@@ -19,10 +19,10 @@ export default function AboutRoute() {
   return (
     <>
       <Header onShowLogin={() => setShowLogin(true)} onShowSignup={() => setShowSignup(true)} />
-      <div className="max-w-5xl mx-auto p-6">
+      <main className="max-w-5xl mx-auto p-6">
         <AboutCredits />
         <Footer />
-      </div>
+      </main>
       <LoginModal
         isOpen={showLogin}
         onClose={() => setShowLogin(false)}
