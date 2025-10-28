@@ -223,8 +223,8 @@ export class HomePage {
     const container = this.page.locator('.max-w-5xl');
     await expect(container).toBeVisible();
 
-    // Check mobile-specific elements
-    const mobileText = this.page.locator('.text-3xl.md\\:text-5xl');
+    // Check mobile-specific elements - use semantic selector for h1
+    const mobileText = this.page.locator('h1:has-text("See What\'s Tracking You Online")');
     await expect(mobileText).toBeVisible();
 
     // Check responsive grid

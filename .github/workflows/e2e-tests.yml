@@ -400,7 +400,7 @@ jobs:
             --project=chromium \
             --grep="performance-validation" \
             --reporter=json \
-            --output-dir=benchmark-results
+            --output=benchmark-results
         env:
           CI: true
           E2E_BASE_URL: http://localhost:8080
