@@ -11,15 +11,23 @@ import { expect, test } from '@playwright/test';
  *
  * Approach:
  * - Use semantic selectors (text, roles, labels)
- * - NO data-testid attributes required
+ * - Minimal data-testid usage (only for complex components like score dial)
  * - Focus on user-visible behavior
  * - Simple, maintainable, resilient to refactoring
  *
  * Coverage:
  * 1. Can user access the homepage?
- * 2. Can user scan a URL?
- * 3. Does user see a privacy score?
- * 4. Can user see the scan report?
+ * 2. Can user initiate a scan?
+ * 3. Does scan navigate through proper flow: / → /scan/:id → /r/:slug?
+ * 4. Does user see a privacy score on the report?
+ * 5. Can user access a report directly via URL?
+ *
+ * User Journey Flow (based on code analysis):
+ * 1. Homepage (/) - User enters URL and clicks "Scan Now"
+ * 2. API call (POST /api/v2/scan) - Backend queues scan
+ * 3. Scan status page (/scan/:id) - Frontend polls status every 2-3 seconds
+ * 4. Auto-redirect to report (/r/:slug) - When scan status='done'
+ * 5. Report page displays privacy score and findings
  */
 
 test.describe('Smoke Tests', () => {
@@ -70,30 +78,26 @@ test.describe('Smoke Tests', () => {
     const scanButton = page.getByRole('button', { name: 'Start privacy scan' });
     await scanButton.click();
 
-    // Step 3: Wait for report page (URL changes to /r/slug)
-    console.log('Step 3: Wait for report page');
-    await page.waitForURL(/\/r\/[\w-]+/, { timeout: 30000 });
-    console.log(`✅ Navigated to report: ${page.url()}`);
+    // Step 3: Wait for scan status page (URL changes to /scan/:id)
+    console.log('Step 3: Wait for scan status page');
+    await page.waitForURL(/\/scan\/[\w-]+/, { timeout: 10000 });
+    console.log(`✅ Navigated to scan page: ${page.url()}`);
 
-    // Step 4: Verify privacy score is visible
-    console.log('Step 4: Check for privacy score');
+    // Step 4: Wait for polling to complete and auto-redirect to report page
+    console.log('Step 4: Wait for scan completion and redirect to report');
+    await page.waitForURL(/\/r\/[\w-]+/, { timeout: 90000 }); // Scans can take 30-60 seconds
+    console.log(`✅ Redirected to report: ${page.url()}`);
 
-    // Look for score - it should be a prominent number
-    // Try multiple strategies to find it
-    const scoreVisible = await Promise.race([
-      // Try finding the EnhancedScoreDial (has large number)
-      page.locator('text=/^\\d{1,3}$/').first().isVisible({ timeout: 10000 }),
-      // Try finding any heading with a number
-      page.locator('h1, h2, h3').locator('text=/\\d{1,3}/').first().isVisible({ timeout: 10000 }),
-      // Fallback: any visible number that could be a score
-      page.locator('text=/\\b(\\d{1,2}|100)\\b/').first().isVisible({ timeout: 10000 }),
-    ]).catch(() => false);
+    // Step 5: Verify privacy score is visible
+    console.log('Step 5: Check for privacy score');
 
-    expect(scoreVisible, 'Privacy score should be visible').toBe(true);
-    console.log('✅ Privacy score is visible');
+    // Look for the EnhancedScoreDial component with data-testid
+    const scoreDial = page.locator('[data-testid="score-dial"]');
+    await expect(scoreDial).toBeVisible({ timeout: 10000 });
+    console.log('✅ Privacy score dial is visible');
 
-    // Step 5: Verify report page has content (not just empty)
-    console.log('Step 5: Verify report has content');
+    // Step 6: Verify report page has content (not just empty)
+    console.log('Step 6: Verify report has content');
 
     // Report should have SOME text content beyond just the score
     const bodyText = await page.locator('body').textContent();
@@ -116,7 +120,9 @@ test.describe('Smoke Tests', () => {
     const scanButton = page.getByRole('button', { name: 'Start privacy scan' });
     await scanButton.click();
 
-    await page.waitForURL(/\/r\/[\w-]+/);
+    // Wait for scan page, then report page
+    await page.waitForURL(/\/scan\/[\w-]+/, { timeout: 10000 });
+    await page.waitForURL(/\/r\/[\w-]+/, { timeout: 90000 });
     const reportUrl = page.url();
     console.log(`✅ Created report at: ${reportUrl}`);
 
@@ -125,8 +131,8 @@ test.describe('Smoke Tests', () => {
     await page.goto(reportUrl);
 
     // Should show the score without needing to scan again
-    const scoreVisible = await page.locator('text=/\\b(\\d{1,2}|100)\\b/').first().isVisible({ timeout: 10000 });
-    expect(scoreVisible).toBe(true);
+    const scoreDial = page.locator('[data-testid="score-dial"]');
+    await expect(scoreDial).toBeVisible({ timeout: 10000 });
 
     console.log('✅ Direct report access works');
   });
