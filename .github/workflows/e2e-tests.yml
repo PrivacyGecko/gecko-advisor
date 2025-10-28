@@ -582,6 +582,9 @@ jobs:
             --project=chromium \
             --grep="[Aa]ccessibility" \
             --reporter=html,json
+        env:
+          CI: true
+          E2E_BASE_URL: http://localhost:8080
 
       - name: Generate accessibility report
         if: env.E2E_TARGET_ENV != 'stage'
