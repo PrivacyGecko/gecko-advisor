@@ -1,4 +1,8 @@
-﻿import { z } from "zod";
+﻿/*
+SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-License-Identifier: MIT
+*/
+import { z } from "zod";
 
 export const EvidenceKind = z.enum([
   'tracker',
