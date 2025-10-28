@@ -164,7 +164,7 @@ test.describe('Performance Validation', () => {
     });
   });
 
-  test('Network conditions impact on performance', async ({ page }) => {
+  test('Network conditions impact on performance', async ({ page, browserName }) => {
     const homePage = new HomePage(page);
     const scanPage = new ScanPage(page);
 
@@ -194,8 +194,17 @@ test.describe('Performance Validation', () => {
 
     console.log(`Network impact: Normal=${normalDuration.toFixed(2)}ms, Slow=${slowDuration.toFixed(2)}ms`);
 
-    // Slow network should be slower but still reasonable
-    expect(slowDuration).toBeGreaterThan(normalDuration);
+    // Network emulation is Chromium-only (uses CDP protocol)
+    // WebKit and Firefox don't support CDP network throttling reliably
+    if (browserName === 'chromium') {
+      // Only assert timing relationship for Chromium where network emulation works
+      expect(slowDuration).toBeGreaterThan(normalDuration);
+      console.log(`✅ Network throttling validation: Slow (${slowDuration.toFixed(2)}ms) > Normal (${normalDuration.toFixed(2)}ms)`);
+    } else {
+      console.log(`⚠️  Skipping network throttling comparison for ${browserName} (CDP not fully supported)`);
+    }
+
+    // Absolute performance threshold applies to all browsers
     expect(slowDuration).toBeLessThan(15000); // Should still complete within 15s
   });
 
