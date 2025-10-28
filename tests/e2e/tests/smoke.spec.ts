@@ -44,7 +44,7 @@ test.describe('Smoke Tests', () => {
     await expect(page.getByRole('heading', { name: 'See What\'s Tracking You Online' })).toBeVisible();
 
     // Verify scan input is present and functional
-    const scanInput = page.getByPlaceholder('https://example.com');
+    const scanInput = page.getByPlaceholder('Enter website URL (e.g., example.com)');
     await expect(scanInput).toBeVisible();
     await expect(scanInput).toBeEnabled();
 
@@ -64,7 +64,7 @@ test.describe('Smoke Tests', () => {
 
     // Step 2: Enter URL and start scan
     console.log('Step 2: Enter URL and click scan');
-    const scanInput = page.getByPlaceholder('https://example.com');
+    const scanInput = page.getByPlaceholder('Enter website URL (e.g., example.com)');
     await scanInput.fill('https://example.com');
 
     const scanButton = page.getByRole('button', { name: 'Start privacy scan' });
@@ -110,7 +110,7 @@ test.describe('Smoke Tests', () => {
     // First create a scan to get a report URL
     console.log('Creating a scan...');
     await page.goto('/');
-    const scanInput = page.getByPlaceholder('https://example.com');
+    const scanInput = page.getByPlaceholder('Enter website URL (e.g., example.com)');
     await scanInput.fill('https://example.com');
 
     const scanButton = page.getByRole('button', { name: 'Start privacy scan' });
@@ -135,7 +135,7 @@ test.describe('Smoke Tests', () => {
     console.log('📍 Test: Invalid URL handling');
     await page.goto('/');
 
-    const scanInput = page.getByPlaceholder('https://example.com');
+    const scanInput = page.getByPlaceholder('Enter website URL (e.g., example.com)');
     await scanInput.fill('not-a-valid-url');
 
     const scanButton = page.getByRole('button', { name: 'Start privacy scan' });
