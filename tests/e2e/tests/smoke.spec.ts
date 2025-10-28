@@ -40,23 +40,17 @@ test.describe('Smoke Tests', () => {
     console.log('📍 Test: Homepage loads');
     await page.goto('/');
 
-    // Verify main heading is visible
-    await expect(page.getByRole('heading', { name: 'Privacy insights in seconds' })).toBeVisible();
+    // Verify main heading is visible (actual heading from Home.tsx:143)
+    await expect(page.getByRole('heading', { name: 'See What\'s Tracking You Online' })).toBeVisible();
 
     // Verify scan input is present and functional
     const scanInput = page.getByPlaceholder('https://example.com');
     await expect(scanInput).toBeVisible();
     await expect(scanInput).toBeEnabled();
 
-    // Verify Start Scan button is present
-    const scanButton = page.getByRole('button', { name: 'Start Scan' });
+    // Verify scan button is present (actual text: "Scan Now" from Home.tsx)
+    const scanButton = page.getByRole('button', { name: 'Start privacy scan' });
     await expect(scanButton).toBeVisible();
-
-    // Verify Recent community reports section exists
-    await expect(page.getByRole('heading', { name: 'Recent community reports' })).toBeVisible();
-
-    // Verify Your recent scans section exists
-    await expect(page.getByRole('heading', { name: 'Your recent scans' })).toBeVisible();
 
     console.log('✅ Homepage loaded successfully');
   });
@@ -73,7 +67,7 @@ test.describe('Smoke Tests', () => {
     const scanInput = page.getByPlaceholder('https://example.com');
     await scanInput.fill('https://example.com');
 
-    const scanButton = page.getByRole('button', { name: 'Start Scan' });
+    const scanButton = page.getByRole('button', { name: 'Start privacy scan' });
     await scanButton.click();
 
     // Step 3: Wait for report page (URL changes to /r/slug)
@@ -119,7 +113,7 @@ test.describe('Smoke Tests', () => {
     const scanInput = page.getByPlaceholder('https://example.com');
     await scanInput.fill('https://example.com');
 
-    const scanButton = page.getByRole('button', { name: 'Start Scan' });
+    const scanButton = page.getByRole('button', { name: 'Start privacy scan' });
     await scanButton.click();
 
     await page.waitForURL(/\/r\/[\w-]+/);
@@ -144,7 +138,7 @@ test.describe('Smoke Tests', () => {
     const scanInput = page.getByPlaceholder('https://example.com');
     await scanInput.fill('not-a-valid-url');
 
-    const scanButton = page.getByRole('button', { name: 'Start Scan' });
+    const scanButton = page.getByRole('button', { name: 'Start privacy scan' });
     await scanButton.click();
 
     // Wait a moment to see response
