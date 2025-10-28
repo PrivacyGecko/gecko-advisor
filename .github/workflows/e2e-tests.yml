@@ -418,6 +418,7 @@ jobs:
 
       - name: Comment PR with performance results
         if: env.E2E_TARGET_ENV != 'stage' && github.event_name == 'pull_request'
+        continue-on-error: true
         uses: actions/github-script@v6
         with:
           script: |
@@ -653,6 +654,7 @@ jobs:
 
       - name: Comment PR with test summary
         if: github.event_name == 'pull_request'
+        continue-on-error: true
         uses: actions/github-script@v6
         with:
           script: |
