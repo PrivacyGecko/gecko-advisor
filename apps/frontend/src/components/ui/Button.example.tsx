@@ -1,3 +1,8 @@
+/*
+SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-License-Identifier: MIT
+*/
+
 /**
  * Button Component - Usage Examples
  *

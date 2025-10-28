@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-License-Identifier: MIT
+*/
 import type { ZodSchema } from 'zod';
 import type { Query } from '@tanstack/react-query';
 import {
