@@ -1,4 +1,8 @@
-﻿import { useEffect, useMemo } from 'react';
+﻿/*
+SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-License-Identifier: MIT
+*/
+import { useEffect, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import Card from '../../components/Card';
