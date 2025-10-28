@@ -143,10 +143,20 @@ export async function checkConsoleErrors(page: Page, ignorePatterns: string[] = 
 
 /**
  * Simulate slow network conditions
+ *
+ * IMPORTANT: This function uses Chrome DevTools Protocol (CDP) which is only fully
+ * supported in Chromium. WebKit and Firefox will log a warning and continue without
+ * network throttling applied.
+ *
+ * Tests using this function should:
+ * - Only assert timing comparisons (slow > normal) for browserName === 'chromium'
+ * - Keep absolute performance thresholds for all browsers
+ *
+ * @see performance-validation.spec.ts "Network conditions impact on performance" test
  */
 export async function simulateSlowNetwork(page: Page) {
   try {
-    // Simulate slow 3G connection (only works in Chromium)
+    // Simulate slow 3G connection (only works in Chromium via CDP)
     const client = await page.context().newCDPSession(page);
     await client.send('Network.enable');
     await client.send('Network.emulateNetworkConditions', {
@@ -155,9 +165,9 @@ export async function simulateSlowNetwork(page: Page) {
       uploadThroughput: 500 * 1024,
       latency: 400, // 400ms
     });
-    console.log('🐌 Slow network conditions enabled');
+    console.log('🐌 Slow network conditions enabled (Chromium CDP)');
   } catch (error) {
-    console.warn('⚠️  Network emulation not available:', error instanceof Error ? error.message : 'Unknown error');
+    console.warn('⚠️  Network emulation not available (WebKit/Firefox):', error instanceof Error ? error.message : 'Unknown error');
   }
 }
 
