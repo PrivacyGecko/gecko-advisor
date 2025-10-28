@@ -11,7 +11,6 @@ import EnhancedScoreDial from '../components/EnhancedScoreDial';
 import Card from '../components/Card';
 import CopyButton from '../components/CopyButton';
 import InfoPopover from '../components/InfoPopover';
-import { SeverityIndicator } from '../components/SeverityBadge';
 import VirtualizedEvidenceList from '../components/VirtualizedEvidenceList';
 import { ScoreDialSkeleton, CardSkeleton, EvidenceCardSkeleton } from '../components/Skeleton';
 import { ErrorState } from '../components/ErrorBoundary';
@@ -688,7 +687,7 @@ const calculateBreakdown = (scan: LegacyReportResponse['scan'], evidence: Eviden
   return breakdown;
 };
 
-function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportResponse; isPro: boolean }) {
+function ReportBody({ slug, data, isPro: _isPro }: { slug: string; data: LegacyReportResponse; isPro: boolean }) {
   const { scan, evidence, meta } = data;
   const [showBreakdown, setShowBreakdown] = React.useState(false);
 
@@ -750,7 +749,7 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
     setOpen((previous) => {
       const next: Record<EvidenceType, boolean> = { ...previous };
 
-      groupEntries.forEach(([type, items]) => {
+      groupEntries.forEach(([type]) => {
         if (next[type] === undefined) {
           // QUICK WIN #1: Expand all sections by default for better UX
           // Users come to see findings, not hunt for expand buttons

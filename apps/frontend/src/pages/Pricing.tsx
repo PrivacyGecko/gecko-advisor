@@ -69,16 +69,13 @@ interface FAQItem {
  * <Pricing />
  */
 export default function Pricing() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
-  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
-
-  const isPro = user?.subscription === 'PRO' || user?.subscription === 'TEAM';
 
   // Pricing tiers configuration
   const pricingTiers: PricingTier[] = [
@@ -194,22 +191,6 @@ export default function Pricing() {
     }
   };
 
-  const handleProCTA = async () => {
-    if (isPro) {
-      navigate('/dashboard');
-      return;
-    }
-
-    // Require login first
-    if (!user || !token) {
-      setShowSignupModal(true);
-      return;
-    }
-
-    // Payments are on hold until the $PRICKO launch
-    alert('PRO subscriptions open with the $PRICKO token launch. Connect your wallet soon to unlock unlimited scans.');
-    return;
-  };
 
   // Toggle FAQ accordion
   const toggleFaq = (index: number) => {

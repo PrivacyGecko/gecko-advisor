@@ -35,7 +35,7 @@ export interface HeaderProps {
  *   onShowSignup={() => setShowSignupModal(true)}
  * />
  */
-export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
+export default function Header({ onShowLogin: _onShowLogin, onShowSignup: _onShowSignup }: HeaderProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -105,10 +105,6 @@ export default function Header({ onShowLogin, onShowSignup }: HeaderProps) {
     setMobileMenuOpen(false);
   };
 
-  const handleMobileAuthClick = (callback?: () => void) => {
-    setMobileMenuOpen(false);
-    callback?.();
-  };
 
   /**
    * Handle "New Scan" button click

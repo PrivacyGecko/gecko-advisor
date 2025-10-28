@@ -3,7 +3,6 @@ SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
 SPDX-License-Identifier: MIT
 */
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { clsx } from 'clsx';
 
 /**
@@ -196,7 +195,14 @@ export function clearDismissedState(): void {
   }
 }
 
+// Extend Window interface for type safety
+declare global {
+  interface Window {
+    clearPublicScanWarning?: () => void;
+  }
+}
+
 // Export for console access in development
 if (typeof window !== 'undefined') {
-  (window as any).clearPublicScanWarning = clearDismissedState;
+  window.clearPublicScanWarning = clearDismissedState;
 }
