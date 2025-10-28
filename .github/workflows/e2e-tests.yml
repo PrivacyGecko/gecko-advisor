@@ -580,7 +580,7 @@ jobs:
           cd tests/e2e
           npx playwright test \
             --project=chromium \
-            --grep="(?i)accessibility" \
+            --grep="[Aa]ccessibility" \
             --reporter=html,json
 
       - name: Generate accessibility report
