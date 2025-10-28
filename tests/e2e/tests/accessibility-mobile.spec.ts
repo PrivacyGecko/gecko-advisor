@@ -251,27 +251,25 @@ test.describe('Accessibility & Mobile Testing', () => {
     const homePage = new HomePage(page);
     await homePage.goto();
 
-    // Test tap interactions with resilient selectors
-    const urlTab = page.locator('button:has-text("URL"), [role="tab"]:has-text("URL")').first();
-    await urlTab.waitFor({ state: 'visible', timeout: 5000 });
-    await urlTab.tap();
-    await expect(urlTab).toHaveClass(/bg-security-blue|active/);
+    // NOTE: URL/APP/ADDRESS tabs were removed in UI refactoring (Quick Win #2)
+    // Current UI only has a simple input field + button, so we test those instead
 
-    const appTab = page.locator('button:has-text("APP"), [role="tab"]:has-text("APP")').first();
-    await appTab.waitFor({ state: 'visible', timeout: 5000 });
-    await appTab.tap();
-    await expect(appTab).toHaveClass(/bg-security-blue|active/);
-
-    // Test form interactions
+    // Test form interactions with tap gestures
     const urlInput = page.locator('input[aria-label="Scan input"]');
+    await urlInput.waitFor({ state: 'visible', timeout: 5000 });
     await urlInput.tap();
     await urlInput.fill(TEST_URLS.FIXTURE_SAFE);
 
+    // Verify input accepted the value
+    await expect(urlInput).toHaveValue(TEST_URLS.FIXTURE_SAFE);
+
     // Test button tap
     const scanButton = page.locator('button:has-text("Scan Now")');
+    await scanButton.waitFor({ state: 'visible', timeout: 5000 });
     await scanButton.tap();
 
-    await page.waitForURL(/\/scan\/\w+/);
+    // Verify navigation to scan page
+    await page.waitForURL(/\/scan\/\w+/, { timeout: 10000 });
   });
 
   test('Screen reader announcements', async ({ page }) => {

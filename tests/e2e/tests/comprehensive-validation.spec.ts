@@ -121,6 +121,10 @@ test.describe('Privacy Advisor - Comprehensive Validation', () => {
     });
 
     test('should have keyboard navigation support', async ({ page }) => {
+      // Ensure page is fully loaded before checking interactive elements
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
+
       // Test tab navigation through interactive elements
       const interactiveElements = await page.locator('button, a, input, select, textarea, [tabindex]:not([tabindex="-1"])').all();
 
@@ -134,6 +138,10 @@ test.describe('Privacy Advisor - Comprehensive Validation', () => {
     });
 
     test('should have sufficient color contrast', async ({ page }) => {
+      // Ensure page is fully rendered with styles applied
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
+
       // Test main text elements for color contrast
       const textElements = await page.locator('p, h1, h2, h3, h4, h5, h6, span, div').all();
 
