@@ -67,11 +67,18 @@ export default function Scan() {
   const shouldShowError = isError || hasTimedOut;
 
   return (
-    <div className="max-w-3xl mx-auto p-4 md:p-6 space-y-4">
+    <main className="max-w-3xl mx-auto p-4 md:p-6 space-y-4">
       <div className="flex items-center justify-end text-sm">
         <a href="/docs" className="underline text-security-blue">Docs</a>
       </div>
-      <h1 className="text-xl md:text-2xl font-bold">Scanning in Progress</h1>
+      <h1 className="text-xl md:text-2xl font-bold">
+        {shouldShowError
+          ? (hasTimedOut ? "Scan Timed Out" : isRateLimited ? "Scan Temporarily Slowed" : "Scan Status Error")
+          : data?.status === 'done'
+            ? "Scan Complete"
+            : "Scanning in Progress"
+        }
+      </h1>
       <Card>
         {isLoading ? (
           <ProgressSkeleton />
@@ -139,6 +146,6 @@ export default function Scan() {
       )}
       <Link to="/" className="text-security-blue underline">New scan</Link>
       <Footer />
-    </div>
+    </main>
   );
 }

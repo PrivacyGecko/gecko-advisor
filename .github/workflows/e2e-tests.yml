@@ -49,8 +49,9 @@ jobs:
       matrix:
         browser: [chromium]  # TODO: Re-enable firefox and webkit after chromium tests pass
         test-suite:
-          - "Core Privacy Scanning Journey"
-          # TODO: Re-enable other test suites after Core tests pass
+          - "Smoke Tests"  # Semantic user-focused tests (no data-testid required)
+          - "Core Privacy Scanning Journey"  # Complete scan flow with Page Object Model
+          # TODO: Expand test coverage organically based on user journeys
           # - "Performance Validation"
           # - "Accessibility & Mobile Testing"
           # - "Security & Error Handling"
@@ -395,11 +396,12 @@ jobs:
       - name: Run performance benchmarks
         if: env.E2E_TARGET_ENV != 'stage'
         run: |
+          cd tests/e2e
           pnpm exec playwright test \
             --project=chromium \
             --grep="performance-validation" \
             --reporter=json \
-            --output-dir=benchmark-results
+            --output=benchmark-results
         env:
           CI: true
           E2E_BASE_URL: http://localhost:8080

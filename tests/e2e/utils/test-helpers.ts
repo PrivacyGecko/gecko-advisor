@@ -30,7 +30,8 @@ export const TEST_URLS = {
  * Performance thresholds
  */
 export const PERFORMANCE_THRESHOLDS = {
-  SCAN_COMPLETION: 3000, // 3 seconds max
+  SCAN_COMPLETION: 90000, // 90 seconds max for real domains
+  SCAN_COMPLETION_FAST: 3000, // 3 seconds for test fixture data
   PAGE_LOAD: 5000, // 5 seconds max
   DATABASE_QUERY: 50, // 50ms max for deduplication
 } as const;
