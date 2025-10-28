@@ -413,9 +413,9 @@ function EvidenceItemDisplay({ evidence }: EvidenceItemDisplayProps) {
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <h4 className={`font-semibold ${config.textColor} text-base`}>
+            <h3 className={`font-semibold ${config.textColor} text-base`}>
               {evidence.title}
-            </h4>
+            </h3>
             <span
               className="text-xs text-gray-600 flex-shrink-0 px-2 py-1 bg-white bg-opacity-50 rounded"
               aria-label={`Severity level ${evidence.severity} out of 5`}
@@ -1352,8 +1352,8 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
           <a className="underline text-security-blue" href={`/compare?left=${encodeURIComponent(slug)}`}>Compare</a>
         </div>
       </footer>
-      <Footer />
-      </main>
+    </main>
+    <Footer />
     </>
   );
 }

@@ -145,23 +145,33 @@ export async function checkConsoleErrors(page: Page, ignorePatterns: string[] = 
  * Simulate slow network conditions
  */
 export async function simulateSlowNetwork(page: Page) {
-  // Simulate slow 3G connection
-  const client = await page.context().newCDPSession(page);
-  await client.send('Network.enable');
-  await client.send('Network.emulateNetworkConditions', {
-    offline: false,
-    downloadThroughput: 500 * 1024, // 500kb/s
-    uploadThroughput: 500 * 1024,
-    latency: 400, // 400ms
-  });
+  try {
+    // Simulate slow 3G connection (only works in Chromium)
+    const client = await page.context().newCDPSession(page);
+    await client.send('Network.enable');
+    await client.send('Network.emulateNetworkConditions', {
+      offline: false,
+      downloadThroughput: 500 * 1024, // 500kb/s
+      uploadThroughput: 500 * 1024,
+      latency: 400, // 400ms
+    });
+    console.log('🐌 Slow network conditions enabled');
+  } catch (error) {
+    console.warn('⚠️  Network emulation not available:', error instanceof Error ? error.message : 'Unknown error');
+  }
 }
 
 /**
  * Reset network conditions to normal
  */
 export async function resetNetworkConditions(page: Page) {
-  const client = await page.context().newCDPSession(page);
-  await client.send('Network.disable');
+  try {
+    const client = await page.context().newCDPSession(page);
+    await client.send('Network.disable');
+    console.log('🌐 Network conditions reset to normal');
+  } catch (error) {
+    console.warn('⚠️  Network reset not available:', error instanceof Error ? error.message : 'Unknown error');
+  }
 }
 
 /**
