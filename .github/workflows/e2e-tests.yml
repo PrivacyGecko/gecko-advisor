@@ -397,9 +397,9 @@ jobs:
         if: env.E2E_TARGET_ENV != 'stage'
         run: |
           cd tests/e2e
-          pnpm exec playwright test \
+          npx playwright test \
             --project=chromium \
-            --grep="performance-validation" \
+            --grep="Performance Validation" \
             --reporter=json \
             --output=benchmark-results
         env:
