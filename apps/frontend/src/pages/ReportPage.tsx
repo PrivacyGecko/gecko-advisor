@@ -413,9 +413,9 @@ function EvidenceItemDisplay({ evidence }: EvidenceItemDisplayProps) {
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <h4 className={`font-semibold ${config.textColor} text-base`}>
+            <h3 className={`font-semibold ${config.textColor} text-base`}>
               {evidence.title}
-            </h4>
+            </h3>
             <span
               className="text-xs text-gray-600 flex-shrink-0 px-2 py-1 bg-white bg-opacity-50 rounded"
               aria-label={`Severity level ${evidence.severity} out of 5`}
@@ -499,7 +499,7 @@ export default function ReportPage() {
       : `There was an error loading the report "${slug}". This might be a temporary issue. Please try again.`;
 
     return (
-      <div className="max-w-4xl mx-auto p-6">
+      <main className="max-w-4xl mx-auto p-6">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
           <Link
             to="/"
@@ -519,7 +519,7 @@ export default function ReportPage() {
           onGoHome={() => window.location.href = '/'}
           showDetails={process.env.NODE_ENV === 'development'}
         />
-      </div>
+      </main>
     );
   }
 
@@ -856,7 +856,7 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
+      <main className="max-w-4xl mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Link
             to="/"
@@ -874,9 +874,12 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
         <div className="flex-1 text-center md:text-left">
           <div className="flex flex-col md:flex-row md:items-center gap-3 justify-center md:justify-start mb-2">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-              {scan.label} ({scan.score ?? 'n/a'})
+              Privacy Report: {scan.label}
             </h1>
             <GradeBadge score={scan.score ?? 0} size="lg" showLabel={true} />
+          </div>
+          <div className="text-lg font-semibold text-gray-700">
+            Score: {scan.score ?? 'n/a'}/100
           </div>
           <p className="text-slate-600 break-all">{scan.input}</p>
           <div className="mt-1 text-xs text-slate-600">
@@ -897,12 +900,12 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
 
       {/* Summary Box */}
       <div className="bg-blue-50 border-2 border-blue-400 rounded-xl p-6">
-        <h3 className="text-blue-900 font-semibold text-lg mb-2 flex items-center gap-2">
+        <h2 className="text-blue-900 font-semibold text-lg mb-2 flex items-center gap-2">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
           Quick Summary
-        </h3>
+        </h2>
         <p className="text-blue-800 leading-relaxed">
           {generateSummary(scan, evidence)}
         </p>
@@ -1053,10 +1056,10 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
               return (
                 <div key={key} className="bg-white rounded-lg p-5 shadow-sm border border-slate-200">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                       <span className="text-2xl" aria-hidden="true">{category.icon}</span>
                       {category.title}
-                    </h3>
+                    </h2>
                     <span className="text-sm text-gray-600 bg-slate-100 px-3 py-1 rounded-full font-medium">
                       {filteredCategoryItems.length} {filteredCategoryItems.length === 1 ? 'item' : 'items'}
                     </span>
@@ -1117,7 +1120,7 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
       </div>
 
       <div className="text-center">
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">Technical Details by Type</h3>
+        <h2 className="text-lg font-semibold text-gray-700 mb-2">Technical Details by Type</h2>
         <p className="text-sm text-gray-500">Expand sections below for granular technical findings</p>
       </div>
 
@@ -1349,8 +1352,8 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
           <a className="underline text-security-blue" href={`/compare?left=${encodeURIComponent(slug)}`}>Compare</a>
         </div>
       </footer>
-      <Footer />
-      </div>
+    </main>
+    <Footer />
     </>
   );
 }

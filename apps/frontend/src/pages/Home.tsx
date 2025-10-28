@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
 SPDX-License-Identifier: MIT
 */
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -17,6 +17,7 @@ import SignupModal from '../components/SignupModal';
 import EnhancedTrustIndicator from '../components/EnhancedTrustIndicator';
 import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import GradeBadge from '../components/GradeBadge';
+import TurnstileWidget, { useTurnstileEnabled } from '../components/TurnstileWidget';
 import type { RecentReportsResponse } from '@privacy-advisor/shared';
 
 type RecentItem = RecentReportsResponse['items'][number] & { evidenceCount: number };
@@ -63,12 +64,20 @@ export default function Home() {
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const navigate = useNavigate();
   const { token } = useAuth();
+  const turnstileEnabled = useTurnstileEnabled();
 
   async function onScan() {
     try {
       setLoading(true);
+
+      // If Turnstile is enabled and no token, show error
+      if (turnstileEnabled && !turnstileToken) {
+        toast.error('Please wait for security check to complete');
+        return;
+      }
 
       // Call the v2 API endpoint
       const response = await fetch('/api/v2/scan', {
@@ -77,7 +86,10 @@ export default function Home() {
           'Content-Type': 'application/json',
           ...(token && { 'Authorization': `Bearer ${token}` }),
         },
-        body: JSON.stringify({ url: input }),
+        body: JSON.stringify({
+          url: input,
+          ...(turnstileToken && { turnstileToken }),
+        }),
       });
 
       if (!response.ok) {
@@ -114,7 +126,7 @@ export default function Home() {
         onShowLogin={() => setShowLoginModal(true)}
         onShowSignup={() => setShowSignupModal(true)}
       />
-      <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
+      <main className="max-w-5xl mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
       {/* Hero Section - Privacy Scanner */}
       <header className="text-center space-y-6 py-8 md:py-16">
         {/* Logo */}
@@ -166,6 +178,21 @@ export default function Home() {
           </label>
         </div>
 
+        {/* Turnstile widget (invisible) */}
+        <div className="hidden">
+          <TurnstileWidget
+            onSuccess={(token) => setTurnstileToken(token)}
+            onError={() => {
+              console.warn('[Turnstile] Failed to verify');
+              toast.error('Security check failed. Please refresh and try again.');
+            }}
+            onExpire={() => {
+              setTurnstileToken(null);
+              toast.error('Security check expired. Please try again.');
+            }}
+          />
+        </div>
+
         {/* Input field for website scanning */}
         <div className="flex flex-col sm:flex-row gap-3">
           <input
@@ -174,12 +201,12 @@ export default function Home() {
             onChange={(event) => setInput(event.target.value)}
             className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-advisor-500 focus:border-advisor-500 transition-colors"
             placeholder="Enter website URL (e.g., example.com)"
-            aria-label="Website URL to scan for privacy analysis"
+            aria-label="Scan input"
             aria-describedby="scan-help-text"
           />
           <button
             onClick={onScan}
-            disabled={loading}
+            disabled={loading || (turnstileEnabled && !turnstileToken)}
             className="w-full sm:w-auto px-8 py-4 min-h-[56px] rounded-lg bg-advisor-600 hover:bg-advisor-700 active:bg-advisor-800 text-white disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg shadow-md hover:shadow-lg transition-all duration-200"
             aria-label="Start privacy scan"
           >
@@ -306,7 +333,7 @@ export default function Home() {
         <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
           {/* Step 1 */}
           <div className="flex-1 max-w-xs text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-advisor-500 to-advisor-600 flex items-center justify-center shadow-lg shadow-advisor-500/30">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-advisor-600 flex items-center justify-center shadow-lg shadow-advisor-500/30">
               <span className="text-2xl font-bold text-white">1</span>
             </div>
             <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
@@ -324,7 +351,7 @@ export default function Home() {
 
           {/* Step 2 */}
           <div className="flex-1 max-w-xs text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-advisor-500 to-advisor-600 flex items-center justify-center shadow-lg shadow-advisor-500/30">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-advisor-600 flex items-center justify-center shadow-lg shadow-advisor-500/30">
               <span className="text-2xl font-bold text-white">2</span>
             </div>
             <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
@@ -342,7 +369,7 @@ export default function Home() {
 
           {/* Step 3 */}
           <div className="flex-1 max-w-xs text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-advisor-500 to-advisor-600 flex items-center justify-center shadow-lg shadow-advisor-500/30">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-advisor-600 flex items-center justify-center shadow-lg shadow-advisor-500/30">
               <span className="text-2xl font-bold text-white">3</span>
             </div>
             <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
@@ -448,8 +475,8 @@ export default function Home() {
         </div>
       </section>
 
-      <Footer />
-    </div>
+    </main>
+    <Footer />
 
     {/* Auth modals */}
     <LoginModal

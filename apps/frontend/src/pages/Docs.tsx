@@ -19,7 +19,7 @@ export default function Docs() {
   return (
     <>
       <Header onShowLogin={() => setShowLogin(true)} onShowSignup={() => setShowSignup(true)} />
-      <div className="max-w-3xl mx-auto p-6 space-y-6">
+      <main className="max-w-3xl mx-auto p-6 space-y-6">
         <header>
           <h1 className="text-3xl font-bold">Gecko Advisor Docs</h1>
           <p className="text-slate-600">How we compute scores and labels.</p>
@@ -69,7 +69,7 @@ export default function Docs() {
           this derivation to the backend for transparency and consistency.
         </p>
       </Card>
-      </div>
+      </main>
       <Footer />
       <LoginModal
         isOpen={showLogin}

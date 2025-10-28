@@ -9,15 +9,17 @@ const path = require('path');
  * Generate performance report from Playwright test results
  */
 function generatePerformanceReport() {
-  const resultsDir = 'benchmark-results';
+  // In CI, Playwright outputs to current directory; locally to benchmark-results
+  const resultsDir = process.env.CI ? '.' : 'benchmark-results';
   const outputFile = 'performance-summary.md';
 
   try {
-    // Read test results
+    // Read test results - Playwright outputs to test-results.json by default
     const testResultsFile = path.join(resultsDir, 'test-results.json');
 
     if (!fs.existsSync(testResultsFile)) {
-      console.log('No test results found, creating basic report');
+      console.log(`No test results found at ${testResultsFile}, creating basic report`);
+      console.log(`Searched in: ${path.resolve(testResultsFile)}`);
       createBasicReport(outputFile);
       return;
     }

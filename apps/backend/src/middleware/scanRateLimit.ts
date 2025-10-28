@@ -1,6 +1,8 @@
+// SPDX-License-Identifier: MIT
 import type { Request, Response, NextFunction } from 'express';
 import { RateLimitService, type RateLimitInfo } from '../services/rateLimitService.js';
 import { prisma } from '../prisma.js';
+import type { SafeUser } from '../services/authService.js';
 
 const rateLimitService = new RateLimitService(prisma);
 
@@ -9,6 +11,7 @@ const rateLimitService = new RateLimitService(prisma);
  */
 export interface RequestWithRateLimit extends Request {
   rateLimit?: RateLimitInfo;
+  user?: SafeUser;
 }
 
 /**
@@ -26,12 +29,12 @@ export interface RequestWithRateLimit extends Request {
  * - upgradeUrl to pricing page
  */
 export const scanRateLimiter = async (
-  req: Request,
+  req: RequestWithRateLimit,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const user = (req as any).user;
+    const user = req.user;
 
     // If Pro user with active subscription, bypass rate limiting
     if (
@@ -62,7 +65,7 @@ export const scanRateLimiter = async (
     }
 
     // Attach rate limit info to request for use in response
-    (req as any).rateLimit = rateLimit;
+    req.rateLimit = rateLimit;
     next();
   } catch (error) {
     next(error);

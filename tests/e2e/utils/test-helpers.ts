@@ -30,7 +30,8 @@ export const TEST_URLS = {
  * Performance thresholds
  */
 export const PERFORMANCE_THRESHOLDS = {
-  SCAN_COMPLETION: 3000, // 3 seconds max
+  SCAN_COMPLETION: 90000, // 90 seconds max for real domains
+  SCAN_COMPLETION_FAST: 3000, // 3 seconds for test fixture data
   PAGE_LOAD: 5000, // 5 seconds max
   DATABASE_QUERY: 50, // 50ms max for deduplication
 } as const;
@@ -142,25 +143,45 @@ export async function checkConsoleErrors(page: Page, ignorePatterns: string[] = 
 
 /**
  * Simulate slow network conditions
+ *
+ * IMPORTANT: This function uses Chrome DevTools Protocol (CDP) which is only fully
+ * supported in Chromium. WebKit and Firefox will log a warning and continue without
+ * network throttling applied.
+ *
+ * Tests using this function should:
+ * - Only assert timing comparisons (slow > normal) for browserName === 'chromium'
+ * - Keep absolute performance thresholds for all browsers
+ *
+ * @see performance-validation.spec.ts "Network conditions impact on performance" test
  */
 export async function simulateSlowNetwork(page: Page) {
-  // Simulate slow 3G connection
-  const client = await page.context().newCDPSession(page);
-  await client.send('Network.enable');
-  await client.send('Network.emulateNetworkConditions', {
-    offline: false,
-    downloadThroughput: 500 * 1024, // 500kb/s
-    uploadThroughput: 500 * 1024,
-    latency: 400, // 400ms
-  });
+  try {
+    // Simulate slow 3G connection (only works in Chromium via CDP)
+    const client = await page.context().newCDPSession(page);
+    await client.send('Network.enable');
+    await client.send('Network.emulateNetworkConditions', {
+      offline: false,
+      downloadThroughput: 500 * 1024, // 500kb/s
+      uploadThroughput: 500 * 1024,
+      latency: 400, // 400ms
+    });
+    console.log('🐌 Slow network conditions enabled (Chromium CDP)');
+  } catch (error) {
+    console.warn('⚠️  Network emulation not available (WebKit/Firefox):', error instanceof Error ? error.message : 'Unknown error');
+  }
 }
 
 /**
  * Reset network conditions to normal
  */
 export async function resetNetworkConditions(page: Page) {
-  const client = await page.context().newCDPSession(page);
-  await client.send('Network.disable');
+  try {
+    const client = await page.context().newCDPSession(page);
+    await client.send('Network.disable');
+    console.log('🌐 Network conditions reset to normal');
+  } catch (error) {
+    console.warn('⚠️  Network reset not available:', error instanceof Error ? error.message : 'Unknown error');
+  }
 }
 
 /**

@@ -45,7 +45,12 @@ assets/docs/
 assets/project-docs/
 assets/test-summary/
 Project-Docs/
-tests/
+
+# E2E tests (configuration is public, results are ignored)
+tests/e2e/test-results/
+tests/e2e/playwright-report/
+tests/e2e/**/*.log
+tests/e2e/.cache/
 
 # Deployment-specific (NOT for public release)
 infra/docker/docker-compose.stage.yml

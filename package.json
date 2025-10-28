@@ -20,6 +20,7 @@
     "licenses:check": "node scripts/check-licenses.js",
     "spdx:check": "node scripts/check-spdx.js",
     "test:e2e": "./tests/e2e/scripts/run-tests.sh",
+    "test:e2e:local": "./tests/e2e/scripts/run-local-e2e.sh",
     "test:e2e:core": "./tests/e2e/scripts/run-tests.sh --suite core",
     "test:e2e:performance": "./tests/e2e/scripts/run-tests.sh --suite performance",
     "test:e2e:accessibility": "./tests/e2e/scripts/run-tests.sh --suite accessibility",

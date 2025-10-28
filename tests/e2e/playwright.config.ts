@@ -1,9 +1,5 @@
+// SPDX-License-Identifier: MIT
 import { defineConfig, devices } from '@playwright/test';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 /**
  * @see https://playwright.dev/docs/test-configuration
@@ -38,8 +34,8 @@ export default defineConfig({
 
   /* Shared settings for all projects */
   use: {
-    /* Base URL for all tests */
-    baseURL: process.env.E2E_BASE_URL || 'http://localhost:5173',
+    /* Base URL for all tests - now using Nginx reverse proxy on port 8080 */
+    baseURL: process.env.E2E_BASE_URL || 'http://localhost:8080',
 
     /* Collect trace when retrying the failed test. */
     trace: 'on-first-retry',
@@ -56,38 +52,56 @@ export default defineConfig({
   },
 
   /* Global test setup */
-  globalSetup: resolve(__dirname, './global-setup.ts'),
-  globalTeardown: resolve(__dirname, './global-teardown.ts'),
+  globalSetup: './global-setup.ts',
+  globalTeardown: './global-teardown.ts',
 
   /* Configure projects for major browsers */
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        hasTouch: true,
+      },
     },
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: {
+        ...devices['Desktop Firefox'],
+        hasTouch: true,
+      },
     },
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      use: {
+        ...devices['Desktop Safari'],
+        hasTouch: true,
+      },
     },
 
     /* Mobile devices */
     {
       name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
+      use: {
+        ...devices['Pixel 5'],
+        hasTouch: true,
+      },
     },
     {
       name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
+      use: {
+        ...devices['iPhone 12'],
+        hasTouch: true,
+      },
     },
 
     /* Tablet devices */
     {
       name: 'Tablet',
-      use: { ...devices['iPad Pro'] },
+      use: {
+        ...devices['iPad Pro'],
+        hasTouch: true,
+      },
     },
   ],
 
@@ -97,9 +111,10 @@ export default defineConfig({
   /* Web server configuration for local development */
   webServer: process.env.CI ? undefined : {
     command: 'pnpm dev',
-    port: 5173,
+    port: 8080,
     timeout: 120 * 1000,
     reuseExistingServer: !process.env.CI,
+    url: 'http://localhost:8080/health',
   },
 });
 

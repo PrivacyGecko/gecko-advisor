@@ -1,4 +1,6 @@
-import { FC, ReactNode, useMemo } from 'react';
+// SPDX-License-Identifier: MIT
+import type { FC, ReactNode} from 'react';
+import { useMemo } from 'react';
 import {
   ConnectionProvider,
   WalletProvider as SolanaWalletProvider,

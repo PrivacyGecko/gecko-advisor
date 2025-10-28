@@ -67,9 +67,12 @@ CORS_EXTRA_ORIGINS=https://www.geckoadvisor.com
 ## 🛡️ Cloudflare Turnstile (Bot Protection)
 
 ```bash
+# Backend Configuration
 TURNSTILE_ENABLED=true
 TURNSTILE_SECRET_KEY=0x4AAAAAAB8sqHJ9YXEI3C2O
-TURNSTILE_SITE_KEY=0x4AAAAAAB8sqAP95gn_G9nvSObb5oAitDU
+
+# Frontend Configuration (must start with VITE_)
+VITE_TURNSTILE_SITE_KEY=0x4AAAAAAB8sqAP95gn_G9nvSObb5oAitDU
 ```
 
 ---

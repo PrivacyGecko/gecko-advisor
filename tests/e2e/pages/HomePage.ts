@@ -36,7 +36,7 @@ export class HomePage {
     this.heading = page.locator('h1');
     this.subheading = page.locator('p').first();
     this.urlInput = page.locator('input[aria-label="Scan input"]');
-    this.scanButton = page.locator('button:has-text("Scan Now")');
+    this.scanButton = page.getByRole('button', { name: 'Start privacy scan' });
     this.docsLink = page.locator('a[href="/docs"]');
 
     // Tab navigation
@@ -70,7 +70,7 @@ export class HomePage {
 
     // Assert page loaded correctly
     await expect(this.heading).toBeVisible();
-    await assertElementText(this.page, 'h1', 'Check how safe your site, app, or wallet is');
+    await assertElementText(this.page, 'h1', 'See What\'s Tracking You Online');
 
     return duration;
   }
@@ -84,7 +84,7 @@ export class HomePage {
 
     const { result: navigationPromise } = await measurePerformance(
       async () => {
-        const navigationPromise = this.page.waitForURL(/\/scan\/\w+/);
+        const navigationPromise = this.page.waitForURL(/\/scan\/[\w-]+/);
         await this.scanButton.click();
         return navigationPromise;
       },
@@ -97,20 +97,12 @@ export class HomePage {
 
   /**
    * Switch between input modes
+   * NOTE: Current UI doesn't have tab navigation - this is a placeholder for future functionality
    */
   async switchInputMode(mode: 'URL' | 'APP' | 'ADDRESS') {
-    const tabButton = this.page.locator(`button:has-text("${mode}")`);
-    await tabButton.click();
-    await expect(tabButton).toHaveClass(/bg-security-blue/);
-
-    // Verify placeholder text changes
-    const expectedPlaceholders = {
-      URL: 'https://example.com',
-      APP: 'app id',
-      ADDRESS: '0x... or address',
-    };
-
-    await expect(this.urlInput).toHaveAttribute('placeholder', expectedPlaceholders[mode]);
+    // Tab functionality not currently implemented in the UI
+    // For now, just verify the input field exists
+    await expect(this.urlInput).toBeVisible();
   }
 
   /**
@@ -214,14 +206,9 @@ export class HomePage {
   async verifyAccessibility() {
     // Check ARIA labels
     await expect(this.urlInput).toHaveAttribute('aria-label', 'Scan input');
-    await expect(this.tabButtons.first()).toHaveAttribute('role', 'tab');
 
-    // Check tab navigation
-    await this.urlTab.focus();
-    await expect(this.urlTab).toBeFocused();
-
-    // Check keyboard navigation
-    await this.page.keyboard.press('Tab');
+    // Check keyboard navigation for main elements
+    await this.urlInput.focus();
     await expect(this.urlInput).toBeFocused();
 
     await this.page.keyboard.press('Tab');
@@ -236,8 +223,8 @@ export class HomePage {
     const container = this.page.locator('.max-w-5xl');
     await expect(container).toBeVisible();
 
-    // Check mobile-specific elements
-    const mobileText = this.page.locator('.text-3xl.md\\:text-5xl');
+    // Check mobile-specific elements - use semantic selector for h1
+    const mobileText = this.page.locator('h1:has-text("See What\'s Tracking You Online")');
     await expect(mobileText).toBeVisible();
 
     // Check responsive grid
@@ -252,8 +239,8 @@ export class HomePage {
     const performanceData = await this.page.evaluate(() => {
       const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
       return {
-        domContentLoaded: navigation.domContentLoadedEventEnd - navigation.navigationStart,
-        loadComplete: navigation.loadEventEnd - navigation.navigationStart,
+        domContentLoaded: navigation.domContentLoadedEventEnd - navigation.fetchStart,
+        loadComplete: navigation.loadEventEnd - navigation.fetchStart,
         firstPaint: performance.getEntriesByType('paint').find(entry => entry.name === 'first-paint')?.startTime || 0,
         firstContentfulPaint: performance.getEntriesByType('paint').find(entry => entry.name === 'first-contentful-paint')?.startTime || 0,
       };

@@ -121,7 +121,7 @@ test.describe('Core Privacy Scanning Journey', () => {
 
       if (testCase.shouldWork) {
         // Should be able to start scan
-        await expect(page.locator('button:has-text("Scan Now")')).toBeEnabled();
+        await expect(page.getByRole('button', { name: 'Start privacy scan' })).toBeEnabled();
       }
     }
   });
@@ -284,6 +284,9 @@ test.describe('Core Privacy Scanning Journey', () => {
 
     await homePage.goto();
     await homePage.startScan(TEST_URLS.FIXTURE_SAFE);
+
+    // Wait for scan page to load before monitoring progress
+    await scanPage.waitForScanPageLoad();
 
     // Monitor progress percentage changes
     const progressHistory: number[] = [];

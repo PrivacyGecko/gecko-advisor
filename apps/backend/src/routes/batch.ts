@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
@@ -308,7 +309,7 @@ batchRouter.get('/history', requirePro, async (req: Request, res: Response) => {
     >();
 
     for (const scan of batchScans) {
-      const batchId = (scan.meta as any)?.batchId;
+      const batchId = (scan.meta as { batchId?: string } | null)?.batchId;
       if (!batchId) continue;
 
       if (!batches.has(batchId)) {

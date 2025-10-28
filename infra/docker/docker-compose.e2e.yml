@@ -1,0 +1,123 @@
+# Docker Compose configuration for E2E testing
+# This setup uses Nginx to proxy both frontend (Vite dev server) and backend through port 8080
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: privacy_advisor_test
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.backend
+    environment:
+      NODE_ENV: test
+      APP_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/privacy_advisor_test
+      REDIS_URL: redis://redis:6379
+      BACKEND_PORT: 5000
+      # Allow all dev origins for E2E testing
+      ALLOW_ORIGIN: http://localhost:8080
+      FRONTEND_PUBLIC_URL: http://localhost:8080
+      BACKEND_PUBLIC_URL: http://localhost:5000
+    expose:
+      - "5000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:5000/api/health',res=>process.exit(res.statusCode===200?0:1)).on('error',()=>process.exit(1))\" "]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.worker
+    environment:
+      NODE_ENV: test
+      APP_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/privacy_advisor_test
+      REDIS_URL: redis://redis:6379
+      # Use test fixtures for deterministic E2E tests
+      USE_FIXTURES: 1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:5050/health',res=>process.exit(res.statusCode===200?0:1)).on('error',()=>process.exit(1))\" "]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.frontend.dev
+    environment:
+      NODE_ENV: development
+      FRONTEND_PORT: 5173
+      # Configure Vite to proxy API calls to backend container
+      VITE_API_PROXY_TARGET: http://backend:5000
+      # HMR host for WebSocket connections
+      VITE_HMR_HOST: localhost
+    volumes:
+      # Mount source code for hot reload
+      - ../../apps/frontend:/app/apps/frontend
+      - ../../packages:/app/packages
+      - /app/node_modules
+      - /app/apps/frontend/node_modules
+    expose:
+      - "5173"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./nginx-dev.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      # Expose port 8080 for E2E tests
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped

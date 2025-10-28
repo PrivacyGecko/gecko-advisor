@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { test, expect, Page } from '@playwright/test';
 
 test.describe('Privacy Advisor - Comprehensive Validation', () => {
@@ -81,15 +82,23 @@ test.describe('Privacy Advisor - Comprehensive Validation', () => {
 
   test.describe('Accessibility Compliance (WCAG AA)', () => {
     test('should have proper heading structure', async ({ page }) => {
-      const headings = await page.locator('h1, h2, h3, h4, h5, h6').all();
-      expect(headings.length).toBeGreaterThan(0);
+      // Add wait before checking headings
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
+
+      // Check for any heading level
+      const headings = page.locator('h1, h2, h3');
+      await headings.first().waitFor({ state: 'visible', timeout: 5000 });
+      const headingCount = await headings.count();
+      expect(headingCount).toBeGreaterThan(0);
 
       // Check that there's exactly one h1
       const h1Elements = await page.locator('h1').all();
       expect(h1Elements.length).toBe(1);
 
       // Verify heading text is meaningful
-      for (const heading of headings) {
+      const allHeadings = await page.locator('h1, h2, h3, h4, h5, h6').all();
+      for (const heading of allHeadings) {
         const text = await heading.textContent();
         expect(text?.trim().length).toBeGreaterThan(0);
       }
@@ -112,6 +121,10 @@ test.describe('Privacy Advisor - Comprehensive Validation', () => {
     });
 
     test('should have keyboard navigation support', async ({ page }) => {
+      // Ensure page is fully loaded before checking interactive elements
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
+
       // Test tab navigation through interactive elements
       const interactiveElements = await page.locator('button, a, input, select, textarea, [tabindex]:not([tabindex="-1"])').all();
 
@@ -125,6 +138,10 @@ test.describe('Privacy Advisor - Comprehensive Validation', () => {
     });
 
     test('should have sufficient color contrast', async ({ page }) => {
+      // Ensure page is fully rendered with styles applied
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
+
       // Test main text elements for color contrast
       const textElements = await page.locator('p, h1, h2, h3, h4, h5, h6, span, div').all();
 

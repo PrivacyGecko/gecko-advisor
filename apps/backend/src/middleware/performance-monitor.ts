@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { Request, Response, NextFunction } from 'express';
 import { logger } from '../logger.js';
 
@@ -40,6 +41,7 @@ export function performanceMonitor(req: Request, res: Response, next: NextFuncti
 
   // Override res.end to capture response time
   const originalEnd = res.end.bind(res);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (res as any).end = function(...args: any[]) {
     const duration = Date.now() - startTime;
 
@@ -47,6 +49,7 @@ export function performanceMonitor(req: Request, res: Response, next: NextFuncti
     logPerformanceMetrics(metrics, duration, res.statusCode);
 
     // Call original end method
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (originalEnd as any).apply(this, args);
   };
 
@@ -202,6 +205,7 @@ export function addPerformanceHeaders(req: Request, res: Response, next: NextFun
 
   // Override res.end to add timing header
   const originalEnd = res.end.bind(res);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (res as any).end = function(...args: any[]) {
     const duration = Date.now() - startTime;
 
@@ -219,6 +223,7 @@ export function addPerformanceHeaders(req: Request, res: Response, next: NextFun
     }
 
     // Call original end method
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (originalEnd as any).apply(this, args);
   };
 
