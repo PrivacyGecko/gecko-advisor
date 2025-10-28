@@ -23,11 +23,11 @@ import Card from '../components/Card';
  */
 export default function GradingDemo() {
   const testScores = [
-    { score: 95, description: 'Excellent privacy (Grade A)' },
-    { score: 85, description: 'Good privacy (Grade B)' },
-    { score: 75, description: 'Fair privacy (Grade C)' },
-    { score: 65, description: 'Poor privacy (Grade D)' },
-    { score: 50, description: 'Bad privacy (Grade F)' },
+    { score: 95 },
+    { score: 85 },
+    { score: 75 },
+    { score: 65 },
+    { score: 50 },
   ];
 
   return (
@@ -45,7 +45,7 @@ export default function GradingDemo() {
       <Card>
         <h2 className="text-2xl font-semibold mb-4">All Grades at a Glance</h2>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {testScores.map(({ score, description }) => {
+          {testScores.map(({ score }) => {
             const gradeInfo = getGradeInfo(score);
             return (
               <div

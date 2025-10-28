@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
 SPDX-License-Identifier: MIT
 */
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';

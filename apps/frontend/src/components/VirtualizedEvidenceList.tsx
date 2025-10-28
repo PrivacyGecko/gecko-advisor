@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
 SPDX-License-Identifier: MIT
 */
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import SeverityBadge, { SeverityIndicator } from './SeverityBadge';
 import type { LegacyReportResponse } from '@privacy-advisor/shared';
 
@@ -111,8 +111,7 @@ const VirtualizedEvidenceList = React.memo(function VirtualizedEvidenceList({
       >
         <div style={{ height: totalHeight, position: 'relative' }}>
           <div style={{ transform: `translateY(${offsetY}px)` }}>
-            {visibleItems.map((item, index) => {
-              const actualIndex = visibleStart + index;
+            {visibleItems.map((item) => {
               const isExpanded = expandedItems.has(item.id);
               const dynamicHeight = isExpanded ? itemHeight * 2 : itemHeight;
 
