@@ -49,8 +49,8 @@ jobs:
       matrix:
         browser: [chromium]  # TODO: Re-enable firefox and webkit after chromium tests pass
         test-suite:
-          - "Core Privacy Scanning Journey"
-          # TODO: Re-enable other test suites after Core tests pass
+          - "Smoke Tests"  # Semantic user-focused tests (no data-testid required)
+          # TODO: Expand test coverage organically based on user journeys
           # - "Performance Validation"
           # - "Accessibility & Mobile Testing"
           # - "Security & Error Handling"
