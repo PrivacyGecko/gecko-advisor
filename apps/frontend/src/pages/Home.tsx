@@ -126,7 +126,7 @@ export default function Home() {
         onShowLogin={() => setShowLoginModal(true)}
         onShowSignup={() => setShowSignupModal(true)}
       />
-      <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
+      <main className="max-w-5xl mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
       {/* Hero Section - Privacy Scanner */}
       <header className="text-center space-y-6 py-8 md:py-16">
         {/* Logo */}
@@ -476,7 +476,7 @@ export default function Home() {
       </section>
 
       <Footer />
-    </div>
+    </main>
 
     {/* Auth modals */}
     <LoginModal
