@@ -40,6 +40,40 @@ async function retryWithBackoff<T>(
   throw lastError || new Error(`Failed after ${maxAttempts} attempts: ${description}`);
 }
 
+/**
+ * Detect which browser project is being tested
+ * In CI matrix jobs, config.projects[0] returns the first project from the original array,
+ * not the filtered project. We need to detect the browser from CLI args or environment.
+ */
+function detectBrowserProject(config: FullConfig): string {
+  // Method 1: Check CLI arguments for --project flag
+  const cliArgs = process.argv.slice(2);
+  const projectFlag = cliArgs.find(arg => arg.startsWith('--project='));
+
+  if (projectFlag) {
+    const projectName = projectFlag.split('=')[1].replace(/['"]/g, '');
+    console.log(`🔍 Detected browser from CLI arg: ${projectName}`);
+    return projectName;
+  }
+
+  // Method 2: Check E2E_BROWSER environment variable
+  if (process.env.E2E_BROWSER) {
+    console.log(`🔍 Detected browser from E2E_BROWSER env: ${process.env.E2E_BROWSER}`);
+    return process.env.E2E_BROWSER;
+  }
+
+  // Method 3: Check PLAYWRIGHT_PROJECT environment variable
+  if (process.env.PLAYWRIGHT_PROJECT) {
+    console.log(`🔍 Detected browser from PLAYWRIGHT_PROJECT env: ${process.env.PLAYWRIGHT_PROJECT}`);
+    return process.env.PLAYWRIGHT_PROJECT;
+  }
+
+  // Fallback: Use first project from config (works for local dev when no --project specified)
+  const fallback = config.projects[0]?.name || 'chromium';
+  console.log(`🔍 Using fallback browser from config: ${fallback}`);
+  return fallback;
+}
+
 async function globalSetup(config: FullConfig) {
   const { baseURL } = config.projects[0].use;
 
@@ -49,24 +83,42 @@ async function globalSetup(config: FullConfig) {
 
   console.log('🚀 Starting global setup...');
   console.log(`📍 Target URL: ${baseURL}`);
+  console.log(`🔍 CLI Args: ${process.argv.slice(2).join(' ')}`);
+  console.log(`🔍 Environment: CI=${process.env.CI}, NODE_ENV=${process.env.NODE_ENV}`);
 
-  // Determine which browser to use for setup
-  // Use first project's name (chromium/firefox/webkit) or default to chromium
-  const projectName = config.projects[0]?.name || 'chromium';
+  // Detect which browser is being tested
+  const projectName = detectBrowserProject(config);
+
+  // Validate the browser name
+  const validBrowsers = ['chromium', 'firefox', 'webkit'];
+  const browserName = validBrowsers.includes(projectName)
+    ? projectName
+    : 'chromium';
+
   const browserTypes: Record<string, BrowserType> = {
     chromium,
     firefox,
     webkit,
   };
 
-  const browserType = browserTypes[projectName] || chromium;
-  console.log(`🌐 Using browser: ${projectName}`);
+  const browserType = browserTypes[browserName];
+  console.log(`🌐 Using browser for health checks: ${browserName} (${browserType.name()})`);
 
-  // Create a browser instance for setup
-  const browser = await browserType.launch({
-    timeout: 30000,
-    headless: true
-  });
+  // Create a browser instance for setup with enhanced error handling
+  let browser;
+  try {
+    browser = await browserType.launch({
+      timeout: 30000,
+      headless: true
+    });
+    console.log(`✅ Successfully launched ${browserType.name()} browser`);
+  } catch (error) {
+    console.error(`❌ Failed to launch ${browserType.name()} browser:`, (error as Error).message);
+    throw new Error(
+      `Browser launch failed for ${projectName}. ` +
+      `Ensure the browser is installed with: npx playwright install --with-deps ${browserName}`
+    );
+  }
 
   try {
     const page = await browser.newPage();
