@@ -73,20 +73,24 @@ export default function Scan() {
         <a href="/docs" className="underline text-security-blue">Docs</a>
       </div>
       <h1 className="text-xl md:text-2xl font-bold">
-        Privacy Scan Status
-      </h1>
-      <div
-        className="text-lg font-medium text-gray-700"
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-      >
         {shouldShowError
           ? (hasTimedOut ? "Scan Timed Out" : isRateLimited ? "Scan Temporarily Slowed" : "Scan Status Error")
           : data?.status === 'done'
             ? "Scan Complete"
-            : "Scanning in Progress"
+            : "Privacy Scan In Progress"
         }
+      </h1>
+      <div
+        className="text-base text-gray-700"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {data?.status === 'done'
+          ? "Your privacy report is ready"
+          : shouldShowError
+            ? "There was an issue with your scan"
+            : "Analyzing website privacy features..."}
       </div>
       <Card>
         {isLoading ? (

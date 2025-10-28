@@ -204,4 +204,32 @@ export class ReportPage {
     const pageContent = await this.page.textContent('body');
     expect(pageContent).toBeTruthy();
   }
+
+  /**
+   * Verify license compliance display and attribution
+   */
+  async verifyLicenseCompliance() {
+    await this.waitForReportLoad();
+
+    // Check for common license/attribution indicators
+    const licenseIndicators = [
+      'license',
+      'attribution',
+      'credits',
+      'EasyPrivacy',
+      'WhoTracks.me'
+    ];
+
+    let foundAttribution = false;
+    for (const indicator of licenseIndicators) {
+      const element = this.page.locator(`text=${indicator}`);
+      if (await element.count() > 0) {
+        foundAttribution = true;
+        break;
+      }
+    }
+
+    // Verify attribution exists somewhere on the page
+    expect(foundAttribution).toBeTruthy();
+  }
 }
