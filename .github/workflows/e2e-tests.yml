@@ -50,6 +50,7 @@ jobs:
         browser: [chromium]  # TODO: Re-enable firefox and webkit after chromium tests pass
         test-suite:
           - "Smoke Tests"  # Semantic user-focused tests (no data-testid required)
+          - "Core Privacy Scanning Journey"  # Complete scan flow with Page Object Model
           # TODO: Expand test coverage organically based on user journeys
           # - "Performance Validation"
           # - "Accessibility & Mobile Testing"

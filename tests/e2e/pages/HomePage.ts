@@ -36,7 +36,7 @@ export class HomePage {
     this.heading = page.locator('h1');
     this.subheading = page.locator('p').first();
     this.urlInput = page.locator('input[aria-label="Scan input"]');
-    this.scanButton = page.locator('button:has-text("Scan Now")');
+    this.scanButton = page.getByRole('button', { name: 'Start privacy scan' });
     this.docsLink = page.locator('a[href="/docs"]');
 
     // Tab navigation
@@ -84,7 +84,7 @@ export class HomePage {
 
     const { result: navigationPromise } = await measurePerformance(
       async () => {
-        const navigationPromise = this.page.waitForURL(/\/scan\/\w+/);
+        const navigationPromise = this.page.waitForURL(/\/scan\/[\w-]+/);
         await this.scanButton.click();
         return navigationPromise;
       },
