@@ -39,9 +39,9 @@ test.describe('Performance Validation', () => {
       'Complete scan journey with fixture data'
     );
 
-    // CRITICAL: Must meet 3-second requirement
-    expect(duration).toBeLessThan(PERFORMANCE_THRESHOLDS.SCAN_COMPLETION);
-    console.log(`✅ Scan completed in ${duration.toFixed(2)}ms (requirement: ${PERFORMANCE_THRESHOLDS.SCAN_COMPLETION}ms)`);
+    // CRITICAL: Must meet 3-second requirement for fixture data
+    expect(duration).toBeLessThan(PERFORMANCE_THRESHOLDS.SCAN_COMPLETION_FAST);
+    console.log(`✅ Scan completed in ${duration.toFixed(2)}ms (requirement: ${PERFORMANCE_THRESHOLDS.SCAN_COMPLETION_FAST}ms)`);
   });
 
   test('Database deduplication lookup performance', async ({ page }) => {
@@ -341,7 +341,8 @@ test.describe('Performance Validation', () => {
       });
     }
 
-    if (memorySnapshots.length > 2) {
+    // Only check memory growth if memory API is available and we have valid snapshots
+    if (memorySnapshots.length > 2 && memorySnapshots.every(snapshot => snapshot > 0)) {
       // Memory usage shouldn't grow excessively
       const firstSnapshot = memorySnapshots[0];
       const lastSnapshot = memorySnapshots[memorySnapshots.length - 1];
@@ -351,6 +352,8 @@ test.describe('Performance Validation', () => {
 
       // Should not grow more than 50% over multiple scans
       expect(memoryGrowth).toBeLessThan(0.5);
+    } else if (memorySnapshots.length === 0 || memorySnapshots.every(s => s === 0)) {
+      console.log('⚠️  Memory API not available in this environment, skipping memory growth test');
     }
   });
 

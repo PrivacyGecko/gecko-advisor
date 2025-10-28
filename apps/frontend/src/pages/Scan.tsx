@@ -67,6 +67,7 @@ export default function Scan() {
   const shouldShowError = isError || hasTimedOut;
 
   return (
+    <>
     <main className="max-w-3xl mx-auto p-4 md:p-6 space-y-4">
       <div className="flex items-center justify-end text-sm">
         <a href="/docs" className="underline text-security-blue">Docs</a>
@@ -153,7 +154,8 @@ export default function Scan() {
         </div>
       )}
       <Link to="/" className="text-security-blue underline">New scan</Link>
-      <Footer />
     </main>
+    <Footer />
+    </>
   );
 }

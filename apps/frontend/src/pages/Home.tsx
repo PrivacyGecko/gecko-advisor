@@ -333,7 +333,7 @@ export default function Home() {
         <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
           {/* Step 1 */}
           <div className="flex-1 max-w-xs text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-advisor-500 to-advisor-600 flex items-center justify-center shadow-lg shadow-advisor-500/30">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-advisor-600 flex items-center justify-center shadow-lg shadow-advisor-500/30">
               <span className="text-2xl font-bold text-white">1</span>
             </div>
             <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
@@ -351,7 +351,7 @@ export default function Home() {
 
           {/* Step 2 */}
           <div className="flex-1 max-w-xs text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-advisor-500 to-advisor-600 flex items-center justify-center shadow-lg shadow-advisor-500/30">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-advisor-600 flex items-center justify-center shadow-lg shadow-advisor-500/30">
               <span className="text-2xl font-bold text-white">2</span>
             </div>
             <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
@@ -369,7 +369,7 @@ export default function Home() {
 
           {/* Step 3 */}
           <div className="flex-1 max-w-xs text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-advisor-500 to-advisor-600 flex items-center justify-center shadow-lg shadow-advisor-500/30">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-advisor-600 flex items-center justify-center shadow-lg shadow-advisor-500/30">
               <span className="text-2xl font-bold text-white">3</span>
             </div>
             <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">

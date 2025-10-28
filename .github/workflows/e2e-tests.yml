@@ -400,8 +400,7 @@ jobs:
           npx playwright test \
             --project=chromium \
             --grep="Performance Validation" \
-            --reporter=json \
-            --output=benchmark-results
+            --reporter=json,list
         env:
           CI: true
           E2E_BASE_URL: http://localhost:8080
