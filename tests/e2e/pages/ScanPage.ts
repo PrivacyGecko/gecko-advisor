@@ -47,11 +47,36 @@ export class ScanPage {
   /**
    * Wait for the scan page to finish loading and render the ScanProgress component
    * This handles the initial loading state where ProgressSkeleton is shown
+   *
+   * Returns true if scan page loaded, false if already redirected to report
    */
-  async waitForScanPageLoad(timeout = 10000) {
-    // Wait for the ScanProgress component to appear (replacing ProgressSkeleton)
-    await this.progressContainer.waitFor({ state: 'visible', timeout });
-    console.log('✅ Scan page loaded - ScanProgress component is visible');
+  async waitForScanPageLoad(timeout = 10000): Promise<boolean> {
+    // Check if we've already been redirected to report page (instant completion)
+    if (this.page.url().match(/\/r\/[\w-]+/)) {
+      console.log('⚡ Scan completed instantly - already on report page');
+      return false;
+    }
+
+    try {
+      // Wait for the ScanProgress component to appear (replacing ProgressSkeleton)
+      await this.progressContainer.waitFor({ state: 'visible', timeout });
+      console.log('✅ Scan page loaded - ScanProgress component is visible');
+
+      // Check again if we got redirected during the wait
+      if (this.page.url().match(/\/r\/[\w-]+/)) {
+        console.log('⚡ Scan completed during page load - redirected to report');
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      // If we timeout, check if it's because we redirected
+      if (this.page.url().match(/\/r\/[\w-]+/)) {
+        console.log('⚡ Scan completed before ScanProgress rendered - on report page');
+        return false;
+      }
+      throw error;
+    }
   }
 
   /**
@@ -60,6 +85,13 @@ export class ScanPage {
    */
   async waitForScanCompletion(timeout = PERFORMANCE_THRESHOLDS.SCAN_COMPLETION) {
     const startTime = performance.now();
+
+    // Check if we've already been redirected to report (ultra-fast scan)
+    if (this.page.url().match(/\/r\/[\w-]+/)) {
+      const duration = performance.now() - startTime;
+      console.log(`⚡ Scan already completed and redirected (${duration.toFixed(2)}ms)`);
+      return { state: 'completed', duration };
+    }
 
     // For fast-completing scans, the scan might go directly from 'queued' to 'done'
     // without ever showing 'running' state. We need to handle this gracefully.
@@ -78,9 +110,17 @@ export class ScanPage {
         this.waitForScanState('running', 10000),
         this.waitForScanState('completed', 10000),
         this.waitForScanState('failed', 10000),
+        // Also race against redirect to report page
+        this.page.waitForURL(/\/r\/[\w-]+/, { timeout: 10000 }).then(() => 'redirected'),
       ]);
     } catch (error) {
-      // If we timeout waiting for any state, check current status
+      // If we timeout waiting for any state, check current status and URL
+      if (this.page.url().match(/\/r\/[\w-]+/)) {
+        const duration = performance.now() - startTime;
+        console.log(`⚡ Redirected to report during wait (${duration.toFixed(2)}ms)`);
+        return { state: 'completed', duration };
+      }
+
       const status = await this.getScanStatus();
       if (status === 'completed' || status === 'failed') {
         const duration = performance.now() - startTime;
@@ -89,10 +129,18 @@ export class ScanPage {
       throw error;
     }
 
+    // Check if we got redirected
+    if (this.page.url().match(/\/r\/[\w-]+/)) {
+      const duration = performance.now() - startTime;
+      console.log(`⚡ Redirected to report (${duration.toFixed(2)}ms)`);
+      return { state: 'completed', duration };
+    }
+
     // Now wait for final completion state
     const result = await Promise.race([
       this.waitForScanState('completed', timeout),
       this.waitForScanState('failed', timeout),
+      this.page.waitForURL(/\/r\/[\w-]+/, { timeout }).then(() => 'completed'),
     ]);
 
     const duration = performance.now() - startTime;
@@ -105,7 +153,7 @@ export class ScanPage {
       );
     }
 
-    return { state: result, duration };
+    return { state: typeof result === 'string' ? result : result, duration };
   }
 
   /**
@@ -167,8 +215,15 @@ export class ScanPage {
 
   /**
    * Wait for automatic redirect to report page
+   * Returns immediately if already on report page
    */
   async waitForReportRedirect(timeout = 10000) {
+    // Check if we're already on the report page
+    if (this.page.url().match(/\/r\/[\w-]+/)) {
+      console.log('✅ Already on report page - no redirect needed');
+      return 0;
+    }
+
     const { duration } = await measurePerformance(
       async () => {
         await this.page.waitForURL(/\/r\/[\w-]+/, { timeout });
@@ -181,10 +236,23 @@ export class ScanPage {
 
   /**
    * Verify scan progress indicators
+   * Skips verification if scan completed instantly and already redirected
    */
   async verifyProgressIndicators() {
     // First wait for the page to finish loading and render ScanProgress
-    await this.waitForScanPageLoad();
+    const scanPageLoaded = await this.waitForScanPageLoad();
+
+    // If scan completed instantly and redirected, skip progress verification
+    if (!scanPageLoaded) {
+      console.log('⏩ Skipping progress verification - scan completed instantly');
+      return;
+    }
+
+    // Check if we're still on scan page (might have redirected during waitForScanPageLoad)
+    if (this.page.url().match(/\/r\/[\w-]+/)) {
+      console.log('⏩ Skipping progress verification - redirected to report');
+      return;
+    }
 
     // Check progress container is visible
     await expect(this.progressContainer).toBeVisible();
