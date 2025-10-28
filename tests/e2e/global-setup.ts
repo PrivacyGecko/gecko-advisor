@@ -2,7 +2,7 @@
 SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
 SPDX-License-Identifier: MIT
 */
-import { chromium, FullConfig } from '@playwright/test';
+import { chromium, firefox, webkit, FullConfig, BrowserType } from '@playwright/test';
 
 interface RetryOptions {
   maxAttempts: number;
@@ -50,8 +50,20 @@ async function globalSetup(config: FullConfig) {
   console.log('🚀 Starting global setup...');
   console.log(`📍 Target URL: ${baseURL}`);
 
+  // Determine which browser to use for setup
+  // Use first project's name (chromium/firefox/webkit) or default to chromium
+  const projectName = config.projects[0]?.name || 'chromium';
+  const browserTypes: Record<string, BrowserType> = {
+    chromium,
+    firefox,
+    webkit,
+  };
+
+  const browserType = browserTypes[projectName] || chromium;
+  console.log(`🌐 Using browser: ${projectName}`);
+
   // Create a browser instance for setup
-  const browser = await chromium.launch({
+  const browser = await browserType.launch({
     timeout: 30000,
     headless: true
   });
