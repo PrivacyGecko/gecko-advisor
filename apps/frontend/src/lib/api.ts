@@ -1,11 +1,29 @@
+/*
+SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-License-Identifier: MIT
+*/
 import type { ZodSchema } from 'zod';
+import type { Query } from '@tanstack/react-query';
 import {
   UrlScanRequestSchema,
   ScanQueuedResponseSchema,
   ScanStatusSchema,
   ReportResponseSchema, // Uses 'kind' field (correct after schema migration)
   RecentReportsResponseSchema,
+  type ScanStatus,
 } from '@privacy-advisor/shared';
+
+/**
+ * Custom error type with HTTP status code
+ */
+interface HttpError extends Error {
+  status?: number;
+}
+
+/**
+ * Export HttpError as ApiError for backwards compatibility
+ */
+export { HttpError as ApiError };
 
 async function parseJson<T>(res: Response, schema: ZodSchema<T>): Promise<T> {
   const data = await res.json();
@@ -42,8 +60,8 @@ export async function getScanStatus(id: string) {
   if (!res.ok) {
     // Handle rate limiting with specific error
     if (res.status === 429) {
-      const error = new Error('Rate limit exceeded');
-      (error as any).status = 429;
+      const error: HttpError = new Error('Rate limit exceeded');
+      error.status = 429;
       throw error;
     }
     throw new Error('Scan not found');
@@ -70,16 +88,16 @@ export const scanStatusQueryOptions = (id: string) => {
     queryKey: ['scan', id],
     queryFn: () => getScanStatus(id),
     // Polling configuration with exponential backoff for rate limiting
-    refetchInterval: (query: any) => {
-      const data = query.state.data;
-      const error = query.state.error;
+    refetchInterval: (query: Query<ScanStatus, Error>) => {
+      const data = query.state.data as ScanStatus | undefined;
+      const error = query.state.error as HttpError | null;
 
       // Stop polling when scan is complete or failed
       if (data?.status === 'done') return false;
       if (data?.status === 'error') return false;
 
       // Implement exponential backoff for rate limiting
-      if (error && (error as any).status === 429) {
+      if (error?.status === 429) {
         consecutiveRateLimits++;
         // Exponential backoff: 2s → 4s → 8s → 15s (max)
         const backoffInterval = Math.min(2000 * Math.pow(2, consecutiveRateLimits - 1), 15000);
@@ -108,12 +126,13 @@ export const scanStatusQueryOptions = (id: string) => {
     // Cache configuration
     staleTime: 0, // Always consider stale for real-time updates
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes after unmount
-    retry: (failureCount: number, error: any) => {
+    retry: (failureCount: number, error: Error) => {
+      const httpError = error as HttpError;
       // Don't retry 404 errors (scan not found)
       if (error.message?.includes('Scan not found')) return false;
 
       // For rate limit errors, allow unlimited retries (backoff handles the delay)
-      if ((error as any).status === 429) {
+      if (httpError.status === 429) {
         // Only retry if we haven't been rate limited for too long (5 minutes max)
         const timeSinceLastSuccess = Date.now() - lastSuccessTime;
         if (timeSinceLastSuccess > 5 * 60 * 1000) {
@@ -126,9 +145,10 @@ export const scanStatusQueryOptions = (id: string) => {
       // Retry up to 3 times for other errors
       return failureCount < 3;
     },
-    retryDelay: (attemptIndex: number, error: any) => {
+    retryDelay: (attemptIndex: number, error: Error) => {
+      const httpError = error as HttpError;
       // For rate limits, use exponential backoff calculated in refetchInterval
-      if ((error as any).status === 429) {
+      if (httpError.status === 429) {
         return Math.min(2000 * Math.pow(2, attemptIndex), 15000);
       }
       // For other errors, standard exponential backoff
@@ -156,7 +176,7 @@ export const reportQueryOptions = (slug: string) => ({
   // Cache completed reports for longer since they don't change
   staleTime: 10 * 60 * 1000, // 10 minutes
   gcTime: 30 * 60 * 1000, // 30 minutes
-  retry: (failureCount: number, error: any) => {
+  retry: (failureCount: number, error: Error) => {
     // Don't retry 404 errors (report not found)
     if (error.message?.includes('Report not found')) return false;
     return failureCount < 2;

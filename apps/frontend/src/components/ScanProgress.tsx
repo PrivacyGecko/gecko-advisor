@@ -69,12 +69,19 @@ const ScanProgress = React.memo(function ScanProgress({
   // Determine current step based on progress
   const getCurrentStep = () => {
     for (const step of scanSteps) {
-      if (progress >= step.range[0] && progress <= step.range[1]) {
+      const rangeStart = step.range?.[0] ?? 0;
+      const rangeEnd = step.range?.[1] ?? 100;
+      if (progress >= rangeStart && progress <= rangeEnd) {
         return step;
       }
     }
     // Fallback to last step if progress is beyond expected range
-    return scanSteps[scanSteps.length - 1] ?? scanSteps[0];
+    return scanSteps[scanSteps.length - 1] ?? scanSteps[0] ?? {
+      id: 'default',
+      label: 'Processing',
+      range: [0, 100] as [number, number],
+      icon: '🔄'
+    };
   };
 
   const activeStep = getCurrentStep();
@@ -158,9 +165,11 @@ const ScanProgress = React.memo(function ScanProgress({
 
         <div className="space-y-2">
           {scanSteps.map((step, index) => {
-            const isCompleted = progress > step.range[1];
-            const isActive = progress >= step.range[0] && progress <= step.range[1];
-            const isPending = progress < step.range[0];
+            const rangeStart = step.range?.[0] ?? 0;
+            const rangeEnd = step.range?.[1] ?? 100;
+            const isCompleted = progress > rangeEnd;
+            const isActive = progress >= rangeStart && progress <= rangeEnd;
+            const isPending = progress < rangeStart;
 
             return (
               <div
@@ -211,12 +220,12 @@ const ScanProgress = React.memo(function ScanProgress({
                       <div
                         className="bg-blue-500 h-1 sm:h-1.5 rounded-full transition-all duration-300"
                         style={{
-                          width: `${Math.min(100, ((progress - step.range[0]) / (step.range[1] - step.range[0])) * 100)}%`
+                          width: `${Math.min(100, ((progress - rangeStart) / (rangeEnd - rangeStart)) * 100)}%`
                         }}
                         role="progressbar"
                         aria-valuenow={progress}
-                        aria-valuemin={step.range[0]}
-                        aria-valuemax={step.range[1]}
+                        aria-valuemin={rangeStart}
+                        aria-valuemax={rangeEnd}
                         aria-label={`${step.label} progress`}
                       />
                     </div>

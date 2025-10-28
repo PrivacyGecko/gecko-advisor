@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
 SPDX-License-Identifier: MIT
 */
 import React from 'react';
-import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { scanStatusQueryOptions } from '../lib/api';
 import { ErrorState } from '../components/ErrorBoundary';
@@ -24,7 +24,9 @@ export default function Scan() {
 
   // Track if we're experiencing rate limiting
   const isRateLimited = React.useMemo(() => {
-    return isError && error && (error as any).status === 429;
+    // Type guard for error with status property
+    const httpError = error as Error & { status?: number };
+    return isError && error && httpError.status === 429;
   }, [isError, error]);
 
   // Detect scan timeout (60 seconds)

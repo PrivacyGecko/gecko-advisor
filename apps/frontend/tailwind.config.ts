@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-License-Identifier: MIT
+*/
 import type { Config } from 'tailwindcss';
 
 /**
