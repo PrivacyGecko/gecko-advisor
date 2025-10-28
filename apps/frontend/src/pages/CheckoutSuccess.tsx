@@ -16,6 +16,7 @@ export default function CheckoutSuccess() {
   const customerName = useMemo(() => {
     if (!user?.email) return 'there';
     const [namePart] = user.email.split('@');
+    if (!namePart) return 'there';
     return namePart.charAt(0).toUpperCase() + namePart.slice(1);
   }, [user?.email]);
 

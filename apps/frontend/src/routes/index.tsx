@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import type { RecentReportsResponse } from '@privacy-advisor/shared';
 import Card from '../components/Card';
 import Footer from '../components/Footer';
-import { ApiError, getRecentReports, startUrlScan } from '../lib/api';
+import { getRecentReports, startUrlScan } from '../lib/api';
 import { readHistory, type ScanHistoryEntry } from '../lib/history';
 import { RecentScans } from '../components/RecentScans';
 
@@ -31,10 +30,6 @@ export default function HomeRoute() {
       navigate(`/scan/${payload.scanId}?slug=${encodeURIComponent(payload.slug)}`);
     },
     onError: (err: unknown) => {
-      if (err instanceof ApiError) {
-        setError(err.message);
-        return;
-      }
       if (err instanceof Error) {
         setError(err.message);
         return;
@@ -43,7 +38,7 @@ export default function HomeRoute() {
     },
   });
 
-  const { data: recent } = useQuery<RecentReportsResponse>({
+  const { data: recent } = useQuery({
     queryKey: ['recent-reports'],
     queryFn: getRecentReports,
     staleTime: 60_000,
@@ -59,7 +54,7 @@ export default function HomeRoute() {
     };
   }, []);
 
-  const recentReports = useMemo(() => recent?.items ?? [], [recent?.items]);
+  const recentReports = useMemo(() => recent?.items ?? [], [recent]);
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -183,7 +178,7 @@ export default function HomeRoute() {
   );
 }
 
-function RecentReportsList({ items }: { items: RecentReportsResponse['items'] }) {
+function RecentReportsList({ items }: { items: Awaited<ReturnType<typeof getRecentReports>>['items'] }) {
   if (items.length === 0) {
     return <p className="mt-3 text-sm text-slate-500">Run your first scans to populate this list.</p>;
   }
@@ -212,7 +207,7 @@ function RecentReportsList({ items }: { items: RecentReportsResponse['items'] })
   );
 }
 
-function formatDate(value: RecentReportsResponse['items'][number]['createdAt']): string {
+function formatDate(value: string | Date): string {
   const date = typeof value === 'string' ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return '';
   return date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });

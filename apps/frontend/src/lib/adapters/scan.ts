@@ -28,13 +28,9 @@ export type EvidenceView = Evidence & {
   url?: string;
 };
 
-export type IssueView = Issue & {
-  references: NonNullable<Issue['references']>;
-};
+export type IssueView = Issue;
 
-export type TopFixView = TopFix & {
-  references: NonNullable<TopFix['references']>;
-};
+export type TopFixView = TopFix;
 
 export interface ReportViewModel {
   scanId: string;
@@ -75,10 +71,7 @@ export function toReportView(report: ReportResponse, options: { appOrigin?: stri
   const insecureCount = report.evidence.filter((item) => item.kind === 'insecure' || item.kind === 'mixed-content').length;
   const tlsGrade = getTlsGrade(report.evidence);
 
-  const issues: IssueView[] = report.issues.map((issue) => ({
-    ...issue,
-    references: issue.references ?? [],
-  }));
+  const issues: IssueView[] = report.issues;
 
   const severityCounts: Record<Issue['severity'], number> = {
     critical: 0,
@@ -98,10 +91,7 @@ export function toReportView(report: ReportResponse, options: { appOrigin?: stri
     url: getDetailString(item.details, 'url'),
   }));
 
-  const topFixes: TopFixView[] = report.topFixes.slice(0, 3).map((fix) => ({
-    ...fix,
-    references: fix.references ?? [],
-  }));
+  const topFixes: TopFixView[] = report.topFixes.slice(0, 3);
 
   const score = typeof report.scan.score === 'number' ? report.scan.score : null;
   const scoreBand = deriveBand(score);

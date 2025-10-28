@@ -6,7 +6,7 @@ import Footer from '../../components/Footer';
 import { ScoreBadge } from '../../components/ScoreBadge';
 import { FixCard } from '../../components/FixCard';
 import { ShareBar } from '../../components/ShareBar';
-import { ApiError, getReport } from '../../lib/api';
+import { getReport } from '../../lib/api';
 import { toReportView, type ReportViewModel } from '../../lib/adapters/scan';
 import { applyShareMeta } from '../../lib/meta';
 import { useSentryRouteTags } from '../../sentry';
@@ -33,8 +33,9 @@ export default function ShareRoute() {
   useEffect(() => {
     if (!reportView) return;
     const titleScore = typeof reportView.score === 'number' ? `${reportView.score}` : 'pending';
-    const description = reportView.topFixes[0]
-      ? `Top fix: ${reportView.topFixes[0].title}`
+    const firstFix = reportView.topFixes[0];
+    const description = firstFix
+      ? `Top fix: ${firstFix.title}`
       : `Data sharing level: ${reportView.dataSharing}`;
     const shareUrl = reportView.shareUrl.startsWith('http')
       ? reportView.shareUrl
@@ -52,12 +53,9 @@ export default function ShareRoute() {
     return <LoadingState message="Loading privacy report…" />;
   }
 
-  if (error instanceof ApiError) {
-    return <ErrorState message={error.message} />;
-  }
-
-  if (error instanceof Error) {
-    return <ErrorState message={error.message} />;
+  if (error) {
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+    return <ErrorState message={errorMessage} />;
   }
 
   if (!reportView) {

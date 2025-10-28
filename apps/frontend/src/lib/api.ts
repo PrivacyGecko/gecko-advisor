@@ -20,6 +20,11 @@ interface HttpError extends Error {
   status?: number;
 }
 
+/**
+ * Export HttpError as ApiError for backwards compatibility
+ */
+export { HttpError as ApiError };
+
 async function parseJson<T>(res: Response, schema: ZodSchema<T>): Promise<T> {
   const data = await res.json();
   try {
