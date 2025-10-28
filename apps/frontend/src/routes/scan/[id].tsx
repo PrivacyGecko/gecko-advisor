@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-License-Identifier: MIT
+*/
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -8,7 +12,7 @@ import { EvidenceList } from '../../components/EvidenceList';
 import { FixCard } from '../../components/FixCard';
 import { ScoreBadge } from '../../components/ScoreBadge';
 import { ShareBar } from '../../components/ShareBar';
-import { ApiError, getReport, getScanStatus } from '../../lib/api';
+import { getReport, getScanStatus } from '../../lib/api';
 import { toReportView, type ReportViewModel } from '../../lib/adapters/scan';
 import { addHistory } from '../../lib/history';
 import { useSentryRouteTags } from '../../sentry';
@@ -63,8 +67,7 @@ export default function ScanRoute() {
   useEffect(() => {
     const latestError = statusQuery.error ?? reportQuery.error;
     if (!latestError) return;
-    if (latestError instanceof ApiError) setError(latestError.message);
-    else if (latestError instanceof Error) setError(latestError.message);
+    if (latestError instanceof Error) setError(latestError.message);
     else setError('An unexpected error occurred.');
   }, [statusQuery.error, reportQuery.error]);
 

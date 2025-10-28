@@ -11,18 +11,17 @@ import EnhancedScoreDial from '../components/EnhancedScoreDial';
 import Card from '../components/Card';
 import CopyButton from '../components/CopyButton';
 import InfoPopover from '../components/InfoPopover';
-import { SeverityIndicator } from '../components/SeverityBadge';
 import VirtualizedEvidenceList from '../components/VirtualizedEvidenceList';
 import { ScoreDialSkeleton, CardSkeleton, EvidenceCardSkeleton } from '../components/Skeleton';
 import { ErrorState } from '../components/ErrorBoundary';
 import Footer from '../components/Footer';
 import GradeBadge from '../components/GradeBadge';
-import type { LegacyReportResponse } from '@privacy-advisor/shared';
+import type { ReportResponse } from '@privacy-advisor/shared';
 import { computeDataSharingLevel, type DataSharingLevel } from '../lib/dataSharing';
 import { useAuth } from '../contexts/AuthContext';
 
-type EvidenceItem = LegacyReportResponse['evidence'][number];
-type EvidenceType = EvidenceItem['type'];
+type EvidenceItem = ReportResponse['evidence'][number];
+type EvidenceType = EvidenceItem['kind'];
 type SeverityFilter = 'all' | 'high' | 'medium' | 'low';
 
 /**
@@ -62,7 +61,7 @@ function categorizeEvidence(evidence: EvidenceItem[]): Record<string, EvidenceCa
 
   evidence.forEach(item => {
     const lowerTitle = item.title?.toLowerCase() || '';
-    const lowerType = item.type?.toLowerCase() || '';
+    const lowerType = item.kind?.toLowerCase() || '';
 
     // Tracking & Privacy category
     if (
@@ -227,11 +226,11 @@ const safeStringify = (value: unknown): string => {
  * Generates a human-readable summary of the scan results
  * Based on score, tracker count, and evidence count
  */
-const generateSummary = (scan: LegacyReportResponse['scan'], evidence: EvidenceItem[]): string => {
+const generateSummary = (scan: ReportResponse['scan'], evidence: EvidenceItem[]): string => {
   const score = scan.score ?? 0;
   const evidenceCount = evidence.length;
   const trackerCount = evidence.filter(e =>
-    e.type === 'tracker' || e.title?.toLowerCase().includes('tracker')
+    e.kind === 'tracker' || e.title?.toLowerCase().includes('tracker')
   ).length;
 
   if (score >= 90) {
@@ -257,7 +256,7 @@ const sanitizeEvidence = (evidence: EvidenceItem[]): EvidenceItem[] => {
     const sanitized: EvidenceItem = {
       id: item.id,
       scanId: item.scanId,
-      type: item.type,
+      kind: item.kind,
       title: item.title,
       severity: item.severity,
       details: sanitizeDetails(item.details),
@@ -394,7 +393,7 @@ function EvidenceItemDisplay({ evidence }: EvidenceItemDisplayProps) {
     return messages[type] || null;
   };
 
-  const whyItMatters = getWhyItMatters(evidence.type);
+  const whyItMatters = getWhyItMatters(evidence.kind);
 
   return (
     <div
@@ -587,7 +586,7 @@ type BreakdownItem = {
  * Calculates score breakdown based on evidence
  * Shows how points were deducted or awarded
  */
-const calculateBreakdown = (scan: LegacyReportResponse['scan'], evidence: EvidenceItem[]): BreakdownItem[] => {
+const calculateBreakdown = (scan: ReportResponse['scan'], evidence: EvidenceItem[]): BreakdownItem[] => {
   const breakdown: BreakdownItem[] = [
     {
       category: 'Base Score',
@@ -599,7 +598,7 @@ const calculateBreakdown = (scan: LegacyReportResponse['scan'], evidence: Eviden
 
   // Analyze evidence for deductions
   const trackers = evidence.filter(e =>
-    e.type === 'tracker' || e.title?.toLowerCase().includes('tracker')
+    e.kind === 'tracker' || e.title?.toLowerCase().includes('tracker')
   );
 
   if (trackers.length > 0) {
@@ -619,7 +618,7 @@ const calculateBreakdown = (scan: LegacyReportResponse['scan'], evidence: Eviden
   }
 
   // HTTPS/TLS check
-  const tlsEvidence = evidence.find(e => e.type === 'tls');
+  const tlsEvidence = evidence.find(e => e.kind === 'tls');
   const hasValidTls = tlsEvidence && tlsEvidence.severity <= 2;
   if (hasValidTls) {
     breakdown.push({
@@ -639,7 +638,7 @@ const calculateBreakdown = (scan: LegacyReportResponse['scan'], evidence: Eviden
 
   // Mixed content
   const hasMixedContent = evidence.some(e =>
-    e.type === 'mixed-content' || (e.title?.toLowerCase().includes('mixed content') && e.severity >= 3)
+    e.kind === 'mixed-content' || (e.title?.toLowerCase().includes('mixed content') && e.severity >= 3)
   );
   if (hasMixedContent) {
     breakdown.push({
@@ -652,7 +651,7 @@ const calculateBreakdown = (scan: LegacyReportResponse['scan'], evidence: Eviden
 
   // Security headers
   const missingHeaders = evidence.filter(e =>
-    e.type === 'header' && e.severity >= 3
+    e.kind === 'header' && e.severity >= 3
   );
   if (missingHeaders.length > 0) {
     breakdown.push({
@@ -664,7 +663,7 @@ const calculateBreakdown = (scan: LegacyReportResponse['scan'], evidence: Eviden
   }
 
   // Third-party connections
-  const thirdParty = evidence.filter(e => e.type === 'thirdparty');
+  const thirdParty = evidence.filter(e => e.kind === 'thirdparty');
   if (thirdParty.length > 5) {
     breakdown.push({
       category: 'Third-Party',
@@ -675,7 +674,7 @@ const calculateBreakdown = (scan: LegacyReportResponse['scan'], evidence: Eviden
   }
 
   // Cookies
-  const cookies = evidence.filter(e => e.type === 'cookie' && e.severity >= 3);
+  const cookies = evidence.filter(e => e.kind === 'cookie' && e.severity >= 3);
   if (cookies.length > 0) {
     breakdown.push({
       category: 'Cookies',
@@ -688,13 +687,13 @@ const calculateBreakdown = (scan: LegacyReportResponse['scan'], evidence: Eviden
   return breakdown;
 };
 
-function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportResponse; isPro: boolean }) {
+function ReportBody({ slug, data, isPro: _isPro }: { slug: string; data: ReportResponse; isPro: boolean }) {
   const { scan, evidence, meta } = data;
   const [showBreakdown, setShowBreakdown] = React.useState(false);
 
   const trackerDomains = React.useMemo(() => {
     const domains = new Set<string>();
-    evidence.filter((item) => item.type === 'tracker').forEach((item) => {
+    evidence.filter((item) => item.kind === 'tracker').forEach((item) => {
       const domain = getDetailString(item.details, 'domain');
       if (domain) domains.add(domain);
     });
@@ -703,16 +702,16 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
 
   const thirdpartyDomains = React.useMemo(() => {
     const domains = new Set<string>();
-    evidence.filter((item) => item.type === 'thirdparty').forEach((item) => {
+    evidence.filter((item) => item.kind === 'thirdparty').forEach((item) => {
       const domain = getDetailString(item.details, 'domain');
       if (domain) domains.add(domain);
     });
     return Array.from(domains);
   }, [evidence]);
 
-  const cookieIssues = evidence.filter((item) => item.type === 'cookie').length;
-  const insecureCount = evidence.filter((item) => item.type === 'insecure').length;
-  const tlsGrade = getTlsGrade(evidence.find((item) => item.type === 'tls')?.details);
+  const cookieIssues = evidence.filter((item) => item.kind === 'cookie').length;
+  const insecureCount = evidence.filter((item) => item.kind === 'insecure').length;
+  const tlsGrade = getTlsGrade(evidence.find((item) => item.kind === 'tls')?.details);
 
   const dataSharingLevel = React.useMemo((): DataSharingLevel => {
     if (isDataSharingLevel(meta?.dataSharing)) return meta.dataSharing;
@@ -722,8 +721,8 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
   const groups = React.useMemo(() => {
     const acc: Partial<Record<EvidenceType, EvidenceItem[]>> = {};
     evidence.forEach((item) => {
-      const type = item.type as EvidenceType;
-      (acc[type] ??= []).push(item);
+      const kind = item.kind as EvidenceType;
+      (acc[kind] ??= []).push(item);
     });
     return acc;
   }, [evidence]);
@@ -750,7 +749,7 @@ function ReportBody({ slug, data, isPro }: { slug: string; data: LegacyReportRes
     setOpen((previous) => {
       const next: Record<EvidenceType, boolean> = { ...previous };
 
-      groupEntries.forEach(([type, items]) => {
+      groupEntries.forEach(([type]) => {
         if (next[type] === undefined) {
           // QUICK WIN #1: Expand all sections by default for better UX
           // Users come to see findings, not hunt for expand buttons

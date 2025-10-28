@@ -1,4 +1,8 @@
-﻿import { z } from "zod";
+﻿/*
+SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-License-Identifier: MIT
+*/
+import { z } from "zod";
 
 export const EvidenceKind = z.enum([
   'tracker',
@@ -78,7 +82,7 @@ export const IssueSchema = z.object({
   summary: z.string().nullable().optional(),
   howToFix: z.string().nullable().optional(),
   whyItMatters: z.string().nullable().optional(),
-  references: z.array(IssueReferenceSchema).optional().default([]),
+  references: z.array(IssueReferenceSchema),
   sortWeight: z.number().optional(),
 });
 
@@ -144,7 +148,7 @@ export const RecentReportItemSchema = z.object({
   label: z.enum(['Safe', 'Caution', 'High Risk']).or(z.string()),
   domain: z.string(),
   createdAt: z.string().or(z.date()),
-  evidenceCount: z.number().optional().default(0),
+  evidenceCount: z.number().default(0),
 });
 
 export const RecentReportsResponseSchema = z.object({

@@ -57,7 +57,7 @@ export const WalletButton: React.FC<WalletButtonProps> = ({
   }
   const { wallet, connect, disconnect, connecting, publicKey, signMessage } = useWallet();
   const { setVisible } = useWalletModal();
-  const { wallet: walletState, loginWithWallet, user } = useAuth();
+  const { wallet: walletState, loginWithWallet } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -77,11 +77,12 @@ export const WalletButton: React.FC<WalletButtonProps> = ({
   }, [isDropdownOpen]);
 
   // Auto-authenticate when wallet connects
+  // Note: Intentionally omitting handleAuthentication, signMessage, and isAuthenticating
+  // from dependencies to avoid infinite re-authentication loops
   useEffect(() => {
     if (publicKey && !walletState.connected && !isAuthenticating && signMessage) {
       handleAuthentication();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [publicKey, walletState.connected]);
 
   /**

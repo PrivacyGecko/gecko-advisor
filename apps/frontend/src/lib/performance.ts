@@ -46,7 +46,7 @@ export class PerformanceMonitor {
         });
         lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
         this.observers.push(lcpObserver);
-      } catch (e) {
+      } catch {
         console.warn('LCP observer not supported');
       }
 
@@ -63,7 +63,7 @@ export class PerformanceMonitor {
         });
         fidObserver.observe({ type: 'first-input', buffered: true });
         this.observers.push(fidObserver);
-      } catch (e) {
+      } catch {
         console.warn('FID observer not supported');
       }
 
@@ -72,9 +72,14 @@ export class PerformanceMonitor {
         const clsObserver = new PerformanceObserver((list) => {
           let clsValue = 0;
           const entries = list.getEntries();
-          entries.forEach((entry: any) => {
-            if (!entry.hadRecentInput) {
-              clsValue += entry.value;
+          entries.forEach((entry) => {
+            // Type assertion for LayoutShift specific properties
+            const layoutShift = entry as PerformanceEntry & {
+              hadRecentInput?: boolean;
+              value: number;
+            };
+            if (!layoutShift.hadRecentInput) {
+              clsValue += layoutShift.value;
             }
           });
           this.metrics.CLS = clsValue;
@@ -82,7 +87,7 @@ export class PerformanceMonitor {
         });
         clsObserver.observe({ type: 'layout-shift', buffered: true });
         this.observers.push(clsObserver);
-      } catch (e) {
+      } catch {
         console.warn('CLS observer not supported');
       }
     }

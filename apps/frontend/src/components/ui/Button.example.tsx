@@ -1,3 +1,8 @@
+/*
+SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-License-Identifier: MIT
+*/
+
 /**
  * Button Component - Usage Examples
  *
@@ -9,6 +14,7 @@
  * 2. Render <ButtonExamples /> in your JSX
  */
 
+import React from 'react';
 import { Button } from './Button';
 
 /**
