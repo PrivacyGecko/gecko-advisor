@@ -1,10 +1,10 @@
 /*
-SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-FileCopyrightText: 2025 Gecko Advisor contributors
 SPDX-License-Identifier: MIT
 */
 import React, { useState, useRef, useCallback } from 'react';
 import SeverityBadge, { SeverityIndicator } from './SeverityBadge';
-import type { ReportResponse } from '@privacy-advisor/shared';
+import type { ReportResponse } from '@gecko-advisor/shared';
 
 type EvidenceItem = ReportResponse['evidence'][number];
 

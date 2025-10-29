@@ -1,5 +1,5 @@
 /*
-SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-FileCopyrightText: 2025 Gecko Advisor contributors
 SPDX-License-Identifier: MIT
 */
 import React, { useState, useEffect } from 'react';
@@ -37,20 +37,19 @@ function setDismissed(): void {
 /**
  * PublicScanWarning Component
  *
- * Displays a dismissible warning banner to FREE tier users informing them
- * that their scans are public by default and visible in Recent Reports.
- * Encourages upgrade to PRO for private scans.
+ * Displays a dismissible information banner informing users that their scans
+ * are publicly accessible and visible in Recent Reports to support privacy
+ * research and transparency.
  *
  * Features:
  * - Dismissible with localStorage persistence
  * - Privacy-caution amber/orange color scheme
- * - Link to /pricing page
  * - WCAG AA accessible with proper ARIA labels
  * - Mobile-first responsive design
  * - Smooth fade-out animation on dismiss
  *
  * Display Logic:
- * - Shown to all users (FREE tier users are most relevant)
+ * - Shown to all users on their first scans
  * - Hidden if user previously dismissed it (stored in localStorage)
  * - Can be force-shown by clearing localStorage
  *

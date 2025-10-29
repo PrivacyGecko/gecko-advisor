@@ -1,6 +1,6 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
 import { load as loadHtml } from 'cheerio';
-import { normalizeUrl, etldPlusOne, buildReportPayload, buildReportStorageKey } from '@privacy-advisor/shared';
+import { normalizeUrl, etldPlusOne, buildReportPayload, buildReportStorageKey } from '@gecko-advisor/shared';
 import { getLists } from './lists.js';
 import { logger } from './logger.js';
 import { objectStorage } from './objectStorage.js';

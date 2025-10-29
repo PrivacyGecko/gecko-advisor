@@ -1,10 +1,10 @@
-# Privacy Advisor Stage Testing Report
+# Gecko Advisor Stage Testing Report
 **Environment:** stage.privamule.com
 **Date:** 2025-10-06
 **Testing Tool:** Playwright MCP
 
 ## Summary
-Comprehensive testing of the Privacy Advisor application on stage environment revealed 3 critical issues that need immediate attention.
+Comprehensive testing of the Gecko Advisor application on stage environment revealed 3 critical issues that need immediate attention.
 
 ---
 

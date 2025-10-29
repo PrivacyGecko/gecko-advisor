@@ -2,7 +2,7 @@
 import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
-import { normalizeUrl } from '@privacy-advisor/shared';
+import { normalizeUrl } from '@gecko-advisor/shared';
 import type { SafeUser } from '../services/authService.js';
 import { prisma } from '../prisma.js';
 import { problem } from '../problem.js';

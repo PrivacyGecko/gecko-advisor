@@ -1,11 +1,11 @@
 /*
-SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-FileCopyrightText: 2025 Gecko Advisor contributors
 SPDX-License-Identifier: MIT
 */
 import type { Config } from 'tailwindcss';
 
 /**
- * Privacy Advisor Design System
+ * Gecko Advisor Design System
  *
  * Semantic color system based on privacy risk levels:
  * - Safe (70-100): Green palette for low privacy risk
@@ -156,7 +156,6 @@ export default {
         'gecko-blue': '#3498db',
 
         // Legacy color aliases for backwards compatibility
-        'pricko-green': '#19c37d',
         'security-blue': '#0c5ce6', // WCAG AA compliant - 4.89:1 contrast ratio
         danger: '#ef4444',
         warning: '#f59e0b',

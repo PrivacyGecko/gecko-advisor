@@ -1,6 +1,6 @@
-# Privacy Advisor E2E Testing Suite
+# Gecko Advisor E2E Testing Suite
 
-Comprehensive end-to-end testing suite for the Privacy Advisor application, validating all critical user flows, performance requirements, accessibility compliance, and security measures.
+Comprehensive end-to-end testing suite for the Gecko Advisor application, validating all critical user flows, performance requirements, accessibility compliance, and security measures.
 
 ## Overview
 

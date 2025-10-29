@@ -1,12 +1,11 @@
 /*
-SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-FileCopyrightText: 2025 Gecko Advisor contributors
 SPDX-License-Identifier: MIT
 */
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useAuth } from '../contexts/AuthContext';
-import { WalletButton } from './WalletButton';
 import { BRAND } from '../config/branding';
 
 export interface HeaderProps {
@@ -256,13 +255,6 @@ export default function Header({ onShowLogin: _onShowLogin, onShowSignup: _onSho
               </svg>
               New Scan
             </button>
-
-            {/* Wallet Connection Button - Only if enabled */}
-            {import.meta.env.VITE_WALLET_AUTH_ENABLED === 'true' && (
-              <div className="hidden sm:block">
-                <WalletButton />
-              </div>
-            )}
 
             {/* Mobile hamburger menu button */}
             <button

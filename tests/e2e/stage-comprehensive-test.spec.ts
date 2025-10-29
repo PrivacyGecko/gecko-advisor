@@ -416,56 +416,8 @@ test.describe('Journey 5: Recent Reports Section', () => {
   });
 });
 
-test.describe('Journey 6: Pricing Page Journey', () => {
-  test.setTimeout(TEST_TIMEOUT);
 
-  test('should display pricing information correctly', async ({ page }) => {
-    const issues: string[] = [];
-    const evidence: string[] = [];
-    let score = 100;
-
-    await page.goto(`${STAGE_URL}/pricing`);
-
-    await test.step('Verify pricing page loads', async () => {
-      await expect(page).toHaveURL(/\/pricing/);
-      evidence.push('Pricing page loaded');
-    });
-
-    await test.step('Check for feature comparison', async () => {
-      const freeSection = page.locator('text=/FREE|Free/i');
-      const proSection = page.locator('text=/PRO|Pro/i');
-
-      const hasFree = await freeSection.isVisible({ timeout: 5000 }).catch(() => false);
-      const hasPro = await proSection.isVisible({ timeout: 5000 }).catch(() => false);
-
-      if (hasFree && hasPro) {
-        evidence.push('FREE and PRO tiers visible');
-      } else {
-        issues.push('Pricing tiers not properly displayed');
-        score -= 25;
-      }
-    });
-
-    await test.step('Verify "Coming Soon" labels', async () => {
-      const comingSoonLabels = page.locator('text=/Coming Soon/i');
-      const count = await comingSoonLabels.count();
-
-      if (count > 0) {
-        evidence.push(`${count} "Coming Soon" labels present`);
-      } else {
-        // This might be intentional, so just note it
-        evidence.push('No "Coming Soon" labels found');
-      }
-    });
-
-    const status: 'PASS' | 'FAIL' = score >= 70 ? 'PASS' : 'FAIL';
-    recordResult('Journey 6: Pricing Page', score, issues, evidence, status);
-
-    expect(status).toBe('PASS');
-  });
-});
-
-test.describe('Journey 7: Mobile Responsiveness', () => {
+test.describe('Journey 6: Mobile Responsiveness', () => {
   test.setTimeout(TEST_TIMEOUT);
 
   test('should work correctly on mobile viewport', async ({ page }) => {
@@ -524,13 +476,13 @@ test.describe('Journey 7: Mobile Responsiveness', () => {
     });
 
     const status: 'PASS' | 'FAIL' = score >= 70 ? 'PASS' : 'FAIL';
-    recordResult('Journey 7: Mobile Responsiveness', score, issues, evidence, status);
+    recordResult('Journey 6: Mobile Responsiveness', score, issues, evidence, status);
 
     expect(status).toBe('PASS');
   });
 });
 
-test.describe('Journey 8: Accessibility Testing', () => {
+test.describe('Journey 7: Accessibility Testing', () => {
   test.setTimeout(TEST_TIMEOUT);
 
   test('should support keyboard navigation and screen readers', async ({ page }) => {
@@ -594,13 +546,13 @@ test.describe('Journey 8: Accessibility Testing', () => {
     });
 
     const status: 'PASS' | 'FAIL' = score >= 70 ? 'PASS' : 'FAIL';
-    recordResult('Journey 8: Accessibility', score, issues, evidence, status);
+    recordResult('Journey 7: Accessibility', score, issues, evidence, status);
 
     expect(status).toBe('PASS');
   });
 });
 
-test.describe('Journey 9: Performance Testing', () => {
+test.describe('Journey 8: Performance Testing', () => {
   test.setTimeout(TEST_TIMEOUT);
 
   test('should meet performance benchmarks', async ({ page }) => {
@@ -643,13 +595,13 @@ test.describe('Journey 9: Performance Testing', () => {
     });
 
     const status: 'PASS' | 'FAIL' = score >= 70 ? 'PASS' : 'FAIL';
-    recordResult('Journey 9: Performance', score, issues, evidence, status);
+    recordResult('Journey 8: Performance', score, issues, evidence, status);
 
     expect(status).toBe('PASS');
   });
 });
 
-test.describe('Journey 10: Rate Limiting Behavior', () => {
+test.describe('Journey 9: Rate Limiting Behavior', () => {
   test.setTimeout(TEST_TIMEOUT);
 
   test('should handle rate limiting gracefully', async ({ page }) => {
@@ -715,7 +667,7 @@ test.describe('Journey 10: Rate Limiting Behavior', () => {
     });
 
     const status: 'PASS' | 'FAIL' = score >= 70 ? 'PASS' : 'FAIL';
-    recordResult('Journey 10: Rate Limiting', score, issues, evidence, status);
+    recordResult('Journey 9: Rate Limiting', score, issues, evidence, status);
 
     expect(status).toBe('PASS');
   });

@@ -1,6 +1,6 @@
 # E2E Testing with Nginx Reverse Proxy Setup
 
-This document explains how the Privacy Advisor E2E testing infrastructure works with the Nginx reverse proxy configuration.
+This document explains how the Gecko Advisor E2E testing infrastructure works with the Nginx reverse proxy configuration.
 
 ## Architecture Overview
 
@@ -211,7 +211,7 @@ The global setup (`tests/e2e/global-setup.ts`) verifies the application is acces
 
 ```typescript
 await page.goto(baseURL); // http://localhost:8080
-await page.waitForSelector('text=Privacy Advisor');
+await page.waitForSelector('text=Gecko Advisor');
 ```
 
 ## CI/GitHub Actions Configuration

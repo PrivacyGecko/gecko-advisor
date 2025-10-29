@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { buildReportPayload, etldPlusOne } from "@privacy-advisor/shared";
+import { buildReportPayload, etldPlusOne } from "@gecko-advisor/shared";
 import { prisma } from "../prisma.js";
 import { problem } from "../problem.js";
 import { logger } from "../logger.js";

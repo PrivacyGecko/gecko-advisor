@@ -9,7 +9,7 @@
 
 ## Problem Statement
 
-The Privacy Advisor frontend was polling the `/api/scan/:id/status` endpoint too aggressively (every 1-1.5 seconds), causing the backend rate limiter to return 429 errors after approximately 14 requests. This resulted in:
+The Gecko Advisor frontend was polling the `/api/scan/:id/status` endpoint too aggressively (every 1-1.5 seconds), causing the backend rate limiter to return 429 errors after approximately 14 requests. This resulted in:
 
 - Poor user experience with "Scan encountered an error" messages
 - Scans appearing to fail when they were actually still running

@@ -1,12 +1,12 @@
 /*
-SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-FileCopyrightText: 2025 Gecko Advisor contributors
 SPDX-License-Identifier: MIT
 */
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { getRecentReports } from '../lib/api';
-import type { RecentReportsResponse } from '@privacy-advisor/shared';
+import type { RecentReportsResponse } from '@gecko-advisor/shared';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Card from '../components/Card';

@@ -1,8 +1,8 @@
 ﻿/*
-SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-FileCopyrightText: 2025 Gecko Advisor contributors
 SPDX-License-Identifier: MIT
 */
-import type { Evidence, Issue, ReportResponse, TopFix } from '@privacy-advisor/shared';
+import type { Evidence, Issue, ReportResponse, TopFix } from '@gecko-advisor/shared';
 import { computeDataSharingLevel, type DataSharingLevel } from '../dataSharing';
 
 export type ScoreBand = 'safe' | 'risky' | 'dangerous' | 'unknown';

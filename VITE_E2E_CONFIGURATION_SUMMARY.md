@@ -121,7 +121,7 @@ nginx:
 
 **Key Command:**
 ```dockerfile
-CMD ["pnpm", "--filter", "@privacy-advisor/frontend", "dev", "--host", "0.0.0.0"]
+CMD ["pnpm", "--filter", "@gecko-advisor/frontend", "dev", "--host", "0.0.0.0"]
 ```
 
 ### 6. Created Helper Scripts and Documentation

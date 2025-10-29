@@ -180,17 +180,6 @@ test.describe('Critical Fixes Validation - Stage Environment', () => {
       expect(cspViolations).toHaveLength(0);
     });
 
-    test('should load pricing page in under 2.5 seconds', async ({ page }) => {
-      const startTime = Date.now();
-
-      const response = await page.goto('/pricing', { waitUntil: 'load' });
-      const loadTime = (Date.now() - startTime) / 1000;
-
-      console.log(`Pricing page load time: ${loadTime.toFixed(2)}s`);
-
-      expect(response?.status()).toBe(200);
-      expect(loadTime).toBeLessThan(2.5);
-    });
 
     test('should have no CSP errors for Google Fonts', async ({ page }) => {
       await page.goto('/');
@@ -308,64 +297,8 @@ test.describe('Critical Fixes Validation - Stage Environment', () => {
     });
   });
 
-  test.describe('4. PRO Upgrade Flows', () => {
-    test('should display pricing page correctly with both payment options', async ({ page }) => {
-      await page.goto('/pricing');
 
-      // Verify page loaded
-      await expect(page).toHaveTitle(/pricing|plan/i);
-
-      // Check for pricing information
-      const proPricing = page.locator('text=/\\$4\\.99|4.99|pro.*?plan/i');
-      await expect(proPricing.first()).toBeVisible();
-
-      // Check for LemonSqueezy payment option
-      const lemonSqueezyButton = page.locator('button:has-text("Upgrade"), a:has-text("Upgrade"), button:has-text("Subscribe")').first();
-      await expect(lemonSqueezyButton).toBeVisible();
-
-      // Check for wallet payment option
-      const walletButton = page.locator('button:has-text("Wallet"), button:has-text("Connect Wallet"), text=/wallet.*?auth/i');
-      const hasWalletOption = await walletButton.first().isVisible({ timeout: 3000 }).catch(() => false);
-
-      console.log(`LemonSqueezy option: Visible`);
-      console.log(`Wallet option: ${hasWalletOption ? 'Visible' : 'Not visible or not implemented'}`);
-    });
-
-    test('should show wallet authentication modal with $PRICKO requirement', async ({ page }) => {
-      await page.goto('/pricing');
-
-      // Look for wallet connect button
-      const walletButton = page.locator('button:has-text("Wallet"), button:has-text("Connect Wallet")').first();
-      const walletButtonVisible = await walletButton.isVisible({ timeout: 5000 }).catch(() => false);
-
-      if (walletButtonVisible) {
-        await walletButton.click();
-
-        // Check for wallet modal
-        const walletModal = page.locator('[role="dialog"], .modal, [data-testid*="wallet"]');
-        await expect(walletModal).toBeVisible({ timeout: 5000 });
-
-        // Check for $PRICKO requirement
-        const prickoRequirement = page.locator('text=/10,?000.*?PRICKO|PRICKO.*?10,?000/i');
-        await expect(prickoRequirement).toBeVisible();
-
-        // Check for wallet options (Phantom, Solflare)
-        const phantomOption = page.locator('text=/phantom/i');
-        const solflareOption = page.locator('text=/solflare/i');
-
-        const hasPhantom = await phantomOption.isVisible({ timeout: 3000 }).catch(() => false);
-        const hasSolflare = await solflareOption.isVisible({ timeout: 3000 }).catch(() => false);
-
-        console.log(`Phantom wallet option: ${hasPhantom ? 'Visible' : 'Not visible'}`);
-        console.log(`Solflare wallet option: ${hasSolflare ? 'Visible' : 'Not visible'}`);
-
-      } else {
-        console.log('Wallet authentication not visible on pricing page');
-      }
-    });
-  });
-
-  test.describe('5. Error Handling & Edge Cases', () => {
+  test.describe('4. Error Handling & Edge Cases', () => {
     test('should handle invalid URL submission gracefully', async ({ page }) => {
       await page.goto('/');
 
@@ -416,7 +349,7 @@ test.describe('Critical Fixes Validation - Stage Environment', () => {
     });
   });
 
-  test.describe('6. Responsive Design', () => {
+  test.describe('5. Responsive Design', () => {
     test('should work correctly on mobile viewport (375x667)', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
       await page.goto('/');
@@ -454,7 +387,7 @@ test.describe('Critical Fixes Validation - Stage Environment', () => {
     });
   });
 
-  test.describe('7. Authentication Flows', () => {
+  test.describe('6. Authentication Flows', () => {
     test('should display authentication options', async ({ page }) => {
       await page.goto('/');
 

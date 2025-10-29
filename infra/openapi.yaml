@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Privacy Advisor API
+  title: Gecko Advisor API
   version: 2.0.0
 servers:
   - url: /

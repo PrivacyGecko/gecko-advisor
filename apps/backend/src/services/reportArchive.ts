@@ -1,4 +1,4 @@
-import { buildReportStorageKey } from '@privacy-advisor/shared';
+import { buildReportStorageKey } from '@gecko-advisor/shared';
 import { config } from '../config.js';
 import { objectStorage } from '../storage/objectStorage.js';
 

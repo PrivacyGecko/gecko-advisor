@@ -41,7 +41,7 @@ the actual test.describe() names in the test files.
 ## 📋 Project Context
 
 ### Project Information
-- **Name:** Gecko Advisor (formerly Privacy Advisor)
+- **Name:** Gecko Advisor (formerly Gecko Advisor)
 - **Purpose:** Open-source privacy scanner for websites
 - **License:** MIT
 - **Tech Stack:** TypeScript, React, Express, Playwright, PostgreSQL, Redis
