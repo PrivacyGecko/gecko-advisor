@@ -256,6 +256,11 @@ services:
       FRONTEND_PUBLIC_URL: ${FRONTEND_PUBLIC_URL:-https://geckoadvisor.com}
       BACKEND_PUBLIC_URL: ${BACKEND_PUBLIC_URL:-https://api.geckoadvisor.com}
 
+      # Backend Proxy URL (for internal Docker networking)
+      # Use http://backend:5000 for Coolify deployments where frontend and backend are on same network
+      # Leave empty to use BACKEND_PUBLIC_URL instead
+      BACKEND_PROXY_URL: ${BACKEND_PROXY_URL:-http://backend:5000}
+
       # Cloudflare Turnstile (Frontend Site Key - optional)
       VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY:-}
 
