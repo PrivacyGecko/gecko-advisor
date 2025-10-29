@@ -21,8 +21,8 @@ services:
       POSTGRES_INITDB_ARGS: "-c log_statement=all -c log_destination=stderr"
 
     volumes:
-      # PRODUCTION: Use prod-specific volume name
-      - privacy-postgres-prod:/var/lib/postgresql/data
+      # PRODUCTION: Use existing volume name (DO NOT change or data will be lost!)
+      - privacy-postgres:/var/lib/postgresql/data
 
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
@@ -46,7 +46,7 @@ services:
     image: redis:7
 
     volumes:
-      - privacy-redis-prod:/data
+      - privacy-redis:/data
 
     # PRODUCTION: Enable Redis persistence (AOF + RDB)
     command: redis-server --appendonly yes --save 900 1 --save 300 10 --save 60 10000
@@ -286,7 +286,7 @@ services:
 # VOLUMES - PRODUCTION DATA PERSISTENCE
 # ============================================================================
 volumes:
-  privacy-postgres-prod:
+  privacy-postgres:
     # PostgreSQL data with query logging enabled
-  privacy-redis-prod:
+  privacy-redis:
     # Redis data with AOF + RDB persistence enabled
