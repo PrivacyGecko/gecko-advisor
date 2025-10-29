@@ -76,6 +76,12 @@ services:
       APP_ENV: stage
       FRONTEND_PUBLIC_URL: ${FRONTEND_PUBLIC_URL:-https://stage.geckoadvisor.com}
       BACKEND_PUBLIC_URL: ${BACKEND_PUBLIC_URL:-https://stageapi.geckoadvisor.com}
+
+      # Backend Proxy URL for internal Docker networking
+      # Use http://backend:5000 for Coolify deployments where frontend and backend are on same network
+      # This avoids Cloudflare SSL handshake issues when using external domains
+      BACKEND_PROXY_URL: ${BACKEND_PROXY_URL:-http://backend:5000}
+
       CSP: ${CSP:-}
     depends_on:
       backend:
