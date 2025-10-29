@@ -1,0 +1,292 @@
+# Production Docker Compose - Minimal Configuration for Quick Testing
+# This file has optional monitoring/security features for rapid deployment testing
+# For full production, use docker-compose.prod.yml instead
+
+name: privacy-advisor-prod
+
+services:
+  # ==========================================================================
+  # DATABASE SERVICE - PostgreSQL 16
+  # ==========================================================================
+  db:
+    image: postgres:16
+
+    environment:
+      POSTGRES_USER: postgres
+      # For quick test, simple password is OK. For real prod, use strong password!
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: privacy
+
+      # PRODUCTION: Enable query logging for audit trail
+      POSTGRES_INITDB_ARGS: "-c log_statement=all -c log_destination=stderr"
+
+    volumes:
+      # PRODUCTION: Use existing volume name (DO NOT change or data will be lost!)
+      - privacy-postgres:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 120s
+
+  # ==========================================================================
+  # CACHE SERVICE - Redis 7
+  # ==========================================================================
+  redis:
+    image: redis:7
+
+    volumes:
+      - privacy-redis:/data
+
+    # PRODUCTION: Enable Redis persistence (AOF + RDB)
+    command: redis-server --appendonly yes --save 900 1 --save 300 10 --save 60 10000
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+        window: 120s
+
+  # ==========================================================================
+  # BACKEND SERVICE
+  # ==========================================================================
+  backend:
+    # Pull pre-built image from GHCR (same as staging)
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-itsanona}/gecko-advisor-backend:main
+    pull_policy: always
+
+    environment:
+      # Core Application Settings
+      NODE_ENV: production
+      APP_ENV: production
+      PORT: ${PORT:-5000}
+      BACKEND_PORT: ${BACKEND_PORT:-5000}
+
+      # Database & Cache
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/privacy}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+
+      # Security & Authentication (REQUIRED)
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in Coolify - Generate with openssl rand -base64 32}
+      ADMIN_API_KEY: ${ADMIN_API_KEY:?Set ADMIN_API_KEY in Coolify - Generate with openssl rand -hex 32}
+
+      # CORS & Public URLs (PRODUCTION DOMAINS)
+      BASE_URL: ${BASE_URL:-https://geckoadvisor.com}
+      FRONTEND_PUBLIC_URL: ${FRONTEND_PUBLIC_URL:-https://geckoadvisor.com}
+      BACKEND_PUBLIC_URL: ${BACKEND_PUBLIC_URL:-https://api.geckoadvisor.com}
+      ALLOW_ORIGIN: ${ALLOW_ORIGIN:-https://geckoadvisor.com}
+      API_ORIGIN: ${API_ORIGIN:-https://api.geckoadvisor.com}
+      CORS_EXTRA_ORIGINS: ${CORS_EXTRA_ORIGINS:-}
+
+      # Cloudflare Turnstile (OPTIONAL for quick test)
+      TURNSTILE_ENABLED: ${TURNSTILE_ENABLED:-false}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+
+      # Hetzner Object Storage (OPTIONAL for quick test)
+      OBJECT_STORAGE_ENABLED: ${OBJECT_STORAGE_ENABLED:-false}
+      OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:-}
+      OBJECT_STORAGE_REGION: ${OBJECT_STORAGE_REGION:-eu-central}
+      OBJECT_STORAGE_BUCKET: ${OBJECT_STORAGE_BUCKET:-}
+      OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY:-}
+      OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY:-}
+      OBJECT_STORAGE_REPORT_PREFIX: ${OBJECT_STORAGE_REPORT_PREFIX:-reports/}
+      OBJECT_STORAGE_PUBLIC_URL: ${OBJECT_STORAGE_PUBLIC_URL:-}
+      OBJECT_STORAGE_FORCE_PATH_STYLE: ${OBJECT_STORAGE_FORCE_PATH_STYLE:-true}
+      OBJECT_STORAGE_SIGNED_URL_SECONDS: ${OBJECT_STORAGE_SIGNED_URL_SECONDS:-3600}
+
+      # Rate Limiting (PRODUCTION: Stricter limits than staging)
+      RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-20}
+      RATE_LIMIT_SCAN_PER_MINUTE: ${RATE_LIMIT_SCAN_PER_MINUTE:-5}
+      RATE_LIMIT_REPORT_PER_MINUTE: ${RATE_LIMIT_REPORT_PER_MINUTE:-20}
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-60000}
+      RATE_LIMIT_SCAN_WINDOW_MS: ${RATE_LIMIT_SCAN_WINDOW_MS:-60000}
+      RATE_LIMIT_REPORT_WINDOW_MS: ${RATE_LIMIT_REPORT_WINDOW_MS:-60000}
+
+      # Queue & Cache
+      CACHE_TTL_MS: ${CACHE_TTL_MS:-900000}
+
+      # Monitoring (OPTIONAL for quick test - but recommended!)
+      SENTRY_DSN_BE: ${SENTRY_DSN_BE:-}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-production}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0.1}
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+
+      # Payment Providers
+      LEMONSQUEEZY_ENABLED: ${LEMONSQUEEZY_ENABLED:-false}
+      LEMONSQUEEZY_API_KEY: ${LEMONSQUEEZY_API_KEY:-}
+      LEMONSQUEEZY_STORE_ID: ${LEMONSQUEEZY_STORE_ID:-}
+      LEMONSQUEEZY_VARIANT_ID: ${LEMONSQUEEZY_VARIANT_ID:-}
+      LEMONSQUEEZY_WEBHOOK_SECRET: ${LEMONSQUEEZY_WEBHOOK_SECRET:-}
+      LEMONSQUEEZY_CHECKOUT_REDIRECT_URL: ${LEMONSQUEEZY_CHECKOUT_REDIRECT_URL:-https://geckoadvisor.com/checkout/success}
+
+      # Wallet Authentication
+      WALLET_AUTH_ENABLED: ${WALLET_AUTH_ENABLED:-true}
+      WALLET_PRO_TOKEN_THRESHOLD: ${WALLET_PRO_TOKEN_THRESHOLD:-10000}
+      SOLANA_RPC_URL: ${SOLANA_RPC_URL:-https://api.mainnet-beta.solana.com}
+      PRICKO_TOKEN_MINT: ${PRICKO_TOKEN_MINT:-}
+      PRICKO_TOKEN_LAUNCHED: ${PRICKO_TOKEN_LAUNCHED:-false}
+
+      # Email (OPTIONAL for quick test)
+      SENDGRID_ENABLED: ${SENDGRID_ENABLED:-false}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY:-}
+      SENDGRID_FROM_EMAIL: ${SENDGRID_FROM_EMAIL:-noreply@geckoadvisor.com}
+      PASSWORD_RESET_URL: ${PASSWORD_RESET_URL:-https://geckoadvisor.com/reset-password}
+
+      # Feature Flags
+      USE_FIXTURES: ${USE_FIXTURES:-0}
+
+    expose:
+      - "5000"
+
+    # CRITICAL: Database MUST be healthy before backend starts
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 120s
+
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:5000/api/health',res=>process.exit(res.statusCode===200?0:1)).on('error',()=>process.exit(1))\" "]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      # CRITICAL: 30s start period allows time for Prisma migrations
+      start_period: 30s
+
+  # ==========================================================================
+  # WORKER SERVICE
+  # ==========================================================================
+  worker:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-itsanona}/gecko-advisor-worker:main
+    pull_policy: always
+
+    environment:
+      # Core Application Settings
+      NODE_ENV: production
+      APP_ENV: production
+
+      # Database & Cache
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/privacy}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+
+      # Public URL
+      WORKER_PUBLIC_URL: ${WORKER_PUBLIC_URL:-https://worker.geckoadvisor.com}
+
+      # Worker Configuration
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-5}
+      WORKER_JOB_ATTEMPTS: ${WORKER_JOB_ATTEMPTS:-3}
+      WORKER_BACKOFF_MS: ${WORKER_BACKOFF_MS:-5000}
+      WORKER_REQUEST_TIMEOUT_MS: ${WORKER_REQUEST_TIMEOUT_MS:-5000}
+      WORKER_MAX_CONTENT_BYTES: ${WORKER_MAX_CONTENT_BYTES:-800000}
+      WORKER_CRAWL_BUDGET_MS: ${WORKER_CRAWL_BUDGET_MS:-10000}
+      WORKER_PAGE_LIMIT: ${WORKER_PAGE_LIMIT:-10}
+      WORKER_JOB_TIMEOUT_MS: ${WORKER_JOB_TIMEOUT_MS:-60000}
+      WORKER_HEALTH_PORT: ${WORKER_HEALTH_PORT:-5050}
+
+      # Monitoring (OPTIONAL for quick test)
+      SENTRY_DSN_WORKER: ${SENTRY_DSN_WORKER:-}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-production}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0.1}
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 120s
+
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:5050/health',res=>process.exit(res.statusCode===200?0:1)).on('error',()=>process.exit(1))\" "]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ==========================================================================
+  # FRONTEND SERVICE
+  # ==========================================================================
+  frontend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-itsanona}/gecko-advisor-frontend:main
+    pull_policy: always
+
+    environment:
+      # Core Settings
+      APP_ENV: production
+
+      # Public URLs
+      FRONTEND_PUBLIC_URL: ${FRONTEND_PUBLIC_URL:-https://geckoadvisor.com}
+      BACKEND_PUBLIC_URL: ${BACKEND_PUBLIC_URL:-https://api.geckoadvisor.com}
+
+      # Backend Proxy URL for internal Docker networking
+      # Use http://backend:5000 for Coolify deployments where frontend and backend are on same network
+      # This avoids Cloudflare SSL handshake issues when using external domains
+      BACKEND_PROXY_URL: ${BACKEND_PROXY_URL:-http://backend:5000}
+
+      # Cloudflare Turnstile (Frontend Site Key - optional)
+      VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY:-}
+
+      # Security
+      CSP: ${CSP:-}
+
+    depends_on:
+      backend:
+        condition: service_healthy
+
+    expose:
+      - "80"
+
+    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+        window: 120s
+
+# ============================================================================
+# VOLUMES - PRODUCTION DATA PERSISTENCE
+# ============================================================================
+volumes:
+  privacy-postgres:
+    # PostgreSQL data with query logging enabled
+  privacy-redis:
+    # Redis data with AOF + RDB persistence enabled
