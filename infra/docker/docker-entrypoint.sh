@@ -6,8 +6,8 @@ set -e
 echo "CSP variable received:"
 env | grep -E '^CSP=' || echo "CSP not set, will use default"
 
-# Use envsubst to substitute CSP variable in nginx template
-envsubst '${CSP}' < /nginx.tmpl.conf > /etc/nginx/nginx.conf
+# Use envsubst to substitute CSP and BACKEND_PUBLIC_URL variables in nginx template
+envsubst '${CSP} ${BACKEND_PUBLIC_URL}' < /nginx.tmpl.conf > /etc/nginx/nginx.conf
 
 # Debug: verify CSP was applied correctly
 echo "Generated nginx config CSP line:"
