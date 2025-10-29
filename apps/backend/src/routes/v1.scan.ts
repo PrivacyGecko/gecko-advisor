@@ -1,4 +1,5 @@
-﻿import { Router } from "express";
+// SPDX-License-Identifier: MIT
+import { Router } from "express";
 import { z } from "zod";
 import {
   UrlScanRequestSchema,
