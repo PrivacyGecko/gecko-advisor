@@ -22,7 +22,7 @@ services:
     restart: unless-stopped
 
   backend:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-pothamsetty}/privacy-advisor-backend:stage-latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-itsanona}/gecko-advisor-backend:main
     pull_policy: always
     environment:
       NODE_ENV: production
@@ -49,7 +49,7 @@ services:
       retries: 5
 
   worker:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-pothamsetty}/privacy-advisor-worker:stage-latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-itsanona}/gecko-advisor-worker:main
     pull_policy: always
     environment:
       NODE_ENV: production
@@ -70,12 +70,18 @@ services:
       retries: 5
 
   frontend:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-pothamsetty}/privacy-advisor-frontend:stage-latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-itsanona}/gecko-advisor-frontend:main
     pull_policy: always
     environment:
       APP_ENV: stage
       FRONTEND_PUBLIC_URL: ${FRONTEND_PUBLIC_URL:-https://stage.geckoadvisor.com}
       BACKEND_PUBLIC_URL: ${BACKEND_PUBLIC_URL:-https://stageapi.geckoadvisor.com}
+
+      # Backend Proxy URL for internal Docker networking
+      # Use http://backend:5000 for Coolify deployments where frontend and backend are on same network
+      # This avoids Cloudflare SSL handshake issues when using external domains
+      BACKEND_PROXY_URL: ${BACKEND_PROXY_URL:-http://backend:5000}
+
       CSP: ${CSP:-}
     depends_on:
       backend:
