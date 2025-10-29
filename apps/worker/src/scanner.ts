@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { Prisma, PrismaClient } from '@prisma/client';
 import { load as loadHtml } from 'cheerio';
 import { normalizeUrl, etldPlusOne, buildReportPayload, buildReportStorageKey } from '@gecko-advisor/shared';

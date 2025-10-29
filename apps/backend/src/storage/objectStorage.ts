@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { ObjectStorageService } from '@gecko-advisor/shared';
 import { config } from '../config.js';
 import { logger } from '../logger.js';

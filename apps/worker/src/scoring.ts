@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import type { PrismaClient, Evidence } from "@prisma/client";
 import type { ScoreResult } from "@gecko-advisor/shared";
 import { labelForScore } from "@gecko-advisor/shared";
