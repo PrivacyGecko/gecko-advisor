@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2025 Gecko Advisor contributors
+// SPDX-License-Identifier: MIT
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
