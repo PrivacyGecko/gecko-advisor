@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { Router } from "express";
 import { prisma } from "../prisma.js";
 import { problem } from "../problem.js";

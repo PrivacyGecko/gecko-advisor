@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { Router } from "express";
 import { buildReportPayload, etldPlusOne } from "@gecko-advisor/shared";
 import { prisma } from "../prisma.js";

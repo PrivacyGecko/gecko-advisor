@@ -1,4 +1,5 @@
-﻿import type { RequestHandler } from "express";
+// SPDX-License-Identifier: MIT
+import type { RequestHandler } from "express";
 import { Router } from "express";
 import basicAuth from "basic-auth";
 import { readFile } from "node:fs/promises";
