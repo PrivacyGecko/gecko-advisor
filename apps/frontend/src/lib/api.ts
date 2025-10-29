@@ -1,5 +1,5 @@
 /*
-SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-FileCopyrightText: 2025 Gecko Advisor contributors
 SPDX-License-Identifier: MIT
 */
 import type { ZodSchema } from 'zod';
@@ -11,7 +11,7 @@ import {
   ReportResponseSchema, // Uses 'kind' field (correct after schema migration)
   RecentReportsResponseSchema,
   type ScanStatus,
-} from '@privacy-advisor/shared';
+} from '@gecko-advisor/shared';
 
 /**
  * Custom error type with HTTP status code

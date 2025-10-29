@@ -1,6 +1,6 @@
 # Authentication Integration Guide
 
-This guide shows how to integrate the JWT authentication system with existing Privacy Advisor endpoints.
+This guide shows how to integrate the JWT authentication system with existing Gecko Advisor endpoints.
 
 ## Quick Start
 

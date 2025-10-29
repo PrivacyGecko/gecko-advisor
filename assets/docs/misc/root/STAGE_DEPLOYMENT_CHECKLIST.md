@@ -169,7 +169,7 @@ docker exec YOUR_BACKEND_CONTAINER_ID \
 
 2. **Trigger Coolify Deployment**
    - Go to Coolify dashboard
-   - Select Privacy Advisor project
+   - Select Gecko Advisor project
    - Click "Deploy" on stage environment
    - Or wait for auto-deploy if webhook configured
 

@@ -6,7 +6,7 @@ import {
   AddressScanRequestSchema,
   ScanQueuedResponseSchema,
   normalizeUrl,
-} from "@privacy-advisor/shared";
+} from "@gecko-advisor/shared";
 import { prisma } from "../prisma.js";
 import { problem } from "../problem.js";
 import { scanQueue } from "../queue.js";

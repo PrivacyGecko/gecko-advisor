@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
-SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-FileCopyrightText: 2025 Gecko Advisor contributors
 SPDX-License-Identifier: MIT
 */
 
@@ -201,7 +201,7 @@ async function verifyFrontend() {
   }
 
   // Check if HTML contains expected content
-  if (result.response.body.includes('Privacy Advisor') ||
+  if (result.response.body.includes('Gecko Advisor') ||
       result.response.body.includes('root') ||
       result.response.body.includes('vite')) {
     log('success', 'Frontend HTML verified');
@@ -342,7 +342,7 @@ function printSummary(results) {
  */
 async function main() {
   console.log(`${colors.cyan}╔════════════════════════════════════════════════════╗${colors.reset}`);
-  console.log(`${colors.cyan}║  Privacy Advisor - E2E Stack Verification         ║${colors.reset}`);
+  console.log(`${colors.cyan}║  Gecko Advisor - E2E Stack Verification         ║${colors.reset}`);
   console.log(`${colors.cyan}╚════════════════════════════════════════════════════╝${colors.reset}`);
   console.log(`\nTarget URL: ${colors.blue}${BASE_URL}${colors.reset}`);
   console.log(`Timeout: ${TIMEOUT_MS}ms\n`);

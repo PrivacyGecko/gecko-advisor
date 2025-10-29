@@ -1,5 +1,5 @@
 /*
-SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-FileCopyrightText: 2025 Gecko Advisor contributors
 SPDX-License-Identifier: MIT
 */
 import React, { useState } from 'react';
@@ -62,7 +62,7 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
 
     try {
       await createAccount(email);
-      toast.success('Account created! Welcome to Privacy Advisor');
+      toast.success('Account created! Welcome to Gecko Advisor');
       onClose();
       // Reset form
       setEmail('');
@@ -99,7 +99,7 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
 
     try {
       await register(email, password, name || undefined);
-      toast.success('Account created! Welcome to Privacy Advisor');
+      toast.success('Account created! Welcome to Gecko Advisor');
       onClose();
       // Reset form
       setEmail('');

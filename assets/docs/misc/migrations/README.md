@@ -16,7 +16,7 @@
 
 ## What This Migration Does
 
-Adds support for Privacy Advisor's Freemium subscription model with:
+Adds support for Gecko Advisor's Freemium subscription model with:
 
 ### New Features
 - **User Accounts**: Email/password authentication with subscription management
@@ -516,7 +516,7 @@ For issues or questions:
 
 ## Summary
 
-This migration successfully implements a Freemium subscription model for Privacy Advisor with:
+This migration successfully implements a Freemium subscription model for Gecko Advisor with:
 
 ✅ **Zero breaking changes** - Existing functionality unchanged
 ✅ **Sub-3-second performance** - All queries optimized
@@ -530,5 +530,5 @@ This migration successfully implements a Freemium subscription model for Privacy
 
 **Migration ID**: 20251006213752_add_freemium_models
 **Created**: 2025-10-06
-**Author**: Privacy Advisor Team
+**Author**: Gecko Advisor Team
 **Version**: 1.0.0

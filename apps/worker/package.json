@@ -1,5 +1,5 @@
 {
-  "name": "@privacy-advisor/worker",
+  "name": "@gecko-advisor/worker",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@prisma/client": "5.22.0",
-    "@privacy-advisor/shared": "workspace:*",
+    "@gecko-advisor/shared": "workspace:*",
     "@sentry/node": "^8.22.0",
     "bullmq": "^5.11.4",
     "cheerio": "^1.0.0",

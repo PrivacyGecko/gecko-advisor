@@ -1,10 +1,10 @@
 /*
-SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-FileCopyrightText: 2025 Gecko Advisor contributors
 SPDX-License-Identifier: MIT
 */
 
 /**
- * Performance monitoring utilities for Privacy Advisor frontend
+ * Performance monitoring utilities for Gecko Advisor frontend
  *
  * Features:
  * - Core Web Vitals tracking

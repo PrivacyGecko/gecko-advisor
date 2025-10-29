@@ -2,7 +2,7 @@
 
 ## Summary
 
-Successfully implemented IP-based and user-based rate limiting for Privacy Advisor's freemium model.
+Successfully implemented IP-based and user-based rate limiting for Gecko Advisor's freemium model.
 
 ## What Was Built
 

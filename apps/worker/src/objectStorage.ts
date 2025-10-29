@@ -1,4 +1,4 @@
-import { ObjectStorageService } from '@privacy-advisor/shared';
+import { ObjectStorageService } from '@gecko-advisor/shared';
 import { config } from './config.js';
 import { logger } from './logger.js';
 

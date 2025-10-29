@@ -32,7 +32,6 @@ export interface SafeUser {
   subscription: string;
   subscriptionStatus: string;
   subscriptionEndsAt: Date | null;
-  stripeCustomerId: string | null;
   apiKey: string | null;
   apiCallsMonth: number;
   apiResetAt: Date | null;
@@ -64,7 +63,7 @@ export class AuthService {
    */
   private sanitizeUser(user: User): SafeUser {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { passwordHash, emailVerified, stripeSubscriptionId, ...safeUser } = user;
+    const { passwordHash, emailVerified, ...safeUser } = user;
     return safeUser;
   }
 
@@ -386,7 +385,7 @@ export class AuthService {
 
   /**
    * Generate API key for Pro users
-   * API keys are used for programmatic access to the Privacy Advisor API
+   * API keys are used for programmatic access to the Gecko Advisor API
    * Format: pa_[32 random alphanumeric characters]
    *
    * @param userId User's unique identifier

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Privacy Advisor implements IP-based rate limiting to enforce scan quotas for free tier users while providing unlimited scans for Pro subscribers. This document describes the complete implementation, architecture, and usage.
+Gecko Advisor implements IP-based rate limiting to enforce scan quotas for free tier users while providing unlimited scans for Pro subscribers. This document describes the complete implementation, architecture, and usage.
 
 ## Features
 
@@ -490,4 +490,4 @@ For questions or issues:
 - Check logs: `docker logs privacy-advisor-backend-1`
 - Review test results: `./test-rate-limit.sh`
 - Database console: `npx prisma studio --schema=infra/prisma/schema.prisma`
-- Contact: Privacy Advisor Team
+- Contact: Gecko Advisor Team

@@ -1,4 +1,4 @@
-# Privacy Advisor Stage Fixes - Implementation Summary
+# Gecko Advisor Stage Fixes - Implementation Summary
 
 **Date:** 2025-10-06
 **Environment:** stage.privamule.com

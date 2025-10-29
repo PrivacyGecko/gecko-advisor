@@ -1,4 +1,4 @@
-# Privacy Advisor Design System - Quick Reference
+# Gecko Advisor Design System - Quick Reference
 
 ## Color Palette
 

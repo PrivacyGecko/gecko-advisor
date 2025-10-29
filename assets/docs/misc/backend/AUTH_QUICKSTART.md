@@ -1,6 +1,6 @@
 # Authentication Quick Start Guide
 
-5-minute guide to get authentication working in Privacy Advisor.
+5-minute guide to get authentication working in Gecko Advisor.
 
 ## Setup (1 minute)
 

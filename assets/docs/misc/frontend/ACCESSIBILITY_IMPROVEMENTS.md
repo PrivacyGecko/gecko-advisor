@@ -142,4 +142,4 @@ privacy: {
 - Optimized bundle size through selective imports
 - No external dependencies added
 
-These improvements significantly enhance the accessibility and usability of the Privacy Advisor application while maintaining the existing functionality and improving the overall user experience for all users, including those with disabilities.
+These improvements significantly enhance the accessibility and usability of the Gecko Advisor application while maintaining the existing functionality and improving the overall user experience for all users, including those with disabilities.

@@ -1,6 +1,6 @@
 # Database Migration Guide for Coolify Deployment
 
-**Project:** Privacy Advisor
+**Project:** Gecko Advisor
 **Platform:** Coolify v4
 **Database:** PostgreSQL with Prisma ORM
 **Last Updated:** 2025-10-06
@@ -9,7 +9,7 @@
 
 ## Overview
 
-This guide explains how to run database migrations for Privacy Advisor when deployed on Coolify. Coolify handles the Docker container orchestration, but database migrations need to be executed manually or via deployment hooks.
+This guide explains how to run database migrations for Gecko Advisor when deployed on Coolify. Coolify handles the Docker container orchestration, but database migrations need to be executed manually or via deployment hooks.
 
 ---
 
@@ -37,7 +37,7 @@ make migrate ENV=stage
 
 ---
 
-## Understanding Privacy Advisor's Migration Setup
+## Understanding Gecko Advisor's Migration Setup
 
 ### Architecture
 - **Frontend**: Nginx serving static React build
@@ -69,7 +69,7 @@ ssh user@your-coolify-server.com
 ### Step 2: Find Your Backend Container
 
 ```bash
-# List all running containers related to Privacy Advisor
+# List all running containers related to Gecko Advisor
 docker ps | grep privacy-advisor
 
 # Or filter specifically for backend
@@ -519,7 +519,7 @@ docker exec privacy-advisor-worker-1 npx prisma db pull --schema=/app/infra/pris
 
 ## Performance Optimizations Migration
 
-Privacy Advisor includes critical performance optimization migrations. See `infra/prisma/migrations/DEPLOYMENT_GUIDE.md` for detailed instructions.
+Gecko Advisor includes critical performance optimization migrations. See `infra/prisma/migrations/DEPLOYMENT_GUIDE.md` for detailed instructions.
 
 ### Key Migration Files:
 - `20251005000001_critical_performance_optimizations` - Adds covering indexes
@@ -590,4 +590,4 @@ Check project documentation:
 - `/README.md` - General project information
 - `/infra/prisma/migrations/DEPLOYMENT_GUIDE.md` - Detailed migration guide
 
-**Still stuck?** Check Coolify logs and Privacy Advisor backend logs for error details.
+**Still stuck?** Check Coolify logs and Gecko Advisor backend logs for error details.

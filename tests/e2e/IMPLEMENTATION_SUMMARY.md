@@ -163,7 +163,7 @@ npm run verify-e2e  # If added to package.json
 **Example Output**:
 ```
 ╔════════════════════════════════════════════════════╗
-║  Privacy Advisor - E2E Stack Verification         ║
+║  Gecko Advisor - E2E Stack Verification         ║
 ╚════════════════════════════════════════════════════╝
 
 Target URL: http://localhost:8080
@@ -388,7 +388,7 @@ pkill -f "pnpm dev"
 
 ### Response Time Optimization
 
-The configuration is optimized for Privacy Advisor's **<3 second response time requirement**:
+The configuration is optimized for Gecko Advisor's **<3 second response time requirement**:
 
 1. **Gzip Compression**: Reduces payload size for large reports
    - 400+ evidence items can be 100KB+ uncompressed

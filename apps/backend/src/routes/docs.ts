@@ -36,7 +36,7 @@ docsRouter.get('/', docsAuthGuard, (_req, res) => {
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Privacy Advisor API Docs</title>
+    <title>Gecko Advisor API Docs</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
   </head>
   <body>

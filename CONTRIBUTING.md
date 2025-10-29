@@ -195,7 +195,7 @@ git rebase upstream/main
 - **Strict mode enabled**: All code must pass strict type checking
 - **No `any` types**: Use proper types or `unknown` with type guards
 - **Consistent imports**: Use `import type` for type-only imports
-- **Path mapping**: Use `@privacy-advisor/shared` for shared package imports
+- **Path mapping**: Use `@gecko-advisor/shared` for shared package imports
 
 ### Code Style
 

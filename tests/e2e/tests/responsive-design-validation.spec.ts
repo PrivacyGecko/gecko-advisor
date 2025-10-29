@@ -1,5 +1,5 @@
 /*
-SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-FileCopyrightText: 2025 Gecko Advisor contributors
 SPDX-License-Identifier: MIT
 */
 import { test, expect, Page, ViewportSize } from '@playwright/test';
@@ -26,7 +26,6 @@ const VIEWPORTS = {
 // Test pages
 const PAGES = [
   { path: '/', name: 'Homepage' },
-  { path: '/pricing', name: 'Pricing Page' },
   { path: '/about', name: 'About Page' },
   { path: '/privacy', name: 'Privacy Policy' },
 ] as const;
@@ -104,54 +103,6 @@ test.describe('Responsive Design Validation', () => {
       console.log('   Touch Targets: Appropriate ✅');
     });
 
-    test('Mobile Pricing Page Responsiveness', async ({ page }) => {
-      console.log('📱 TEST: Mobile Pricing Page (375x667)');
-
-      await page.goto('/pricing');
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000); // Allow page to fully render
-
-      await takeScreenshot(page, 'mobile-375-pricing', { fullPage: true });
-      console.log('✅ Mobile pricing screenshot captured');
-
-      // Check for horizontal scrolling
-      const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
-      expect(bodyWidth).toBeLessThanOrEqual(VIEWPORTS.MOBILE.width + 5); // 5px tolerance
-      console.log(`✅ No horizontal scrolling: ${bodyWidth}px <= ${VIEWPORTS.MOBILE.width}px`);
-
-      // Verify pricing cards stack vertically
-      const pricingCards = page.locator('[data-testid*="pricing"], .pricing-card, [class*="pricing"]');
-      const cardCount = await pricingCards.count();
-      console.log(`📊 Pricing cards found: ${cardCount}`);
-
-      if (cardCount > 0) {
-        // Check if cards are full-width on mobile
-        const firstCard = pricingCards.first();
-        const cardBox = await firstCard.boundingBox();
-        if (cardBox) {
-          expect(cardBox.width).toBeGreaterThan(300); // Should be nearly full width
-          console.log(`✅ Pricing card width: ${cardBox.width}px (full-width on mobile)`);
-        }
-      }
-
-      // Check CTA buttons are touch-friendly
-      const ctaButtons = page.locator('button:has-text("Subscribe"), button:has-text("Upgrade"), button:has-text("Choose Plan")');
-      const ctaCount = await ctaButtons.count();
-
-      if (ctaCount > 0) {
-        const firstCta = ctaButtons.first();
-        const ctaBox = await firstCta.boundingBox();
-        if (ctaBox) {
-          expect(ctaBox.height).toBeGreaterThanOrEqual(44);
-          console.log(`✅ CTA button height: ${ctaBox.height}px (touch-friendly)`);
-        }
-      }
-
-      console.log('\n📋 MOBILE PRICING TEST SUMMARY:');
-      console.log('   Status: PASS ✅');
-      console.log(`   Cards Stack Vertically: ${cardCount > 0 ? 'Yes ✅' : 'N/A'}`);
-      console.log('   Touch-Friendly Buttons: Yes ✅');
-    });
 
     test('Mobile Scan Progress Responsiveness', async ({ page }) => {
       console.log('📱 TEST: Mobile Scan Progress (375x667)');
@@ -236,38 +187,6 @@ test.describe('Responsive Design Validation', () => {
       console.log('   Layout: Optimized for tablet ✅');
     });
 
-    test('Tablet Pricing Page Responsiveness', async ({ page }) => {
-      console.log('📱 TEST: Tablet Pricing Page (768x1024)');
-
-      await page.goto('/pricing');
-      await page.waitForLoadState('networkidle');
-
-      await takeScreenshot(page, 'tablet-768-pricing', { fullPage: true });
-      console.log('✅ Tablet pricing screenshot captured');
-
-      // Pricing cards should be in 2-column layout on tablet
-      const pricingCards = page.locator('[data-testid*="pricing"], .pricing-card, [class*="pricing"]');
-      const cardCount = await pricingCards.count();
-
-      if (cardCount >= 2) {
-        const firstCard = await pricingCards.nth(0).boundingBox();
-        const secondCard = await pricingCards.nth(1).boundingBox();
-
-        if (firstCard && secondCard) {
-          // Cards should be side-by-side (approximately same Y position)
-          const yDiff = Math.abs(firstCard.y - secondCard.y);
-          if (yDiff < 100) {
-            console.log(`✅ Pricing cards in row layout (Y diff: ${yDiff}px)`);
-          } else {
-            console.log(`⚠️  Pricing cards stacked vertically (Y diff: ${yDiff}px)`);
-          }
-        }
-      }
-
-      console.log('\n📋 TABLET PRICING TEST SUMMARY:');
-      console.log('   Status: PASS ✅');
-      console.log(`   Cards Found: ${cardCount}`);
-    });
 
     test('Tablet Scan Progress Responsiveness', async ({ page }) => {
       console.log('📱 TEST: Tablet Scan Progress (768x1024)');
@@ -332,37 +251,6 @@ test.describe('Responsive Design Validation', () => {
       console.log('   Max-Width Applied: Yes ✅');
     });
 
-    test('Desktop Pricing Page Responsiveness', async ({ page }) => {
-      console.log('🖥️  TEST: Desktop Pricing Page (1920x1080)');
-
-      await page.goto('/pricing');
-      await page.waitForLoadState('networkidle');
-
-      await takeScreenshot(page, 'desktop-1920-pricing', { fullPage: true });
-      console.log('✅ Desktop pricing screenshot captured');
-
-      // Pricing cards should be in horizontal row
-      const pricingCards = page.locator('[data-testid*="pricing"], .pricing-card, [class*="pricing"]');
-      const cardCount = await pricingCards.count();
-      console.log(`📊 Pricing cards: ${cardCount}`);
-
-      if (cardCount >= 2) {
-        const cards = await Promise.all([
-          pricingCards.nth(0).boundingBox(),
-          pricingCards.nth(1).boundingBox()
-        ]);
-
-        if (cards[0] && cards[1]) {
-          const yDiff = Math.abs(cards[0].y - cards[1].y);
-          expect(yDiff).toBeLessThan(100); // Should be in same row
-          console.log(`✅ Pricing cards in horizontal row (Y diff: ${yDiff}px)`);
-        }
-      }
-
-      console.log('\n📋 DESKTOP PRICING TEST SUMMARY:');
-      console.log('   Status: PASS ✅');
-      console.log('   Cards Layout: Horizontal ✅');
-    });
 
     test('Desktop Scan Results Responsiveness', async ({ page }) => {
       console.log('🖥️  TEST: Desktop Scan Results (1920x1080)');
@@ -449,7 +337,6 @@ test.afterAll(async () => {
   console.log('  ✅ Desktop (1920x1080) - Standard Desktop');
   console.log('\nPages Tested:');
   console.log('  ✅ Homepage');
-  console.log('  ✅ Pricing Page');
   console.log('  ✅ Scan Progress Page');
   console.log('  ✅ Scan Results Page');
   console.log('\n📸 Screenshots saved to: test-results/screenshots/');

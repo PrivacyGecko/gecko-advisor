@@ -1,7 +1,7 @@
 # Freemium Model Implementation Guide
 
 ## Overview
-This guide provides complete implementation details for integrating the Freemium model into Privacy Advisor's backend and frontend.
+This guide provides complete implementation details for integrating the Freemium model into Gecko Advisor's backend and frontend.
 
 ## Table of Contents
 1. [Database Schema Summary](#database-schema-summary)
@@ -92,7 +92,7 @@ scannerIp   String?   // For anonymous rate limiting
 ```typescript
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { prisma } from '@privacy-advisor/shared/db';
+import { prisma } from '@gecko-advisor/shared/db';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -184,7 +184,7 @@ export const requirePro = async (
 ```typescript
 import type { Response, NextFunction } from 'express';
 import type { AuthenticatedRequest } from './auth.middleware';
-import { prisma } from '@privacy-advisor/shared/db';
+import { prisma } from '@gecko-advisor/shared/db';
 
 const FREE_TIER_DAILY_LIMIT = 3;
 
@@ -260,7 +260,7 @@ export const rateLimitScan = async (
 ```typescript
 import type { Request, Response, NextFunction } from 'express';
 import type { AuthenticatedRequest } from './auth.middleware';
-import { prisma } from '@privacy-advisor/shared/db';
+import { prisma } from '@gecko-advisor/shared/db';
 
 export const apiKeyAuth = async (
   req: AuthenticatedRequest,
@@ -352,7 +352,7 @@ export const apiKeyAuth = async (
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { prisma } from '@privacy-advisor/shared/db';
+import { prisma } from '@gecko-advisor/shared/db';
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -615,7 +615,7 @@ router.get('/watched-urls', requirePro, async (req: AuthenticatedRequest, res) =
 
 ```typescript
 import Stripe from 'stripe';
-import { prisma } from '@privacy-advisor/shared/db';
+import { prisma } from '@gecko-advisor/shared/db';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -730,7 +730,7 @@ PRO_TIER_MONTHLY_LIMIT=10000
 
 ```typescript
 import { describe, it, expect, beforeAll } from 'vitest';
-import { prisma } from '@privacy-advisor/shared/db';
+import { prisma } from '@gecko-advisor/shared/db';
 import bcrypt from 'bcryptjs';
 
 describe('Authentication', () => {

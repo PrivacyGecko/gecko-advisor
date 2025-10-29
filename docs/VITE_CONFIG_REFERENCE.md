@@ -1,4 +1,4 @@
-# Vite Configuration Reference for Privacy Advisor
+# Vite Configuration Reference for Gecko Advisor
 
 ## Quick Reference
 

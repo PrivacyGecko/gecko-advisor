@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-This document provides complete design solutions with exact Tailwind CSS implementations for all P0 critical UI/UX issues identified in Privacy Advisor. All solutions are WCAG 2.1 AA compliant, maintain brand consistency, and can be implemented immediately.
+This document provides complete design solutions with exact Tailwind CSS implementations for all P0 critical UI/UX issues identified in Gecko Advisor. All solutions are WCAG 2.1 AA compliant, maintain brand consistency, and can be implemented immediately.
 
 ---
 
@@ -134,7 +134,7 @@ Create a new component: `/apps/frontend/src/components/ComingSoonNotice.tsx`
 
 ```tsx
 /*
-SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-FileCopyrightText: 2025 Gecko Advisor contributors
 SPDX-License-Identifier: MIT
 */
 import React from 'react';
@@ -678,7 +678,7 @@ pnpm test:e2e --grep "accessibility"
 
 ## Brand Consistency
 
-All solutions maintain Privacy Advisor's brand identity:
+All solutions maintain Gecko Advisor's brand identity:
 
 ✅ **Trust Blue** (`#0e6fff`) for primary actions
 ✅ **Semantic color system** (green/amber/red) for privacy scores

@@ -1,7 +1,7 @@
 # Freemium Model Migration Guide
 
 ## Overview
-This migration adds support for user accounts, subscriptions, rate limiting, and Pro features to Privacy Advisor.
+This migration adds support for user accounts, subscriptions, rate limiting, and Pro features to Gecko Advisor.
 
 ## Migration: 20251006213752_add_freemium_models
 

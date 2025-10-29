@@ -236,7 +236,7 @@ OBJECT_STORAGE_SIGNED_URL_SECONDS=3600
 **Option A: Via Coolify Web UI (Recommended)**
 
 1. Navigate to your Coolify dashboard
-2. Go to your Privacy Advisor stage application
+2. Go to your Gecko Advisor stage application
 3. Click "Environment Variables"
 4. Add/update the variables listed above
 5. Click "Save"

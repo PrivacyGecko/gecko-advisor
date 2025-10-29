@@ -8,7 +8,7 @@ import type { ConsoleMessage } from '@playwright/test';
  * Tests critical functionality after recent fixes:
  * - CSP environment variable (inline styles for React)
  * - LICENSE-THIRD-PARTY.md with Inter Font attribution
- * - Branding fixes (Privacy Advisor → Gecko Advisor)
+ * - Branding fixes (Gecko Advisor → Gecko Advisor)
  */
 
 // Test configuration
@@ -331,7 +331,7 @@ test.describe('Gecko Advisor Stage - Comprehensive E2E Validation', () => {
       console.log('WhoTracks.me mentioned:', hasWhoTracksMe);
     });
 
-    test('2.6 Branding is "Gecko Advisor" not "Privacy Advisor"', async ({ page }) => {
+    test('2.6 Branding is "Gecko Advisor" not "Gecko Advisor"', async ({ page }) => {
       await page.goto('/about');
 
       const pageContent = await page.content();
@@ -340,10 +340,10 @@ test.describe('Gecko Advisor Stage - Comprehensive E2E Validation', () => {
       expect(pageContent).toContain('Gecko Advisor');
 
       // Check that old branding is NOT present
-      const hasOldBranding = pageContent.includes('Privacy Advisor');
+      const hasOldBranding = pageContent.includes('Gecko Advisor');
 
       if (hasOldBranding) {
-        console.warn('WARNING: Found "Privacy Advisor" on about page!');
+        console.warn('WARNING: Found "Gecko Advisor" on about page!');
       }
 
       expect(hasOldBranding).toBe(false);
@@ -399,11 +399,11 @@ test.describe('Gecko Advisor Stage - Comprehensive E2E Validation', () => {
 
       const pageContent = await page.content();
 
-      // Check for "Gecko Advisor provides" not "Privacy Advisor provides"
+      // Check for "Gecko Advisor provides" not "Gecko Advisor provides"
       const hasCorrectName = pageContent.includes('Gecko Advisor provides') ||
                              pageContent.includes('Gecko Advisor is');
 
-      const hasIncorrectName = pageContent.includes('Privacy Advisor provides');
+      const hasIncorrectName = pageContent.includes('Gecko Advisor provides');
 
       expect(hasIncorrectName).toBe(false);
 

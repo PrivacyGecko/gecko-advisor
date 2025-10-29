@@ -1,8 +1,8 @@
-# Privacy Advisor - Premium Visual Upgrade Summary
+# Gecko Advisor - Premium Visual Upgrade Summary
 
 ## Executive Summary
 
-This document summarizes the premium visual components created to elevate Privacy Advisor from functional MVP to production-ready, conversion-optimized application. All components are designed to build trust, improve usability, and justify premium pricing through professional polish.
+This document summarizes the premium visual components created to elevate Gecko Advisor from functional MVP to production-ready, conversion-optimized application. All components are designed to build trust, improve usability, and justify premium pricing through professional polish.
 
 ---
 
@@ -305,7 +305,7 @@ All components meet or exceed WCAG 2.1 AA standards:
 
 ## Design System Alignment
 
-All components use Privacy Advisor's design system defined in `tailwind.config.ts`:
+All components use Gecko Advisor's design system defined in `tailwind.config.ts`:
 
 - **Colors**: privacy-safe, privacy-caution, privacy-danger palettes
 - **Typography**: Inter font family, consistent sizing scale

@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This analysis validates that the Freemium model schema changes maintain Privacy Advisor's **sub-3-second scan response time** requirement while adding user accounts, rate limiting, and subscription features.
+This analysis validates that the Freemium model schema changes maintain Gecko Advisor's **sub-3-second scan response time** requirement while adding user accounts, rate limiting, and subscription features.
 
 **Key Findings**:
 - Zero impact on existing scan performance (anonymous scans)

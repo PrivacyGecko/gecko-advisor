@@ -55,17 +55,7 @@ model User {
   authMethod    AuthMethod @default(EMAIL)
 
   // Subscription
-  subscription         Subscription @default(FREE)
-  subscriptionProvider String? // 'STRIPE' | 'LEMONSQUEEZY' | 'WALLET'
-
-  // Stripe fields
-  stripeCustomerId     String? @unique
-  stripeSubscriptionId String? @unique
-
-  // LemonSqueezy fields
-  lsCustomerId     String? @unique
-  lsSubscriptionId String? @unique
-
+  subscription       Subscription       @default(FREE)
   subscriptionStatus SubscriptionStatus @default(INACTIVE)
   subscriptionEndsAt DateTime?
 
@@ -85,7 +75,6 @@ model User {
 
   @@index([email])
   @@index([apiKey])
-  @@index([stripeCustomerId])
 }
 
 // Enhanced Scan model with user relations and privacy controls

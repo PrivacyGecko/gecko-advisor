@@ -1,6 +1,6 @@
 # Frontend Authentication & Rate Limiting Implementation
 
-This document describes the frontend authentication and rate limiting UI implementation for Privacy Advisor.
+This document describes the frontend authentication and rate limiting UI implementation for Gecko Advisor.
 
 ## Overview
 
@@ -352,6 +352,6 @@ apps/frontend/src/
 
 ## Summary
 
-This implementation provides a complete authentication and rate limiting UI for Privacy Advisor, following React best practices, TypeScript strict mode, and the existing design system. All components are production-ready, accessible, performant, and integrate seamlessly with the backend APIs.
+This implementation provides a complete authentication and rate limiting UI for Gecko Advisor, following React best practices, TypeScript strict mode, and the existing design system. All components are production-ready, accessible, performant, and integrate seamlessly with the backend APIs.
 
 The system supports both quick email-only signups for ease of use and full account registration for users who want password protection. Rate limiting is clearly communicated to users with actionable upgrade paths for conversion to paid plans.

@@ -1,4 +1,4 @@
-# Migration Safety Analysis for Privacy Advisor
+# Migration Safety Analysis for Gecko Advisor
 
 ## Current Migration Patterns Assessment
 

@@ -81,7 +81,7 @@ Verify these records are **Proxied (🟠 orange cloud)**:
 
 ### **Task 4: Update Environment Variables in Coolify** (~10 min)
 
-1. Go to Coolify dashboard → Your Privacy Advisor stage app
+1. Go to Coolify dashboard → Your Gecko Advisor stage app
 2. Navigate to **Environment Variables**
 3. **Add/Update these variables:**
 

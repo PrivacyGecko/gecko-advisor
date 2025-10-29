@@ -1,5 +1,5 @@
 {
-  "name": "@privacy-advisor/prisma",
+  "name": "@gecko-advisor/prisma",
   "private": true,
   "license": "UNLICENSED",
   "devDependencies": {

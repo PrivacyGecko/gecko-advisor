@@ -1,5 +1,5 @@
 /*
-SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-FileCopyrightText: 2025 Gecko Advisor contributors
 SPDX-License-Identifier: MIT
 */
 import React from 'react';
@@ -16,7 +16,7 @@ import { ScoreDialSkeleton, CardSkeleton, EvidenceCardSkeleton } from '../compon
 import { ErrorState } from '../components/ErrorBoundary';
 import Footer from '../components/Footer';
 import GradeBadge from '../components/GradeBadge';
-import type { ReportResponse } from '@privacy-advisor/shared';
+import type { ReportResponse } from '@gecko-advisor/shared';
 import { computeDataSharingLevel, type DataSharingLevel } from '../lib/dataSharing';
 import { useAuth } from '../contexts/AuthContext';
 

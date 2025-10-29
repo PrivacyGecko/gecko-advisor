@@ -1,4 +1,4 @@
-# Privacy Advisor Design System - Quick Reference
+# Gecko Advisor Design System - Quick Reference
 
 **Designer**: Expert Visual Designer Agent
 **Date**: 2025-10-06
@@ -602,4 +602,4 @@ Inline:    focus:ring-2 focus:ring-security-blue focus:ring-offset-1
 
 **End of Quick Reference**
 
-All components are WCAG 2.1 AA compliant, mobile-optimized, and aligned with Privacy Advisor's brand identity.
+All components are WCAG 2.1 AA compliant, mobile-optimized, and aligned with Gecko Advisor's brand identity.

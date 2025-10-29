@@ -30,7 +30,6 @@ This document provides instructions for running comprehensive E2E validation tes
 
 **Pages Tested:**
 - Homepage
-- Pricing Page
 - Scan Progress Page
 - Scan Results Page
 
@@ -40,8 +39,7 @@ This document provides instructions for running comprehensive E2E validation tes
 **Features Tested:**
 - Scan submission (all viewports)
 - Navigation links (all viewports)
-- Wallet connection modal (all viewports)
-- PRO upgrade modal (all viewports)
+- Modal dialogs (all viewports)
 - Touch interactions (mobile)
 - Keyboard navigation (desktop)
 - Scrolling behavior (all viewports)
@@ -202,7 +200,7 @@ All screenshots are saved to:
 **Functionality Screenshots:**
 - `functionality-mobile-homepage.png`
 - `functionality-tablet-scan-initiated.png`
-- `functionality-desktop-wallet-modal.png`
+- `functionality-desktop-modal.png`
 - etc.
 
 ### JSON Report

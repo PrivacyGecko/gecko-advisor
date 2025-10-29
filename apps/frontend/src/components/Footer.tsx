@@ -1,5 +1,5 @@
 /*
-SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-FileCopyrightText: 2025 Gecko Advisor contributors
 SPDX-License-Identifier: MIT
 */
 import React from 'react';
@@ -7,14 +7,14 @@ import { Link } from 'react-router-dom';
 import { BRAND, getEmailLink, getSocialUrl } from '../config/branding';
 
 /**
- * Footer Component - PrivacyGecko Branding
+ * Footer Component - Gecko Advisor Branding
  *
- * Comprehensive footer with PrivacyGecko branding, navigation links,
+ * Comprehensive footer with Gecko Advisor branding, navigation links,
  * contact information, social media links, and copyright notice.
  *
  * Features:
- * - PrivacyGecko logo and tagline
- * - Product links (Features, Pricing, API Docs)
+ * - Gecko Advisor logo and tagline
+ * - Product links (Features, Docs, API)
  * - Company links (About, Contact, Email)
  * - Legal links (Privacy Policy, Terms of Service)
  * - Social media links (Twitter, GitHub, LinkedIn)

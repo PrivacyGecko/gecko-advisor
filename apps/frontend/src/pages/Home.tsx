@@ -1,5 +1,5 @@
 /*
-SPDX-FileCopyrightText: 2025 Privacy Advisor contributors
+SPDX-FileCopyrightText: 2025 Gecko Advisor contributors
 SPDX-License-Identifier: MIT
 */
 import React, { useState } from 'react';
@@ -18,7 +18,7 @@ import EnhancedTrustIndicator from '../components/EnhancedTrustIndicator';
 import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import GradeBadge from '../components/GradeBadge';
 import TurnstileWidget, { useTurnstileEnabled } from '../components/TurnstileWidget';
-import type { RecentReportsResponse } from '@privacy-advisor/shared';
+import type { RecentReportsResponse } from '@gecko-advisor/shared';
 
 type RecentItem = RecentReportsResponse['items'][number] & { evidenceCount: number };
 type RecentQueryResult = { items: RecentItem[] };

@@ -1,10 +1,10 @@
 # JWT Authentication Implementation
 
-Complete JWT-based authentication system for Privacy Advisor supporting anonymous users, email-only accounts, and full registration with passwords.
+Complete JWT-based authentication system for Gecko Advisor supporting anonymous users, email-only accounts, and full registration with passwords.
 
 ## Overview
 
-Privacy Advisor now supports three authentication levels:
+Gecko Advisor now supports three authentication levels:
 
 1. **Anonymous**: No token required, rate limited by IP (3 scans/day)
 2. **Free Account**: JWT token provided, same rate limits, but gets scan history
@@ -461,6 +461,6 @@ Authorization header is now allowed in CORS configuration.
 ## Dependencies Installed
 
 ```bash
-pnpm add bcryptjs jsonwebtoken --filter @privacy-advisor/backend
-pnpm add -D @types/bcryptjs @types/jsonwebtoken --filter @privacy-advisor/backend
+pnpm add bcryptjs jsonwebtoken --filter @gecko-advisor/backend
+pnpm add -D @types/bcryptjs @types/jsonwebtoken --filter @gecko-advisor/backend
 ```

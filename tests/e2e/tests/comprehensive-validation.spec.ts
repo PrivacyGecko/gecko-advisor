@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 import { test, expect, Page } from '@playwright/test';
 
-test.describe('Privacy Advisor - Comprehensive Validation', () => {
+test.describe('Gecko Advisor - Comprehensive Validation', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
   });

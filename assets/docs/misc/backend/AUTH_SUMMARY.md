@@ -1,6 +1,6 @@
 # JWT Authentication System - Implementation Summary
 
-Complete JWT-based authentication system successfully implemented for Privacy Advisor.
+Complete JWT-based authentication system successfully implemented for Gecko Advisor.
 
 ## What Was Implemented
 

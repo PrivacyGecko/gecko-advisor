@@ -1,4 +1,4 @@
-# Privacy Advisor Database Performance Optimization Deployment Guide
+# Gecko Advisor Database Performance Optimization Deployment Guide
 
 ## 🚀 Critical Performance Improvements
 

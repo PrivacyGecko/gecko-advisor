@@ -809,7 +809,7 @@ pnpm dev
 
 **End of Visual Reference Guide**
 
-These fixes transform Privacy Advisor from a functional MVP to a polished, accessible, professional application that:
+These fixes transform Gecko Advisor from a functional MVP to a polished, accessible, professional application that:
 - ✅ Meets WCAG 2.1 AA accessibility standards
 - ✅ Provides excellent mobile UX with proper touch targets
 - ✅ Communicates clearly about disabled features

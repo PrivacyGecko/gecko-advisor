@@ -2,7 +2,7 @@
 
 ## Overview
 
-Privacy Advisor implements IP-based and user-based rate limiting to enforce the freemium model:
+Gecko Advisor implements IP-based and user-based rate limiting to enforce the freemium model:
 
 - **FREE TIER**: 3 scans per day (tracked by IP for anonymous users, user ID for accounts)
 - **PRO TIER**: Unlimited scans (bypasses rate limiting)

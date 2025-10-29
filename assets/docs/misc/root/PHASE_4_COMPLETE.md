@@ -2,7 +2,7 @@
 
 ## Summary
 
-Successfully implemented complete frontend authentication and rate limiting UI for Privacy Advisor's freemium model using React, TypeScript, and Tailwind CSS.
+Successfully implemented complete frontend authentication and rate limiting UI for Gecko Advisor's freemium model using React, TypeScript, and Tailwind CSS.
 
 ## What Was Built
 
@@ -62,7 +62,7 @@ Successfully implemented complete frontend authentication and rate limiting UI f
     - Pro badge (if Pro user)
     - Dropdown menu: Dashboard, Settings, Logout
   - Responsive design (mobile hamburger menu ready)
-- **Styling**: Privacy Advisor brand colors, smooth animations
+- **Styling**: Gecko Advisor brand colors, smooth animations
 - **Lines**: ~165
 
 ### 6. Dashboard Page (`apps/frontend/src/pages/Dashboard.tsx`)
